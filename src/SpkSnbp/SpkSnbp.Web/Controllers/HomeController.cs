@@ -1,32 +1,51 @@
-using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SpkSnbp.Web.Models;
+using SpkSnbp.Web.Authentication;
+using SpkSnbp.Web.Models.Home;
 
-namespace SpkSnbp.Web.Controllers
+namespace SpkSnbp.Web.Controllers;
+
+[Authorize]
+public class HomeController : Controller
 {
-    public class HomeController : Controller
+    private readonly ILogger<HomeController> _logger;
+    private readonly ISignInManager _signInManager;
+
+    public HomeController(ILogger<HomeController> logger, ISignInManager signInManager)
     {
-        private readonly ILogger<HomeController> _logger;
+        _logger = logger;
+        _signInManager = signInManager;
+    }
 
-        public HomeController(ILogger<HomeController> logger)
+    public IActionResult Index()
+    {
+        return View();
+    }
+
+    [AllowAnonymous]
+    public IActionResult Login(string? returnUrl = null) => View(new LoginVM { ReturnUrl = returnUrl });
+
+    [HttpPost]
+    [AllowAnonymous]
+    public async Task<IActionResult> Login(LoginVM vm)
+    {
+        if (!ModelState.IsValid) return View(vm);
+
+        var result = await _signInManager.Login(vm.UserName, vm.Password, vm.RememberMe);
+        if (result.IsFailure)
         {
-            _logger = logger;
+            ModelState.AddModelError(string.Empty, result.Error.Message);
+            return View(vm);
         }
 
-        public IActionResult Index()
-        {
-            return View();
-        }
+        return vm.ReturnUrl is null ? RedirectToAction("Index", "Home") : Redirect(vm.ReturnUrl);
+    }
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+    [HttpPost]
+    public async Task<IActionResult> Logout()
+    {
+        await _signInManager.Logout();
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+        return RedirectToAction(nameof(Login));
     }
 }
