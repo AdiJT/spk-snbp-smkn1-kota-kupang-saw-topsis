@@ -11,6 +11,7 @@ public interface ITahunAjaranRepository
 {
     Task<TahunAjaran?> Get(int id);
     Task<List<TahunAjaran>> GetAll();
+    Task<bool> IsExist(int tahun);
 
     void Add(TahunAjaran tahunAjaran);
     void Update(TahunAjaran tahunAjaran);

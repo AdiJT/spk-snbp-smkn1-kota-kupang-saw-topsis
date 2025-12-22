@@ -36,5 +36,9 @@ internal class TahunAjaranRepository : ITahunAjaranRepository
         .Include(x => x.DaftarSiswa)
         .ToListAsync();
 
+    public async Task<bool> IsExist(int tahun) => await _appDbContext
+        .TahunAjaran
+        .AnyAsync(x => x.Id == tahun);
+
     public void Update(TahunAjaran tahunAjaran) => _appDbContext.TahunAjaran.Update(tahunAjaran);
 }

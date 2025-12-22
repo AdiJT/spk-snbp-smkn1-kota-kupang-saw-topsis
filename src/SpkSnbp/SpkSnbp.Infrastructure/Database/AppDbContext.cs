@@ -38,7 +38,6 @@ internal class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(
 
     public DbSet<User> User { get; set; }
     public DbSet<TahunAjaran> TahunAjaran { get; set; }
-    public DbSet<Jurusan> Jurusan { get; set; }
     public DbSet<Siswa> Siswa { get; set; }
     public DbSet<Kriteria> Kriteria { get; set; }
     public DbSet<SiswaKriteria> SiswaKriteria { get; set; }

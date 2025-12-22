@@ -10,7 +10,6 @@ internal class SiswaConfiguration : IEntityTypeConfiguration<Siswa>
     public void Configure(EntityTypeBuilder<Siswa> builder)
     {
         builder.HasOne(x => x.TahunAjaran).WithMany(y => y.DaftarSiswa);
-        builder.HasOne(x => x.Jurusan).WithMany(y => y.DaftarSiswa);
 
         builder
             .HasMany(x => x.DaftarKriteria)
@@ -38,7 +37,6 @@ internal class SiswaRepository : ISiswaRepository
     public async Task<Siswa?> Get(int id) => await _appDbContext
         .Siswa
         .Include(x => x.TahunAjaran)
-        .Include(x => x.Jurusan)
         .Include(x => x.DaftarKriteria)
         .Include(x => x.DaftarSiswaKriteria).ThenInclude(y => y.Kriteria)
         .FirstOrDefaultAsync(x => x.Id == id);
@@ -46,18 +44,16 @@ internal class SiswaRepository : ISiswaRepository
     public async Task<List<Siswa>> GetAll() => await _appDbContext
         .Siswa
         .Include(x => x.TahunAjaran)
-        .Include(x => x.Jurusan)
         .Include(x => x.DaftarKriteria)
         .Include(x => x.DaftarSiswaKriteria).ThenInclude(y => y.Kriteria)
         .ToListAsync();
 
-    public async Task<List<Siswa>> GetAll(int tahunAjaran, int idJurusan) => await _appDbContext
+    public async Task<List<Siswa>> GetAll(int tahunAjaran, Jurusan jurusan) => await _appDbContext
         .Siswa
         .Include(x => x.TahunAjaran)
-        .Include(x => x.Jurusan)
         .Include(x => x.DaftarKriteria)
         .Include(x => x.DaftarSiswaKriteria).ThenInclude(y => y.Kriteria)
-        .Where(x => x.TahunAjaran.Id == tahunAjaran && x.Jurusan.Id == idJurusan)
+        .Where(x => x.TahunAjaran.Id == tahunAjaran && x.Jurusan == jurusan)
         .ToListAsync();
 
     public async Task<bool> IsExist(string nisn, int? idFilter = null) => await _appDbContext

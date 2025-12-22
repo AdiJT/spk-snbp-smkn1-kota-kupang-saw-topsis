@@ -28,7 +28,6 @@ public static class DepedencyInjection
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ITahunAjaranRepository, TahunAjaranRepository>();
-        services.AddScoped<IJurusanRepository, JurusanRepository>();
         services.AddScoped<ISiswaRepository, SiswaRepository>();
         services.AddScoped<IKriteriaRepository, KriteriaRepository>();
         services.AddScoped<ISiswaKriteriaRepository, SiswaKriteriaRepository>();
