@@ -1,0 +1,38 @@
+﻿<script type="importmap">
+    {
+        "imports": {
+            "ckeditor5": "https://cdn.ckeditor.com/ckeditor5/43.0.0/ckeditor5.js",
+            "ckeditor5/": "https://cdn.ckeditor.com/ckeditor5/43.0.0/"
+        }
+    }
+</script>
+
+<!-- CSS ckEditor 5-->
+<link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/42.0.1/ckeditor5.css" />
+<!-- Akhir CSS ckEditor 5-->
+<!-- JS ckEditor5 -->
+<script type="module">
+    import {
+        ClassicEditor,
+        Essentials,
+        Paragraph,
+        Bold,
+        Italic,
+        List
+    } from 'ckeditor5';
+
+    $('.editor').each(function() {
+        ClassicEditor
+        .create(this, {
+            plugins: [Essentials, Paragraph, Bold, Italic, List ],
+            toolbar: ['undo', 'redo', 'bold', 'italic', 'numberedList', 'bulletedList']
+        })
+        .then(editor => {
+            editor.ui.view.editable.element.style.height = '200px';
+        })
+        .catch(error => {
+            console.error(error);
+        });
+    })
+</script>
+<!-- Akhir JS ckEditor5 -->

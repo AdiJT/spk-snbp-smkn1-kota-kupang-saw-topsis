@@ -3,6 +3,6 @@
 public static class UserRoles
 {
     public const string Admin = "Admin";
-    public const string KepalaSekolah = "KepalaSekolah";
-    public const string WaliKelas = "WaliKelas";
+    public const string KepalaSekolah = "Kepala Sekolah";
+    public const string WaliKelas = "Wali Kelas";
 }

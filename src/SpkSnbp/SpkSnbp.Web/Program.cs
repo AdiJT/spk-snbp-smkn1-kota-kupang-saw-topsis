@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using SpkSnbp.Domain.Auth;
 using SpkSnbp.Infrastructure;
 using SpkSnbp.Web.Authentication;
+using SpkSnbp.Web.Services.Toastr;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddScoped<ISignInManager, SignInManager>();
+builder.Services.AddScoped<IToastrNotificationService, ToastrNotificationService>();
 
 var app = builder.Build();
 

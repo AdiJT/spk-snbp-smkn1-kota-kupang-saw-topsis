@@ -57,14 +57,14 @@ namespace SpkSnbp.Infrastructure.Migrations
                         {
                             Id = 2,
                             PasswordHash = "AQAAAAIAAYagAAAAEKXsR8woVHO5DgmyBgmfe5b4I7jeJZYtk71JFY4HkDSCsimeHtIwzOueTyHo8gBH/A==",
-                            Role = "WaliKelas",
+                            Role = "Wali Kelas",
                             UserName = "Wali Kelas"
                         },
                         new
                         {
                             Id = 3,
                             PasswordHash = "AQAAAAIAAYagAAAAEKXsR8woVHO5DgmyBgmfe5b4I7jeJZYtk71JFY4HkDSCsimeHtIwzOueTyHo8gBH/A==",
-                            Role = "KepalaSekolah",
+                            Role = "Kepala Sekolah",
                             UserName = "Kepala Sekolah"
                         });
                 });

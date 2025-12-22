@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpkSnbp.Web.Authentication;
 using SpkSnbp.Web.Models.Home;
+using SpkSnbp.Web.Services.Toastr;
 
 namespace SpkSnbp.Web.Controllers;
 
@@ -10,11 +11,16 @@ public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
     private readonly ISignInManager _signInManager;
+    private readonly IToastrNotificationService _notificationService;
 
-    public HomeController(ILogger<HomeController> logger, ISignInManager signInManager)
+    public HomeController(
+        ILogger<HomeController> logger,
+        ISignInManager signInManager,
+        IToastrNotificationService notificationService)
     {
         _logger = logger;
         _signInManager = signInManager;
+        _notificationService = notificationService;
     }
 
     public IActionResult Index()

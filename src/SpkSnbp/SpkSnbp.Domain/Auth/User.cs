@@ -7,6 +7,10 @@ public class User : Entity<int>
     public required string UserName { get; set; }
     public required string PasswordHash { get; set; }
     public required string Role { get; set; }
+
+    public string Initial => string.Join(
+        string.Empty,
+        UserName.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.RemoveEmptyEntries).Take(2).Select(x => x.First()));
 }
 
 public interface IUserRepository
