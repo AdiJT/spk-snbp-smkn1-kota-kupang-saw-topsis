@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using SpkSnbp.Domain.Auth;
+using SpkSnbp.Domain.Contracts;
 using SpkSnbp.Web.Authentication;
 using SpkSnbp.Web.Models.Home;
 using SpkSnbp.Web.Services.Toastr;
@@ -12,15 +15,24 @@ public class HomeController : Controller
     private readonly ILogger<HomeController> _logger;
     private readonly ISignInManager _signInManager;
     private readonly IToastrNotificationService _notificationService;
+    private readonly IUserRepository _userRepository;
+    private readonly IPasswordHasher<User> _passwordHasher;
+    private readonly IUnitOfWork _unitOfWork;
 
     public HomeController(
         ILogger<HomeController> logger,
         ISignInManager signInManager,
-        IToastrNotificationService notificationService)
+        IToastrNotificationService notificationService,
+        IUserRepository userRepository,
+        IPasswordHasher<User> passwordHasher,
+        IUnitOfWork unitOfWork)
     {
         _logger = logger;
         _signInManager = signInManager;
         _notificationService = notificationService;
+        _userRepository = userRepository;
+        _passwordHasher = passwordHasher;
+        _unitOfWork = unitOfWork;
     }
 
     public IActionResult Index()
@@ -53,5 +65,45 @@ public class HomeController : Controller
         await _signInManager.Logout();
 
         return RedirectToAction(nameof(Login));
+    }
+
+    [AllowAnonymous]
+    public IActionResult Daftar() => View(new DaftarVM());
+
+    [AllowAnonymous]
+    [HttpPost]
+    public async Task<IActionResult> Daftar(DaftarVM vm)
+    {
+        if (!ModelState.IsValid) return View(vm);
+
+        if (await _userRepository.IsExist(vm.UserName))
+        {
+            ModelState.AddModelError(nameof(vm.UserName), "User name sudah digunakan");
+            return View(vm);
+        }
+
+        if (vm.Role != UserRoles.KepalaSekolah && vm.Role != UserRoles.WaliKelas)
+        {
+            ModelState.AddModelError(nameof(vm.Role), "Tidak valid");
+            return View(vm);
+        }
+
+        var user = new User
+        {
+            UserName = vm.UserName,
+            Role = vm.Role,
+            PasswordHash = _passwordHasher.HashPassword(null, vm.Password)
+        };
+
+        _userRepository.Add(user);
+        var result = await _unitOfWork.SaveChangesAsync();
+        if (result.IsFailure)
+        {
+            _notificationService.AddError("Daftar Gagal");
+            return View(vm);
+        }
+
+        _notificationService.AddSuccess("Daftar Berhasil");
+        return RedirectToActionPermanent(nameof(Login));
     }
 }

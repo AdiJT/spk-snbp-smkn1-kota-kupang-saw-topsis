@@ -1,5 +1,6 @@
-﻿@using SpkSnbp.Web.Models.Home
-@model LoginVM
+﻿@using SpkSnbp.Domain.Auth
+@using SpkSnbp.Web.Models.Home
+@model DaftarVM
 
 @{
     Layout = null;
@@ -8,7 +9,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login - SPK SNBP SMKN 1 Kota Kupang</title>
+    <title>Daftar - SPK SNBP SMKN 1 Kota Kupang</title>
     <link rel="stylesheet" href="~/css/app.min.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/lib/datatables/datatables.min.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
@@ -55,7 +56,7 @@
                             <img src="#" style="width: 50px; height: 50px;" />
                         </div> *@
                         <div class="login-brand mt-2">
-                            SPK SNBP SMKN 1 Kota Kupang
+                            Daftar Akun Baru
                         </div>
                         <div class="card card-primary">
                             <div class="row m-0">
@@ -65,7 +66,7 @@
                                         <span style='font-size:20px;'>&#128075;</span>
                                     </div>
                                     <div class="card-body">
-                                        <form asp-action="Login" asp-controller="Home" method="post">
+                                        <form asp-action="Daftar" asp-controller="Home" method="post">
                                             <div asp-validation-summary="ModelOnly" class="text-danger form-text"></div>
 
                                             <div class="form-group floating-addon">
@@ -76,10 +77,11 @@
                                                             <i class="far fa-user"></i>
                                                         </div>
                                                     </div>
-                                                    <input asp-for="@Model.UserName" type="text" class="form-control" autofocus placeholder="Username">
+                                                    <input asp-for="@Model.UserName" type="text" autocomplete="new-username" class="form-control" autofocus placeholder="Username">
                                                 </div>
                                                 <span class="text-danger form-text" asp-validation-for="@Model.UserName"></span>
                                             </div>
+                                            
                                             <div class="form-group floating-addon">
                                                 <label asp-for="@Model.Password">Password</label>
                                                 <div class="input-group">
@@ -90,7 +92,7 @@
                                                     </div>
 
                                                     <!-- password input -->
-                                                    <input asp-for="@Model.Password" type="password" class="form-control" placeholder="Password">
+                                                    <input asp-for="@Model.Password" autocomplete="new-password" type="password" class="form-control" placeholder="Password">
 
                                                     <!-- tombol mata -->
                                                     <div class="input-group-append" style="margin-top: 11px">
@@ -102,24 +104,47 @@
                                                 </div>
                                                 <span class="text-danger form-text" asp-validation-for="@Model.Password"></span>
                                             </div>
+
                                             <div class="form-group floating-addon">
-                                                <div class="custom-control custom-checkbox">
-                                                    <input asp-for="@Model.RememberMe" type="checkbox" name="remember" class="custom-control-input">
-                                                    <label class="custom-control-label" asp-for="@Model.RememberMe">Ingat Saya</label>
-                                                    <span class="text-danger" asp-validation-for="@Model.RememberMe"></span>
-                                                </div>         
+                                                <label asp-for="@Model.KonfirmasiPassword">Konfirmasi Password</label>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <div class="input-group-text">
+                                                            <i class="fas fa-lock"></i>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- password input -->
+                                                    <input asp-for="@Model.KonfirmasiPassword" type="password" class="form-control" placeholder="Konfirmasi Password">
+
+                                                    <!-- tombol mata -->
+                                                    <div class="input-group-append" style="margin-top: 11px">
+                                                        <button class="btn btn-toggle-password" type="button"
+                                                                aria-label="Show password" aria-pressed="false" title="Tampilkan / Sembunyikan password">
+                                                            <i class="fas fa-eye" aria-hidden="true"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <span class="text-danger form-text" asp-validation-for="@Model.KonfirmasiPassword"></span>
                                             </div>
 
-                                            <input asp-for="@Model.ReturnUrl" hidden />
+                                            <div class="form-group floating-addon">
+                                                <label asp-for="@Model.Role">Role</label>
+                                                <div class="input-group">
+                                                    <select asp-for="@Model.Role" type="text" class="form-control" autofocus>
+                                                        <option value="@UserRoles.KepalaSekolah">@UserRoles.KepalaSekolah</option>
+                                                        <option value="@UserRoles.WaliKelas">@UserRoles.WaliKelas</option>
+                                                    </select>
+                                                </div>
+                                                <span class="text-danger form-text" asp-validation-for="@Model.Role"></span>
+                                            </div>
 
                                             <div class="form-group text-center">
                                                 <button type="submit" class="btn btn-lg btn-primary w-100">
-                                                    Masuk
+                                                    Daftar
                                                 </button>
                                             </div>
                                         </form>
-
-                                        <a asp-action="Daftar" asp-controller="Home">Daftar</a>
                                     </div>
                                 </div>
                             </div>
@@ -132,10 +157,14 @@
             </div>
         </section>
     </div>
+
     <script src="~/js/app.min.js" asp-append-version="true"></script>
     <script src="~/lib/datatables/datatables.min.js" asp-append-version="true"></script>
     <script src="~/js/datatables.js" asp-append-version="true"></script>
     <script src="~/js/dashboard.js" asp-append-version="true"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <partial name="_ValidationScriptsPartial" />
 
     @{
         var globalOptions = new ToastrOptions
@@ -186,7 +215,3 @@
         });
     </script>
 </body>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
