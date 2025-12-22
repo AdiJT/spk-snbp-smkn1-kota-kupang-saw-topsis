@@ -1,9 +1,13 @@
-﻿<!-- SIDEBAR -->
+﻿@using SpkSnbp.Domain.Auth
+@using SpkSnbp.Web.Authentication
+@inject ISignInManager SignInManager
+
+<!-- SIDEBAR -->
 <div class="main-sidebar sidebar-style-2">
     <aside id="sidebar-wrapper">
         <div class="sidebar-brand">
             <a href="">
-                <img src="#" style="width: 30px; height: 30px;"/>
+                <img src="#" style="width: 30px; height: 30px;" />
                 <span class="logo-name">Dashboard</span>
             </a>
         </div>
@@ -12,6 +16,14 @@
             <li>
                 <a asp-controller="Home" asp-action="Index" data-match="all" class="nav-link"><i class="fas fa-home"></i><span>Beranda</span></a>
             </li>
+
+            @if (await SignInManager.IsInRole(UserRoles.Admin))
+            {
+                <li class="menu-header">Kriteria</li>
+                <li>
+                    <a asp-controller="Kriteria" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-home"></i><span>Kriteria</span></a>
+                </li>
+            }
         </ul>
     </aside>
 </div>

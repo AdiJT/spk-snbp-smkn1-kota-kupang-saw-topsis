@@ -39,6 +39,14 @@ public class SignInManager : ISignInManager
         return appUser; 
     }
 
+    public async Task<bool> IsInRole(string roleName)
+    {
+        var user = await GetUser();
+        if (user is null) return false;
+
+        return user.Role == roleName;
+    }
+
     public async Task<Result<string>> Login(string username, string password, bool rememberMe)
     {
         var httpContext = _contextAccessor.HttpContext;

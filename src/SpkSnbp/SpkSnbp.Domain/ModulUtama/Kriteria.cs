@@ -8,6 +8,8 @@ public class Kriteria : Entity<int>
     public required int Bobot { get; set; }
     public required JenisKriteria Jenis { get; set; }
 
+    public string Kode => $"C{Id}";
+
     public List<Siswa> DaftarSiswa { get; set; } = [];
     public List<SiswaKriteria> DaftarSiswaKriteria { get; set; } = [];
 }

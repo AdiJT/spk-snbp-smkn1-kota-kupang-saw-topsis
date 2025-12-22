@@ -79,6 +79,7 @@ internal class KriteriaRepository : IKriteriaRepository
 
     public async Task<List<Kriteria>> GetAll() => await _appDbContext
         .Kriteria
+        .OrderBy(x => x.Id)
         .ToListAsync();
 
     public void Update(Kriteria kriteria) => _appDbContext.Kriteria.Update(kriteria);
