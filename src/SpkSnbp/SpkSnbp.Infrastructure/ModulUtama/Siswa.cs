@@ -41,19 +41,12 @@ internal class SiswaRepository : ISiswaRepository
         .Include(x => x.DaftarSiswaKriteria).ThenInclude(y => y.Kriteria)
         .FirstOrDefaultAsync(x => x.Id == id);
 
-    public async Task<List<Siswa>> GetAll() => await _appDbContext
+    public async Task<List<Siswa>> GetAll(Jurusan? jurusan = null, int? tahunAjaran = null) => await _appDbContext
         .Siswa
         .Include(x => x.TahunAjaran)
         .Include(x => x.DaftarKriteria)
         .Include(x => x.DaftarSiswaKriteria).ThenInclude(y => y.Kriteria)
-        .ToListAsync();
-
-    public async Task<List<Siswa>> GetAll(int tahunAjaran, Jurusan jurusan) => await _appDbContext
-        .Siswa
-        .Include(x => x.TahunAjaran)
-        .Include(x => x.DaftarKriteria)
-        .Include(x => x.DaftarSiswaKriteria).ThenInclude(y => y.Kriteria)
-        .Where(x => x.TahunAjaran.Id == tahunAjaran && x.Jurusan == jurusan)
+        .Where(x => (jurusan == null || x.Jurusan == jurusan) && (tahunAjaran == null || x.TahunAjaran.Id == tahunAjaran))
         .ToListAsync();
 
     public async Task<bool> IsExist(string nisn, int? idFilter = null) => await _appDbContext

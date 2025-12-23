@@ -28,7 +28,25 @@ public class SiswaController : Controller
         _tahunAjaranRepository = tahunAjaranRepository;
     }
 
-    public async Task<IActionResult> Index() => View(await _siswaRepository.GetAll());
+    public async Task<IActionResult> Index(Jurusan? jurusan = null, int? tahun = null)
+    {
+        var tahunAjaran = tahun is null ? null : await _tahunAjaranRepository.Get(tahun.Value);
+
+        if (tahunAjaran is null) 
+            return View(new IndexVM
+            {
+                Jurusan = jurusan,
+                DaftarSiswa = await _siswaRepository.GetAll(jurusan)
+            });
+
+        return View(new IndexVM
+        {
+            Jurusan = jurusan,
+            Tahun = tahun,
+            TahunAjaran = tahunAjaran,
+            DaftarSiswa = await _siswaRepository.GetAll(jurusan, tahun)
+        });
+    }
 
     [HttpPost]
     public async Task<IActionResult> Tambah(TambahVM vm)

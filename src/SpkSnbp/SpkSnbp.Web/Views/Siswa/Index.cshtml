@@ -1,8 +1,11 @@
 ﻿@using SpkSnbp.Web.Models.SiswaModels
-@model List<Siswa>
+@model IndexVM
+
+@inject ITahunAjaranRepository TahunAjaranRepository
 
 @{
     ViewData["Title"] = "Siswa";
+    var daftarTahun = await TahunAjaranRepository.GetAll();
 }
 
 <!-- Breadcrumb -->
@@ -30,9 +33,35 @@
                     <i class="fas fa-plus"></i> Tambah Data
                 </button>
                 <div class="form-tambah">
-                    <partial name="_FormTambahPartial" model="@(new TambahVM())" />
+                    <partial name="_FormTambahPartial" model="@(new TambahVM { IdTahunAjaran = Model.Tahun ?? default, Jurusan = Model.Jurusan ?? default, ReturnUrl = Context.Request.AbsoluteUri()})" />
                 </div>
             </div>
+
+            <form asp-action="Index" method="get" class="d-flex align-items-center" style="gap: 8px;">
+                <div class="d-flex ml-auto mr-3">
+                    <div class="d-flex align-items-center mr-2" style="gap: 8px;">
+                        <label asp-for="@Model.Tahun" class="mb-0" style="font-weight: 600;">Tahun Ajaran:</label>
+                        <select asp-for="@Model.Tahun" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
+                            <option value="@null">-- Semua --</option>
+                            @foreach(var item in daftarTahun)
+                            {
+                                <option value="@item.Id">@item.Id</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="d-flex align-items-center mr-2" style="gap: 8px;">
+                        <label asp-for="@Model.Jurusan" class="mb-0" style="font-weight: 600;">Jurusan:</label>
+                        <select asp-for="@Model.Jurusan" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
+                            <option value="@null">-- Semua --</option>
+                            @foreach(var item in Enum.GetValues<Jurusan>())
+                            {
+                                <option value="@item">@item.Humanize()</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </form>
         </div>
 
         <!-- Tabel -->
@@ -48,9 +77,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var siswa in Model)
+                    @foreach (var siswa in Model.DaftarSiswa)
                     {
-                        var editVM = new EditVM { Id = siswa.Id, NISN = siswa.NISN, Nama = siswa.Nama, Jurusan = siswa.Jurusan, IdTahunAjaran = siswa.TahunAjaran.Id };
+                        var editVM = new EditVM { Id = siswa.Id, NISN = siswa.NISN, Nama = siswa.Nama, Jurusan = siswa.Jurusan, IdTahunAjaran = siswa.TahunAjaran.Id, ReturnUrl = Context.Request.AbsoluteUri() };
 
                         <tr>
                             <td>@siswa.Nama</td>
@@ -66,7 +95,7 @@
                                     <partial name="_FormEditPartial" model="@editVM" />
                                 </div>
 
-                                <form asp-action="Hapus" asp-route-id="@siswa.Id" style="display:inline" method="post">
+                                <form asp-action="Hapus" asp-route-id="@siswa.Id" asp-route-returnUrl="@Context.Request.AbsoluteUri()" style="display:inline" method="post">
                                     <button type="button" class="btn btn-danger btn-action swal-confirm">
                                         <i class="fas fa-trash"></i>
                                     </button>
