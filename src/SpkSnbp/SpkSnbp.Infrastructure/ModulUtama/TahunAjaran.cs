@@ -10,6 +10,8 @@ internal class TahunAjaranConfiguration : IEntityTypeConfiguration<TahunAjaran>
     public void Configure(EntityTypeBuilder<TahunAjaran> builder)
     {
         builder.HasMany(x => x.DaftarSiswa).WithOne(y => y.TahunAjaran);
+
+        builder.HasData(new TahunAjaran { Id = 2025 });
     }
 }
 

@@ -1,0 +1,62 @@
+﻿@using SpkSnbp.Web.Models.SiswaModels
+@model EditVM
+
+@inject ITahunAjaranRepository TahunAjaranRepository
+
+@{
+    var daftarTahunAjaran = await TahunAjaranRepository.GetAll();
+}
+
+<form asp-action="Edit" asp-controller="Siswa" asp-route-id="@Model.Id" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+    <div class="modal-header">
+        <h5 class="modal-title" id="modalTambahTitle">Edit Siswa</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <div class="modal-body">
+        <div class="form-group">
+            <label asp-for="@Model.NISN"></label>
+            <input asp-for="@Model.NISN" class="form-control" />
+            <span asp-validation-for="@Model.NISN" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="@Model.Nama"></label>
+            <input asp-for="@Model.Nama" class="form-control" />
+            <span asp-validation-for="@Model.Nama" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="@Model.Jurusan"></label>
+            <select asp-for="@Model.Jurusan" class="form-control">
+                @foreach (var item in Enum.GetValues<Jurusan>())
+                {
+                    <option value="@item">@item.Humanize()</option>
+                }
+            </select>
+            <span asp-validation-for="@Model.Jurusan" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="@Model.IdTahunAjaran"></label>
+            <select asp-for="@Model.IdTahunAjaran" class="form-control">
+                @foreach (var item in daftarTahunAjaran)
+                {
+                    <option value="@item.Id">@item.Id</option>
+                }
+            </select>
+            <span asp-validation-for="@Model.IdTahunAjaran" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

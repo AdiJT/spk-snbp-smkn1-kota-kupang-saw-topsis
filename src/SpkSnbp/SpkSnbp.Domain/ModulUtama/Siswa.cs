@@ -8,7 +8,7 @@ public class Siswa : Entity<int>
     public required string Nama { get; set; }
     public double? NilaiTopsis { get; set; }
     public Eligible? Eligible { get; set; }
-    public Jurusan Jurusan { get; set; }
+    public required Jurusan Jurusan { get; set; }
 
     public TahunAjaran TahunAjaran { get; set; }
 
