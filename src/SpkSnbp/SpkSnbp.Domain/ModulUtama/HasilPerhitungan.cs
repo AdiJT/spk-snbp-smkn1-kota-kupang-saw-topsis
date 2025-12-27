@@ -17,6 +17,7 @@ public class HasilPerhitungan : Entity<int>
     public required double[] JarakSolusiIdealNegatif { get; set; }
 
     public TahunAjaran TahunAjaran { get; set; }
+    public List<Siswa> DaftarSiswa { get; set; } = [];
 }
 
 public interface IHasilPerhitunganRepository

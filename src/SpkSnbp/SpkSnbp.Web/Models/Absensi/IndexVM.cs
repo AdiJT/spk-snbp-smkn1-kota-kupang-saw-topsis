@@ -33,6 +33,15 @@ public static class EnumerableExtensions
         {
             Siswa = x,
             IdSiswa = x.Id,
-            Absensi = x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Absensi)?.Nilai
+            Absensi = x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Absensi)?.Nilai,
+            JumlahAbsen = x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Absensi)?.Nilai switch
+            {
+                5 => 0,
+                4 => 10,
+                3 => 19,
+                2 => 28,
+                1 => 37,
+                _ => 0
+            }
         }).ToList();
 }

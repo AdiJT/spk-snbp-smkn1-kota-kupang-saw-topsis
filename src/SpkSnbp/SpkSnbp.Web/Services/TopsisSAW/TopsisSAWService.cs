@@ -183,6 +183,7 @@ public class TopsisSAWService : ITopsisSAWService
             SolusiIdealNegatif = solusiIdealNegatif,
             JarakSolusiIdealPositif = jarakSolusiIdealPositif,
             JarakSolusiIdealNegatif = jarakSolusiIdealNegatif,
+            DaftarSiswa = daftarSiswa
         };
 
         _hasilPerhitunganRepository.Add(hasilPerhitungan);

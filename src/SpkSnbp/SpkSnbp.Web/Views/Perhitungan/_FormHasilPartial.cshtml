@@ -1,11 +1,11 @@
-﻿@model (List<Siswa>, HasilPerhitungan)
+﻿@model HasilPerhitungan
 
 @inject IKriteriaRepository KriteriaRepository
 
 @{
     var daftarKriteria = await KriteriaRepository.GetAll();
-    var daftarSiswa = Model.Item1.OrderBy(x => x.NISN).ToList();
-    var hasil = Model.Item2;
+    var daftarSiswa = Model.DaftarSiswa.OrderBy(x => x.NISN).ToList();
+    var hasil = Model;
 }
 
 <div class="modal-header">

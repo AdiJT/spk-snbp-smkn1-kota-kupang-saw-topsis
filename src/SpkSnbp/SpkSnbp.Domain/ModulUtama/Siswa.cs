@@ -11,6 +11,7 @@ public class Siswa : Entity<int>
     public required Jurusan Jurusan { get; set; }
 
     public TahunAjaran TahunAjaran { get; set; }
+    public HasilPerhitungan? HasilPerhitungan { get; set; }
 
     public List<Kriteria> DaftarKriteria { get; set; } = [];
     public List<SiswaKriteria> DaftarSiswaKriteria { get; set; } = [];
