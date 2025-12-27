@@ -5,6 +5,7 @@ namespace SpkSnbp.Domain.ModulUtama;
 public class TahunAjaran : Entity<int>
 {
     public List<Siswa> DaftarSiswa { get; set; } = [];
+    public List<HasilPerhitungan> DaftarHasil { get; set; } = [];
 }
 
 public interface ITahunAjaranRepository

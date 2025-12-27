@@ -1,0 +1,161 @@
+﻿@model (List<Siswa>, HasilPerhitungan)
+
+@inject IKriteriaRepository KriteriaRepository
+
+@{
+    var daftarKriteria = await KriteriaRepository.GetAll();
+    var daftarSiswa = Model.Item1.OrderBy(x => x.NISN).ToList();
+    var hasil = Model.Item2;
+}
+
+<div class="modal-header">
+    <h5 class="modal-title" id="modalTambahTitle">Detail Hasil Perhitungan</h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<div class="modal-body">
+    <h3>Daftar Kriteria</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Kode</th>
+                <th>Nama</th>
+                <th>Bobot</th>
+                <th>Jenis</th>
+            </tr>
+
+        </thead>
+        <tbody>
+            @foreach (var kriteria in daftarKriteria)
+            {
+                <tr>
+                    <td>@kriteria.Kode</td>
+                    <td>@kriteria.Nama</td>
+                    <td>@kriteria.Bobot</td>
+                    <td>@kriteria.Jenis.Humanize()</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h3>Matrik Perhitungan</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Siswa/Kriteria</th>
+                @foreach (var kriteria in daftarKriteria)
+                {
+                    <th>@kriteria.Kode</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < daftarSiswa.Count; i++)
+            {
+                var siswa = daftarSiswa[i];
+                <tr>
+                    <th>@siswa.Nama</th>
+                    @for (int j = 0; j < daftarKriteria.Count; j++)
+                    {
+                        <td>@hasil.MatriksPerhitungan[i, j]</td>
+                    }
+                </tr>
+            }
+
+            <tr>
+                <th>Max/Min</th>
+                @for (int j = 0; j < daftarKriteria.Count; j++)
+                {
+                    @if (daftarKriteria[j].Jenis == JenisKriteria.Benefit)
+                    {
+                        <td>Max : @hasil.MaxKriteria[j]</td>
+                    }
+                    else
+                    {
+                        <td>Min : @hasil.MaxKriteria[j]</td>
+                    }
+                }
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Matrik Ternormalisasi</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Siswa/Kriteria</th>
+                @foreach (var kriteria in daftarKriteria)
+                {
+                    <th>@kriteria.Kode</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < daftarSiswa.Count; i++)
+            {
+                var siswa = daftarSiswa[i];
+                <tr>
+                    <th>@siswa.Nama</th>
+                    @for (int j = 0; j < daftarKriteria.Count; j++)
+                    {
+                        <td>@hasil.MatriksTernormalisasi[i, j].ToString("F3")</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h3>Matrik Ternormalisasi Terbobot</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Siswa/Kriteria</th>
+                @foreach (var kriteria in daftarKriteria)
+                {
+                    <th>@kriteria.Kode</th>
+                }
+                <th>Jarak Solusi Ideal Positif</th>
+                <th>Jarak Solusi Ideal Negatif</th>
+                <th>Nilai Preferensi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < daftarSiswa.Count; i++)
+            {
+                var siswa = daftarSiswa[i];
+                <tr>
+                    <th>@siswa.Nama</th>
+                    @for (int j = 0; j < daftarKriteria.Count; j++)
+                    {
+                        <td>@hasil.MatriksTernormalisasiTerbobot[i, j].ToString("F3")</td>
+                    }
+                    <td>@hasil.JarakSolusiIdealPositif[i].ToString("F3")</td>
+                    <td>@hasil.JarakSolusiIdealNegatif[i].ToString("F3")</td>
+                    <td>@siswa.NilaiTopsis?.ToString("F3")</td>
+                </tr>
+            }
+
+            <tr>
+                <th>Solusi Ideal Positif</th>
+                @for(var j = 0; j < daftarKriteria.Count; j++)
+                {
+                    <td>@hasil.SolusiIdealPositif[j].ToString("F3")</td>
+                }
+            </tr>
+
+            <tr>
+                <th>Solusi Ideal Negatif</th>
+                @for(var j = 0; j < daftarKriteria.Count; j++)
+                {
+                    <td>@hasil.SolusiIdealNegatif[j].ToString("F3")</td>
+                }
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-danger" data-dismiss="modal">Kembali</button>
+</div>
