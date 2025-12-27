@@ -85,7 +85,10 @@
                             <th>NISN</th>
                             <th>Jurusan</th>
                             <th>Tahun Ajaran</th>
-                            <th>(C@((int)KriteriaEnum.Ekstrakulikuler)) Ekstrakulikuler</th>
+                            <th>
+                                <p>(C@((int)KriteriaEnum.Ekstrakulikuler)) Ekstrakulikuler</p>
+                                (Rata-Rata Predikat * Jumlah Ekstrakulikuler)
+                            </th>
                             <th colspan="3">Predikat</th>
                         </tr>
                     </thead>
@@ -104,9 +107,9 @@
                                     <select asp-for="@Model.DaftarEntry[@i].Ekstrakulikuler1" class="form-control">
                                         <option value="@null">-- Pilih Predikat--</option>
                                         @foreach (var item in Enum.GetValues<PredikatEkstrakulikuler>())
-                                            {
-                                                <option value="@item">@item.Humanize() (@((int)item))</option>
-                                            }
+                                        {
+                                            <option value="@item">@item.Humanize() (@((int)item))</option>
+                                        }
                                     </select>
                                     <span asp-validation-for="@Model.DaftarEntry[@i].Ekstrakulikuler1" class="text-danger"></span>
                                 </td>
@@ -114,9 +117,9 @@
                                     <select asp-for="@Model.DaftarEntry[@i].Ekstrakulikuler2" class="form-control">
                                         <option value="@null">-- Pilih Predikat--</option>
                                         @foreach (var item in Enum.GetValues<PredikatEkstrakulikuler>())
-                                            {
-                                                <option value="@item">@item.Humanize() (@((int)item))</option>
-                                            }
+                                        {
+                                            <option value="@item">@item.Humanize() (@((int)item))</option>
+                                        }
                                     </select>
                                     <span asp-validation-for="@Model.DaftarEntry[@i].Ekstrakulikuler2" class="text-danger"></span>
                                 </td>
@@ -124,9 +127,9 @@
                                     <select asp-for="@Model.DaftarEntry[@i].Ekstrakulikuler3" class="form-control">
                                         <option value="@null">-- Pilih Predikat--</option>
                                         @foreach (var item in Enum.GetValues<PredikatEkstrakulikuler>())
-                                            {
-                                                <option value="@item">@item.Humanize() (@((int)item))</option>
-                                            }
+                                        {
+                                            <option value="@item">@item.Humanize() (@((int)item))</option>
+                                        }
                                     </select>
                                     <span asp-validation-for="@Model.DaftarEntry[@i].Ekstrakulikuler3" class="text-danger"></span>
                                 </td>

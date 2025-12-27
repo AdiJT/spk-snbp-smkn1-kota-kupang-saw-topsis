@@ -70,7 +70,15 @@ public class SertifikatTKAController : Controller
                 _siswaKriteriaRepository.Add(siswaKriteria);
             }
 
-            siswaKriteria.Nilai = entry.SertifikatTKA;
+            siswaKriteria.Nilai = entry.Skor switch
+            {
+                >= 90 and <= 100 => 5,
+                >= 75 and <= 89 => 4,
+                >= 60 and <= 74 => 3,
+                >= 45 and <= 59 => 2,
+                >= 0 and <= 44 => 1,
+                _ => 0
+            };
         }
 
         var result = await _unitOfWork.SaveChangesAsync();

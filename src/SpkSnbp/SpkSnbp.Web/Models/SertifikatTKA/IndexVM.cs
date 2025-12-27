@@ -17,11 +17,12 @@ public class IndexEntryVM
 {
     public required Siswa Siswa { get; set; }
     public required int IdSiswa { get; set; }
+    public required double SertifikatTKA { get; set; }
 
-    [Display(Name = "Sertifikat TKA")]
+    [Display(Name = "Skor")]
     [Required(ErrorMessage = "{0} harus diisi")]
-    [Range(1, 5, MaximumIsExclusive = false, ErrorMessage = "{0} harus antara {1}-{2}")]
-    public required int SertifikatTKA { get; set; }
+    [Range(0d, 100d, MaximumIsExclusive = false, ErrorMessage = "{0} harus antara {1}-{2}")]
+    public double Skor { get; set; } = 0;
 }
 
 public static class EnumerableExtensions 
@@ -31,6 +32,6 @@ public static class EnumerableExtensions
         {
             Siswa = x,
             IdSiswa = x.Id,
-            SertifikatTKA = (int?)x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.SertTKA)?.Nilai ?? 0
+            SertifikatTKA = x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.SertTKA)?.Nilai ?? 0
         }).ToList();
 }

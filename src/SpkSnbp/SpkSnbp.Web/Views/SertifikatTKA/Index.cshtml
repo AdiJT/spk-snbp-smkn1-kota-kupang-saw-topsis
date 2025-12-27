@@ -85,7 +85,10 @@
                             <th>NISN</th>
                             <th>Jurusan</th>
                             <th>Tahun Ajaran</th>
-                            <th>(C@((int)KriteriaEnum.SertTKA)) Sertifikat TKA (1-5)</th>
+                            <th>
+                                <p>(C@((int)KriteriaEnum.SertTKA)) Sertifikat TKA</p>
+                                (Skor:0-Skor:44=1; 45-59=2; 60-74=3; 75-89=4; 90-100=5)</th>
+                            <th>Skor (0-100)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -98,9 +101,10 @@
                                 <td>@entry.Siswa.NISN</td>
                                 <td>@entry.Siswa.Jurusan.Humanize()</td>
                                 <td>@entry.Siswa.TahunAjaran.Id</td>
+                                <td>@entry.SertifikatTKA</td>
                                 <td>
-                                    <input asp-for="@Model.DaftarEntry[@i].SertifikatTKA" class="form-control" />
-                                    <span asp-validation-for="@Model.DaftarEntry[@i].SertifikatTKA" class="text-danger"></span>
+                                    <input asp-for="@Model.DaftarEntry[@i].Skor" class="form-control" />
+                                    <span asp-validation-for="@Model.DaftarEntry[@i].Skor" class="text-danger"></span>
                                 </td>
                             </tr>
                         }
