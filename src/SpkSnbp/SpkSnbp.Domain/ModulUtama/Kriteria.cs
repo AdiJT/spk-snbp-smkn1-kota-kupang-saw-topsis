@@ -26,3 +26,13 @@ public enum JenisKriteria
 {
     Benefit, Cost
 }
+
+public enum KriteriaEnum
+{
+    MPKejuruan = 1,
+    MPUmum = 2,
+    SertLSP = 3,
+    SertTKA = 4,
+    Ekstrakulikuler = 5,
+    Absensi = 6
+}

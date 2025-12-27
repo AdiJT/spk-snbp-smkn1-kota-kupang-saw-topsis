@@ -20,42 +20,42 @@ internal class KriteriaConfiguration : IEntityTypeConfiguration<Kriteria>
         builder.HasData(
             new Kriteria
             {
-                Id = 1,
+                Id = (int)KriteriaEnum.MPKejuruan,
                 Nama = "Mata Pelajaran Kejuruan",
                 Bobot = 5,
                 Jenis = JenisKriteria.Benefit
             },
             new Kriteria
             {
-                Id = 2,
+                Id = (int)KriteriaEnum.MPUmum,
                 Nama = "Mata Pelajaran Umum",
                 Bobot = 4,
                 Jenis = JenisKriteria.Benefit
             },
             new Kriteria
             {
-                Id = 3,
+                Id = (int)KriteriaEnum.SertLSP,
                 Nama = "Sertifikat LSP",
                 Bobot = 4,
                 Jenis = JenisKriteria.Benefit
             },
             new Kriteria
             {
-                Id = 4,
+                Id = (int)KriteriaEnum.SertTKA,
                 Nama = "Sertifikat TKA",
                 Bobot = 3,
                 Jenis = JenisKriteria.Benefit
             },
             new Kriteria
             {
-                Id = 5,
+                Id = (int)KriteriaEnum.Ekstrakulikuler,
                 Nama = "Ekstrakurikuler",
                 Bobot = 2,
                 Jenis = JenisKriteria.Benefit
             },
             new Kriteria
             {
-                Id = 6,
+                Id = (int)KriteriaEnum.Absensi,
                 Nama = "Absensi",
                 Bobot = 1,
                 Jenis = JenisKriteria.Cost
