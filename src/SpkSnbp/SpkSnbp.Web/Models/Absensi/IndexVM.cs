@@ -1,7 +1,8 @@
 ﻿using SpkSnbp.Domain.ModulUtama;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace SpkSnbp.Web.Models.SertifikatTKA;
+namespace SpkSnbp.Web.Models.Absensi;
 
 public class IndexVM
 {
@@ -17,12 +18,12 @@ public class IndexEntryVM
 {
     public required Siswa Siswa { get; set; }
     public required int IdSiswa { get; set; }
-    public required double? SertifikatTKA { get; set; }
+    public required double? Absensi { get; set; }
 
-    [Display(Name = "Skor")]
+    [Display(Name = "Jumlah Absen")]
     [Required(ErrorMessage = "{0} harus diisi")]
-    [Range(0d, 100d, MaximumIsExclusive = false, ErrorMessage = "{0} harus antara {1}-{2}")]
-    public double Skor { get; set; } = 0;
+    [Range(0, 45, MaximumIsExclusive = false, ErrorMessage = "{0} harus antara {1}-{2}")]
+    public int JumlahAbsen { get; set; }
 }
 
 public static class EnumerableExtensions 
@@ -32,6 +33,6 @@ public static class EnumerableExtensions
         {
             Siswa = x,
             IdSiswa = x.Id,
-            SertifikatTKA = x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.SertTKA)?.Nilai
+            Absensi = x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Absensi)?.Nilai
         }).ToList();
 }

@@ -101,7 +101,14 @@
                                 <td>@entry.Siswa.NISN</td>
                                 <td>@entry.Siswa.Jurusan.Humanize()</td>
                                 <td>@entry.Siswa.TahunAjaran.Id</td>
-                                <td>@entry.SertifikatTKA</td>
+                                @if (entry.SertifikatTKA is not null)
+                                {
+                                    <td>@entry.SertifikatTKA</td>
+                                }
+                                else
+                                {
+                                    <td>-</td>
+                                }
                                 <td>
                                     <input asp-for="@Model.DaftarEntry[@i].Skor" class="form-control" />
                                     <span asp-validation-for="@Model.DaftarEntry[@i].Skor" class="text-danger"></span>
