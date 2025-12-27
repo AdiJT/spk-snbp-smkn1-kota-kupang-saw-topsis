@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace SpkSnbp.Web.Models;
+namespace SpkSnbp.Domain.Shared;
 
 public static class CultureInfos
 {

@@ -36,3 +36,8 @@ public enum KriteriaEnum
     Ekstrakulikuler = 5,
     Absensi = 6
 }
+
+public enum SertifikatLSP
+{
+    BelumKompeten = 1, Kompeten = 5
+}
