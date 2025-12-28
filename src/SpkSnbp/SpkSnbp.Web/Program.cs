@@ -30,7 +30,6 @@ builder.Services.AddScoped<ITopsisSAWService, TopsisSAWService>();
 
 var app = builder.Build();
 
-
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto

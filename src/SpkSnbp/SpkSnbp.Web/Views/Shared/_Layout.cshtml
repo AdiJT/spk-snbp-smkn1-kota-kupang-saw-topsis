@@ -118,13 +118,26 @@
 
             $('.form-tambah').each(function() {
                 const formTambah = $(this);
+                const html = $(formTambah).html();
+
+                $(formTambah).html('');
+
                 $(formTambah).siblings('.btn-tambah').on('click', function() {
-                    $('#modalTambahContent').html($(formTambah).html());
+                    if ($('#modalTambahContent').html().trim() == '') {
+                        $('#modalTambahContent').html(html);
+                        resetDropzone();
+                        initDropzone();
+                    }
 
                     $("form").removeData("validator").removeData("unobtrusiveValidation");
                     $.validator.unobtrusive.parse("form");
+                    
 
                     $('#modalTambah').modal('show');
+                });
+
+                $('#modelTambah').on('modal-dismiss', function() {
+                    $('#modalTambahContent').html('');
                 });
             });
 

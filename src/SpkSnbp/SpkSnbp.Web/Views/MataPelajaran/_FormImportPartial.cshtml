@@ -1,0 +1,37 @@
+﻿@using SpkSnbp.Web.Models.MataPelajaran
+@model ImportVM
+
+<form asp-action="Import" asp-controller="MataPelajaran" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan"
+      asp-route-returnUrl="@Model.ReturnUrl" method="post" enctype="multipart/form-data">
+    <div class="modal-header">
+        <h5 class="modal-title" id="modalTambahTitle">Import</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <div class="modal-body">
+        <div class="form-group">
+            <!-- Kotak dashed -->
+            <label asp-for="@Model.FormFile"
+                   class="border border-2 border-secondary-subtle rounded-3 bg-white d-flex flex-column align-items-center justify-content-center w-100"
+                   style="height: 200px; border-style: dashed !important; cursor: pointer;">
+                <i class="fas fa-file-excel text-success mb-2" style="font-size: 2.5rem;"></i>
+                <p class="text-muted file-name">Pilih file excel (.xlsx)</p>
+            </label>
+
+            <!-- Input file tersembunyi -->
+            <input asp-for="@Model.FormFile" class="import-file-input d-none" type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+            <span asp-validation-for="@Model.FormFile" class="text-danger d-block mt-2"></span>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
