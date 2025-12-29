@@ -1,11 +1,11 @@
-﻿@using SpkSnbp.Web.Models.Perhitungan
+﻿@using SpkSnbp.Web.Models.Seleksi
 @model IndexVM
 
 @inject ITahunAjaranRepository TahunAjaranRepository
 @inject IKriteriaRepository KriteriaRepository
 
 @{
-    ViewData["Title"] = "Perhitungan";
+    ViewData["Title"] = "Seleksi";
     var daftarTahun = await TahunAjaranRepository.GetAll();
     var daftarKriteria = await KriteriaRepository.GetAll();
 }
@@ -15,7 +15,7 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="#">Hasil</a></li>
-            <li class="breadcrumb-item"><a asp-action="Index"></a>Perhitungan</li>
+            <li class="breadcrumb-item"><a asp-action="Index"></a>Seleksi</li>
         </ol>
     </nav>
 </div>
@@ -24,7 +24,7 @@
 <div class="card card-primary">
     <!-- Judul -->
     <div class="card-header">
-        <h4>Hasil Perhitungan</h4>
+        <h4>Hasil Seleksi</h4>
     </div>
     <div class="padding-20">
 
@@ -32,28 +32,14 @@
             @if (Model.Tahun is not null && Model.DaftarSiswa.Count != 0)
             {
                 <div class="mb-0">
-                    <form asp-action="Hitung" asp-route-jurusan="@Model.Jurusan" asp-route-tahun="@Model.Tahun">
+                    <form asp-action="Index" asp-route-jurusan="@Model.Jurusan" asp-route-tahun="@Model.Tahun" method="post">
                         <button class="btn btn-tambah btn-icon icon-left btn-primary mr-1"
-                                data-toggle="tooltip" title="Hitung" type="submit">
-                            <i class="fas fa-plus"></i> Hitung
+                                data-toggle="tooltip" title="Seleksi" type="submit">
+                            <i class="fas fa-plus"></i> Seleksi
                         </button>
                     </form>
                 </div>
-
-                @if (Model.HasilPerhitungan is not null)
-                {
-                    <div class="mb-0">
-                        <button class="btn btn-tambah btn-icon icon-left btn-primary mr-1"
-                                data-toggle="tooltip" title="Lihat Detail Perhitungan">
-                            <i class="fas fa-plus"></i> Detail
-                        </button>
-                        <div class="form-tambah">
-                            <partial name="_FormHasilPartial" model="@Model.HasilPerhitungan" />
-                        </div>
-                    </div>
-                }
             }
-
 
             <form asp-action="Index" method="get" class="d-flex align-items-center" style="gap: 8px;">
                 <div class="d-flex ml-auto mr-3">
@@ -89,6 +75,7 @@
                         <th rowspan="2">Nilai Preferensi</th>
                         <th rowspan="2">NISN</th>
                         <th rowspan="2">Nama</th>
+                        <th rowspan="2">Eligible</th>
                         <th colspan="6">Kriteria</th>
                     </tr>
                     <tr>
@@ -120,6 +107,14 @@
                                 }
                                 <td>@item.NISN</td>
                                 <td>@item.Nama</td>
+                                @if (item.Eligible is not null)
+                                {
+                                    <td>@item.Eligible?.Humanize()</td>
+                                }
+                                else
+                                {
+                                    <td>-</td>
+                                }
                                 @foreach (var kriteria in daftarKriteria)
                                 {
                                     var siswaKriteria = item.DaftarSiswaKriteria.FirstOrDefault(x => x.Kriteria == kriteria);

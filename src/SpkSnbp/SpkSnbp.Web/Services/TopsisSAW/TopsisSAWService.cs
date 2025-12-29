@@ -6,6 +6,8 @@ namespace SpkSnbp.Web.Services.TopsisSAW;
 
 public class TopsisSAWService : ITopsisSAWService
 {
+    private const double PERSEN_ELIGIBLE = 0.4;
+    
     private readonly ISiswaRepository _siswaRepository;
     private readonly IKriteriaRepository _kriteriaRepository;
     private readonly ITahunAjaranRepository _tahunAjaranRepository;
@@ -194,8 +196,28 @@ public class TopsisSAWService : ITopsisSAWService
         return hasilPerhitungan;
     }
 
-    public Task<Result> SeleksiEligible(int tahun, Jurusan jurusan)
+    public async Task<Result> SeleksiEligible(int tahun, Jurusan jurusan)
     {
-        throw new NotImplementedException();
+        var tahunAjaran = await _tahunAjaranRepository.Get(tahun);
+        if (tahunAjaran is null) return new Error("SeleksiEligible.TahunTidakditemukan", "Tahun tidak ditemukan");
+
+        var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun);
+        daftarSiswa = [.. daftarSiswa.Where(x => x.NilaiTopsis != null).OrderByDescending(x => x.NilaiTopsis)];
+
+        if (daftarSiswa.Count == 0)
+            return new Error("SeleksiEligible.SiswaTidakAda", "Tidak ada data siswa");
+
+        var jumlahEligible = daftarSiswa.Count / (double)Enum.GetValues<Jurusan>().Length * PERSEN_ELIGIBLE;
+
+        if (jumlahEligible > daftarSiswa.Count)
+            return new Error("SeleksiEligible.JumlahEligibleTidakValid", "Jumlah Eligible tidak valid");
+
+        for (int i = 0; i < jumlahEligible; i++)
+            daftarSiswa[i].Eligible = Eligible.Ya;
+
+        for (int i = (int)jumlahEligible; i < daftarSiswa.Count; i++)
+            daftarSiswa[i].Eligible = Eligible.Tidak;
+
+        return await _unitOfWork.SaveChangesAsync();
     }
 }
