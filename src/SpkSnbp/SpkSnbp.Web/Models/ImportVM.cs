@@ -1,7 +1,7 @@
 ﻿using SpkSnbp.Domain.ModulUtama;
 using System.ComponentModel.DataAnnotations;
 
-namespace SpkSnbp.Web.Models.MataPelajaran;
+namespace SpkSnbp.Web.Models;
 
 public class ImportVM
 {

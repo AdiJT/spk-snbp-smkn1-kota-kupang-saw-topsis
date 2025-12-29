@@ -35,19 +35,10 @@ public class IndexEntryVM
 
 public enum PredikatEkstrakulikuler
 {
-    [Description("Sangat Kurang")]
     SangatKurang = 1,
-
-    [Description("Kurang")]
     Kurang = 2,
-
-    [Description("Cukup")]
     Cukup = 3,
-
-    [Description("Baik")]
     Baik = 4,
-
-    [Description("Sangat Baik")]
     SangatBaik = 5
 }
 

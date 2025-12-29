@@ -1,8 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Humanizer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpkSnbp.Domain.Auth;
 using SpkSnbp.Domain.Contracts;
 using SpkSnbp.Domain.ModulUtama;
+using SpkSnbp.Infrastructure.Services.FileServices;
+using SpkSnbp.Web.Helpers;
+using SpkSnbp.Web.Models;
 using SpkSnbp.Web.Models.Ekstrakulikuler;
 using SpkSnbp.Web.Services.Toastr;
 
@@ -17,6 +23,7 @@ public class EkstrakulikulerController : Controller
     private readonly IUnitOfWork _unitOfWork;
     private readonly IToastrNotificationService _notificationService;
     private readonly ISiswaKriteriaRepository _siswaKriteriaRepository;
+    private readonly IFileService _fileService;
 
     public EkstrakulikulerController(
         ISiswaRepository siswaRepository,
@@ -24,7 +31,8 @@ public class EkstrakulikulerController : Controller
         ITahunAjaranRepository tahunAjaranRepository,
         IUnitOfWork unitOfWork,
         IToastrNotificationService notificationService,
-        ISiswaKriteriaRepository siswaKriteriaRepository)
+        ISiswaKriteriaRepository siswaKriteriaRepository,
+        IFileService fileService)
     {
         _siswaRepository = siswaRepository;
         _kriteriaRepository = kriteriaRepository;
@@ -32,6 +40,7 @@ public class EkstrakulikulerController : Controller
         _unitOfWork = unitOfWork;
         _notificationService = notificationService;
         _siswaKriteriaRepository = siswaKriteriaRepository;
+        _fileService = fileService;
     }
 
     public async Task<IActionResult> Index(Jurusan? jurusan = null, int? tahun = null)
@@ -80,5 +89,132 @@ public class EkstrakulikulerController : Controller
             _notificationService.AddError("Simpan Gagal");
 
         return RedirectToActionPermanent(nameof(Index), new { vm.Jurusan, vm.Tahun });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Import(ImportVM vm)
+    {
+        var returnUrl = vm.ReturnUrl ?? Url.ActionLink(nameof(Index))!;
+
+        if (!ModelState.IsValid)
+        {
+            _notificationService.AddError("Data tidak valid", "Import");
+            return RedirectPermanent(returnUrl);
+        }
+
+        var tahunAjaran = await _tahunAjaranRepository.Get(vm.Tahun);
+        if (tahunAjaran is null)
+        {
+            _notificationService.AddError("Tahun tidak ditemukan", "Import");
+            return RedirectPermanent(returnUrl);
+        }
+
+        if (vm.FormFile is null)
+        {
+            _notificationService.AddError("File harus diupload", "Import");
+            return RedirectPermanent(returnUrl);
+        }
+
+        var file = await _fileService.ProcessFormFile<ImportVM>(
+            vm.FormFile,
+            [".xlsx"],
+            0,
+            long.MaxValue);
+
+        if (file.IsFailure)
+        {
+            _notificationService.AddError(file.Error.Message, "Import");
+            return View(vm);
+        }
+
+        using var memoryStream = new MemoryStream(file.Value);
+        using var spreadSheet = SpreadsheetDocument.Open(memoryStream, isEditable: false);
+
+        var workBookPart = spreadSheet.WorkbookPart!;
+        var sharedStrings = workBookPart
+            .SharedStringTablePart?
+            .SharedStringTable
+            .Elements<SharedStringItem>()
+            .Select(s => s.InnerText).ToList() ?? [];
+
+        var sheet = workBookPart.Workbook.Sheets!.Elements<Sheet>().First()!;
+        var workSheetPart = (WorksheetPart)workBookPart.GetPartById(sheet.Id!);
+        var sheetData = workSheetPart.Worksheet.Elements<SheetData>().First();
+
+        var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun);
+
+        foreach (var row in sheetData.Elements<Row>())
+        {
+            var cells = row.Elements<Cell>().ToList();
+            if (cells.Count < 8) continue;
+
+            var nama = HelperFunctions.GetCellValues(cells[1], sharedStrings);
+            if (string.IsNullOrWhiteSpace(nama)) continue;
+
+            var siswa = daftarSiswa.FirstOrDefault(x => x.Nama.ToLower() == nama.ToLower());
+            if (siswa is null) continue;
+
+            var ekstrakulikuler1String = HelperFunctions.GetCellValues(cells[5], sharedStrings);
+            PredikatEkstrakulikuler? ekstrakulikuler1 = null;
+            if (!string.IsNullOrWhiteSpace(ekstrakulikuler1String))
+                ekstrakulikuler1 = ekstrakulikuler1String.Trim().DehumanizeTo<PredikatEkstrakulikuler>(OnNoMatch.ReturnsNull);
+
+            var ekstrakulikuler2String = HelperFunctions.GetCellValues(cells[6], sharedStrings);
+            PredikatEkstrakulikuler? ekstrakulikuler2 = null;
+            if (!string.IsNullOrWhiteSpace(ekstrakulikuler2String))
+                ekstrakulikuler2 = ekstrakulikuler2String.Trim().Transform(To.SentenceCase).DehumanizeTo<PredikatEkstrakulikuler>(OnNoMatch.ReturnsNull);
+
+            var ekstrakulikuler3String = HelperFunctions.GetCellValues(cells[7], sharedStrings);
+            PredikatEkstrakulikuler? ekstrakulikuler3 = null;
+            if (!string.IsNullOrWhiteSpace(ekstrakulikuler3String))
+                ekstrakulikuler3 = ekstrakulikuler3String.Trim().DehumanizeTo<PredikatEkstrakulikuler>(OnNoMatch.ReturnsNull);
+
+            if (ekstrakulikuler1 is null && ekstrakulikuler2 is null && ekstrakulikuler3 is null)
+                continue;
+
+            var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Ekstrakulikuler);
+            if (siswaKriteria is null)
+            {
+                siswaKriteria = new SiswaKriteria
+                {
+                    Siswa = siswa,
+                    IdKriteria = (int)KriteriaEnum.Ekstrakulikuler,
+                    Nilai = default
+                };
+
+                _siswaKriteriaRepository.Add(siswaKriteria);
+            }
+
+            var total = 0d;
+            var jumlah = 0;
+
+            if (ekstrakulikuler1 is not null)
+            {
+                total += (int)ekstrakulikuler1;
+                jumlah++;
+            }
+
+            if (ekstrakulikuler2 is not null)
+            {
+                total += (int)ekstrakulikuler2;
+                jumlah++;
+            }
+
+            if (ekstrakulikuler3 is not null)
+            {
+                total += (int)ekstrakulikuler3;
+                jumlah++;
+            }
+
+            siswaKriteria.Nilai = total / jumlah * jumlah;
+        }
+
+        var result = await _unitOfWork.SaveChangesAsync();
+        if (result.IsSuccess)
+            _notificationService.AddSuccess("Import Berhasil", "Import");
+        else
+            _notificationService.AddError("Import Gagal", "Import");
+
+        return RedirectPermanent(returnUrl);
     }
 }
