@@ -7,53 +7,52 @@
     <aside id="sidebar-wrapper">
         <div class="sidebar-brand">
             <a href="">
-                <img src="#" style="width: 30px; height: 30px;" />
-                <span class="logo-name">Dashboard</span>
+                <img src="~/lib/img/logo_smea.png" style="width: 30px; height: 30px;" />
+                <span class="logo-name">E-SELEKSI</span>
             </a>
         </div>
         <ul class="sidebar-menu">
             <li class="menu-header">Beranda</li>
             <li>
-                <a asp-controller="Home" asp-action="Index" data-match="all" class="nav-link"><i class="fas fa-home"></i><span>Beranda</span></a>
+                <a asp-controller="Home" asp-action="Index" data-match="all" class="nav-link"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
             </li>
 
             @if (await SignInManager.IsInRole(UserRoles.Admin))
             {
-                <li class="menu-header">Kriteria</li>
+                <li class="menu-header">Master Data</li>
                 <li>
-                    <a asp-controller="Kriteria" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-home"></i><span>Kriteria</span></a>
-                </li>
-
-                <li class="menu-header">Data</li>
-                <li>
-                    <a asp-controller="TahunAjaran" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-home"></i><span>Tahun Ajaran</span></a>
+                    <a asp-controller="TahunAjaran" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-calendar-alt"></i><span>Tahun Ajaran</span></a>
                 </li>
                 <li>
-                    <a asp-controller="Siswa" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-home"></i><span>Siswa</span></a>
+                    <a asp-controller="Kriteria" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-list-ul"></i><span>Data Kriteria</span></a>
+                </li>              
+                <li>
+                    <a asp-controller="Siswa" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-users"></i><span>Data Siswa</span></a>
+                </li>
+                <li class="menu-header">Input Nilai</li>
+                <li>
+                    <a asp-controller="MataPelajaran" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-book"></i><span>Mata Pelajaran</span></a>
                 </li>
                 <li>
-                    <a asp-controller="MataPelajaran" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-home"></i><span>Mata Pelajaran</span></a>
+                    <a asp-controller="SertifikatLSP" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-certificate"></i><span>Sertifikat LSP</span></a>
                 </li>
                 <li>
-                    <a asp-controller="SertifikatLSP" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-home"></i><span>Sertifikat LSP</span></a>
+                    <a asp-controller="SertifikatTKA" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-award"></i><span>Sertifikat TKA</span></a>
                 </li>
                 <li>
-                    <a asp-controller="SertifikatTKA" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-home"></i><span>Sertifikat TKA</span></a>
+                    <a asp-controller="Ekstrakulikuler" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-running"></i><span>Ekstrakulikuler</span></a>
                 </li>
                 <li>
-                    <a asp-controller="Ekstrakulikuler" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-home"></i><span>Ekstrakulikuler</span></a>
-                </li>
-                <li>
-                    <a asp-controller="Absensi" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-home"></i><span>Absensi</span></a>
+                    <a asp-controller="Absensi" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-user-check"></i><span>Data Absensi</span></a>
                 </li>
             }
 
-            <li class="menu-header">Hasil</li>
+            <li class="menu-header">Hasil SPK</li>
             <li>
-                <a asp-controller="Perhitungan" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-home"></i><span>Perhitungan</span></a>
+                <a asp-controller="Perhitungan" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-calculator"></i><span>Proses Hitung</span></a>
             </li>
             <li>
-                <a asp-controller="Seleksi" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-home"></i><span>Seleksi</span></a>
+                <a asp-controller="Seleksi" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-poll-h"></i><span>Hasil Seleksi</span></a>
             </li>
         </ul>
     </aside>

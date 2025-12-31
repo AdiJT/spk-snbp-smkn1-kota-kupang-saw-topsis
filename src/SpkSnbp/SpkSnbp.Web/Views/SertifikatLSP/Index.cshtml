@@ -26,45 +26,47 @@
     </div>
     <div class="padding-20">
 
-        <div class="d-flex justify-content-start ml-auto mb-3">
-            @if (Model.Jurusan is not null && Model.Tahun is not null)
-            {
-                <div class="mb-0">
-                    <button class="btn btn-tambah btn-icon icon-left btn-primary mr-1"
-                            data-toggle="tooltip" title="Import Data">
-                        <i class="fas fa-plus"></i> Import
-                    </button>
-                    <div class="form-tambah">
-                        <partial name="_FormImportPartial" model="@(new ImportVM { Tahun = Model.Tahun.Value, Jurusan = Model.Jurusan.Value, ReturnUrl = Context.Request.AbsoluteUri() })" />
-                    </div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+
+            <form asp-action="Index" method="get" class="d-flex align-items-center" style="gap: 15px;">
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <label asp-for="@Model.Tahun" class="mb-0" style="font-weight: 600; white-space: nowrap;">Tahun Ajaran:</label>
+                    <select asp-for="@Model.Tahun" class="submit-on-change form-control form-control-sm w-auto" style="min-width:120px;">
+                        <option value="@null">-- Semua --</option>
+                        @foreach (var item in daftarTahun)
+                        {
+                            <option value="@item.Id">@item.Id</option>
+                        }
+                    </select>
                 </div>
-            }
 
-            <form asp-action="Index" method="get" class="d-flex align-items-center" style="gap: 8px;">
-                <div class="d-flex ml-auto mr-3">
-                    <div class="d-flex align-items-center mr-2" style="gap: 8px;">
-                        <label asp-for="@Model.Tahun" class="mb-0" style="font-weight: 600;">Tahun Ajaran:</label>
-                        <select asp-for="@Model.Tahun" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
-                            <option value="@null">-- Semua --</option>
-                            @foreach (var item in daftarTahun)
-                            {
-                                <option value="@item.Id">@item.Id</option>
-                            }
-                        </select>
-                    </div>
-
-                    <div class="d-flex align-items-center mr-2" style="gap: 8px;">
-                        <label asp-for="@Model.Jurusan" class="mb-0" style="font-weight: 600;">Jurusan:</label>
-                        <select asp-for="@Model.Jurusan" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
-                            <option value="@null">-- Semua --</option>
-                            @foreach (var item in Enum.GetValues<Jurusan>())
-                            {
-                                <option value="@item">@item.Humanize()</option>
-                            }
-                        </select>
-                    </div>
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <label asp-for="@Model.Jurusan" class="mb-0" style="font-weight: 600; white-space: nowrap;">Jurusan:</label>
+                    <select asp-for="@Model.Jurusan" class="submit-on-change form-control form-control-sm w-auto" style="min-width:120px;">
+                        <option value="@null">-- Semua --</option>
+                        @foreach (var item in Enum.GetValues<Jurusan>())
+                        {
+                            <option value="@item">@item.Humanize()</option>
+                        }
+                    </select>
                 </div>
             </form>
+
+            <div>
+                @if (Model.Jurusan is not null && Model.Tahun is not null)
+                {
+                    <div class="d-flex align-items-center">
+                        <button class="btn btn-tambah btn-icon icon-left btn-primary"
+                                data-toggle="tooltip" title="Import Data Dari Excel">
+                            <i class="fas fa-file-import"></i> Import
+                        </button>
+                        <div class="form-tambah">
+                            <partial name="_FormImportPartial" model="@(new ImportVM { Tahun = Model.Tahun.Value, Jurusan = Model.Jurusan.Value, ReturnUrl = Context.Request.AbsoluteUri() })" />
+                        </div>
+                    </div>
+                }
+            </div>
+
         </div>
 
         <form asp-action="Simpan" asp-route-jurusan="@Model.Jurusan" asp-route-tahun="@Model.Tahun" method="post">
