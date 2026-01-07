@@ -161,7 +161,7 @@ public class MataPelajaranController : Controller
 
         var mapelUmumCellRef = sheetData
             .Descendants<Cell>()
-            .FirstOrDefault(x => HelperFunctions.GetCellValues(x, sharedStrings).Trim() == "Mapel Umum")?
+            .FirstOrDefault(x => HelperFunctions.GetCellValues(x, sharedStrings).Trim().ToLower() == "mapel umum")?
             .CellReference?.Value;
 
         if (mapelUmumCellRef is null)
@@ -181,7 +181,7 @@ public class MataPelajaranController : Controller
 
         var mapelKejuruanCellRef = sheetData
             .Descendants<Cell>()
-            .FirstOrDefault(x => HelperFunctions.GetCellValues(x, sharedStrings) == "Mapel Kejuruan")?
+            .FirstOrDefault(x => HelperFunctions.GetCellValues(x, sharedStrings).ToLower() == "mapel kejuruan")?
             .CellReference?.Value;
 
         if (mapelKejuruanCellRef is null)
