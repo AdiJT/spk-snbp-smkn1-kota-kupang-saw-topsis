@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.JSInterop;
 using SpkSnbp.Domain.ModulUtama;
 using SpkSnbp.Domain.Shared;
 using SpkSnbp.Web.Models.Perhitungan;
@@ -37,6 +36,9 @@ public class PerhitunganController : Controller
         var tahunAjaran = tahun is null ? 
             await _tahunAjaranRepository.Get(CultureInfos.DateOnlyNow.Year) : 
             await _tahunAjaranRepository.Get(tahun.Value);
+
+
+        tahunAjaran ??= await _tahunAjaranRepository.GetByLatest();
 
         if (tahunAjaran is null)
             return View(new IndexVM { Jurusan = jurusan, DaftarSiswa = []});

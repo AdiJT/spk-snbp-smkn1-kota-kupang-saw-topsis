@@ -39,6 +39,12 @@ internal class TahunAjaranRepository : ITahunAjaranRepository
         .Include(x => x.DaftarSiswa)
         .ToListAsync();
 
+    public async Task<TahunAjaran?> GetByLatest() => await _appDbContext
+        .TahunAjaran
+        .Include(x => x.DaftarSiswa)
+        .OrderBy(x => x.Id)
+        .LastOrDefaultAsync();
+
     public async Task<bool> IsExist(int tahun) => await _appDbContext
         .TahunAjaran
         .AnyAsync(x => x.Id == tahun);
