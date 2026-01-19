@@ -13,28 +13,27 @@ internal class InformasiSekolahConfiguration : IEntityTypeConfiguration<Informas
     }
 }
 
-//internal class InformasiSekolahRepository : IInformasiSekolahRepository
-//{
-//    private readonly AppDbContext _appDbContext;
+internal class InformasiSekolahRepository : IInformasiSekolahRepository
+{
+    private readonly AppDbContext _appDbContext;
 
-//    public InformasiSekolahRepository(AppDbContext appDbContext)
-//    {
-//        _appDbContext = appDbContext;
-//    }
+    public InformasiSekolahRepository(AppDbContext appDbContext)
+    {
+        _appDbContext = appDbContext;
+    }
 
-//    public async Task<InformasiSekolah> Get()
-//    {
-//        var informasiSekolah = await _appDbContext.InformasiSekolah.FirstOrDefaultAsync();
-//        if (informasiSekolah is null)
-//        {
-//            informasiSekolah = InformasiSekolah.Default;
-//            _appDbContext.InformasiSekolah.Add(informasiSekolah);
-//            await _appDbContext.SaveChangesAsync();
-//        }
-//    }
+    public async Task<InformasiSekolah> Get()
+    {
+        var informasiSekolah = await _appDbContext.InformasiSekolah.FirstOrDefaultAsync();
+        if (informasiSekolah is null)
+        {
+            informasiSekolah = InformasiSekolah.Default;
+            _appDbContext.InformasiSekolah.Add(informasiSekolah);
+            await _appDbContext.SaveChangesAsync();
+        }
 
-//    public void Update(InformasiSekolah informasiSekolah)
-//    {
-//        throw new NotImplementedException();
-//    }
-//}
+        return informasiSekolah;
+    }
+
+    public void Update(InformasiSekolah informasiSekolah) => _appDbContext.InformasiSekolah.Update(informasiSekolah);
+}

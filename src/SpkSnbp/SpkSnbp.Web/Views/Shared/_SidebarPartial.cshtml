@@ -54,6 +54,14 @@
             <li>
                 <a asp-controller="Seleksi" asp-action="Index" data-match="partial" class="nav-link"><i class="fas fa-poll-h"></i><span>Hasil Seleksi</span></a>
             </li>
+
+            @if(await SignInManager.IsInRole(UserRoles.Admin))
+            {
+                <li class="menu-header">Profil</li>
+                <li>
+                    <a asp-controller="InformasiSekolah" asp-action="Index" data-match="partial" class="nav-link"><i class="far fa-question-circle"></i><span>Informasi Umum</span></a>
+                </li>
+            }
         </ul>
     </aside>
 </div>
