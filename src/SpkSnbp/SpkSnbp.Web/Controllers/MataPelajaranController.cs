@@ -10,6 +10,7 @@ using SpkSnbp.Web.Helpers;
 using SpkSnbp.Web.Models;
 using SpkSnbp.Web.Models.MataPelajaran;
 using SpkSnbp.Web.Services.Toastr;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace SpkSnbp.Web.Controllers;
@@ -233,7 +234,7 @@ public class MataPelajaranController : Controller
 
             var mapelUmumString = HelperFunctions.GetCellValues(mapelUmumCell, sharedStrings);
             if (string.IsNullOrWhiteSpace(mapelUmumString) || 
-                !double.TryParse(mapelUmumString, out var mapelUmum) || 
+                !double.TryParse(mapelUmumString, CultureInfo.InvariantCulture, out var mapelUmum) || 
                 mapelUmum < 0 || 
                 mapelUmum > 100)
                 continue;
@@ -243,7 +244,7 @@ public class MataPelajaranController : Controller
 
             var mapelKejuruanString = HelperFunctions.GetCellValues(mapelKejuruanCell, sharedStrings);
             if (string.IsNullOrWhiteSpace(mapelKejuruanString) || 
-                !double.TryParse(mapelKejuruanString, out var mapelKejuruan) ||
+                !double.TryParse(mapelKejuruanString, CultureInfo.InvariantCulture, out var mapelKejuruan) ||
                 mapelKejuruan < 0 ||
                 mapelKejuruan > 100)
                 continue;
