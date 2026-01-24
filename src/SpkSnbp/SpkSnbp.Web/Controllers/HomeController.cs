@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SpkSnbp.Domain.Auth;
 using SpkSnbp.Domain.Contracts;
+using SpkSnbp.Domain.ModulUtama;
 using SpkSnbp.Web.Authentication;
 using SpkSnbp.Web.Models.Home;
 using SpkSnbp.Web.Services.Toastr;
+using System.Threading.Tasks;
 
 namespace SpkSnbp.Web.Controllers;
 
@@ -18,6 +20,9 @@ public class HomeController : Controller
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ISiswaRepository _siswaRepository;
+    private readonly ITahunAjaranRepository _tahunAjaranRepository;
+    private readonly IKriteriaRepository _kriteriaRepository;
 
     public HomeController(
         ILogger<HomeController> logger,
@@ -25,7 +30,10 @@ public class HomeController : Controller
         IToastrNotificationService notificationService,
         IUserRepository userRepository,
         IPasswordHasher<User> passwordHasher,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ISiswaRepository siswaRepository,
+        ITahunAjaranRepository tahunAjaranRepository,
+        IKriteriaRepository kriteriaRepository)
     {
         _logger = logger;
         _signInManager = signInManager;
@@ -33,11 +41,19 @@ public class HomeController : Controller
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _unitOfWork = unitOfWork;
+        _siswaRepository = siswaRepository;
+        _tahunAjaranRepository = tahunAjaranRepository;
+        _kriteriaRepository = kriteriaRepository;
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        return View();
+        return View(new IndexVM 
+        { 
+            DaftarSiswa = await _siswaRepository.GetAll(),
+            DaftarTahunAjaran = await _tahunAjaranRepository.GetAll(),
+            DaftarKriteria = await _kriteriaRepository.GetAll(),
+        });
     }
 
     [AllowAnonymous]

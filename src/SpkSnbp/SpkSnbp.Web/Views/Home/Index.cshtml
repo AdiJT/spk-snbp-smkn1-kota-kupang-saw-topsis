@@ -1,3 +1,240 @@
-﻿@{
+﻿@using SpkSnbp.Domain.Auth
+@using SpkSnbp.Web.Authentication
+@using SpkSnbp.Web.Models.Home
+
+@model IndexVM
+
+@inject ISignInManager SignInManager
+
+@{
     ViewData["Title"] = "Beranda";
+    var user = await SignInManager.GetUser();
+}
+
+<section class="section">
+    <div class="container-fluid mt-3 mb-3">
+        <h3 class="" style="font-weight:bold;">Selamat Pagi, @user!.UserName👋</h3>
+        <p class="text-muted">Pantau data akademik, kegiatan, dan statistik sekolah secara real-time. (Ubah)</p> @* ubah *@
+
+        <div class="row g-3 mt-3">
+            <!-- Card Total Siswa -->
+            <div class="col-md-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-1">Total Tahun Ajaran</h6>
+                        <h3 class="fw-bold">@Model.DaftarTahunAjaran.Count</h3>
+                        @* <small class="text-success">+@Model.DaftarSiswa.Where(s => s.TanggalMasuk.Year == CultureInfos.DateTimeNow.Year).Count() siswa baru semester ini</small> *@
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Total Siswa -->
+            <div class="col-md-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-1">Total Jurusan</h6>
+                        <h3 class="fw-bold">@(Enum.GetValues<Jurusan>().Count())</h3>
+                        @* <small class="text-success">+@Model.DaftarSiswa.Where(s => s.TanggalMasuk.Year == CultureInfos.DateTimeNow.Year).Count() siswa baru semester ini</small> *@
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Total Siswa -->
+            <div class="col-md-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-1">Total Siswa</h6>
+                        <h3 class="fw-bold">@Model.DaftarSiswa.Count</h3>
+                        @* <small class="text-success">+@Model.DaftarSiswa.Where(s => s.TanggalMasuk.Year == CultureInfos.DateTimeNow.Year).Count() siswa baru semester ini</small> *@
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Total Siswa -->
+            <div class="col-md-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-1">Total Kriteria</h6>
+                        <h3 class="fw-bold">@Model.DaftarKriteria.Count</h3>
+                        @* <small class="text-success">+@Model.DaftarSiswa.Where(s => s.TanggalMasuk.Year == CultureInfos.DateTimeNow.Year).Count() siswa baru semester ini</small> *@
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Baris kedua -->
+        <div class="row g-3 mt-1">
+            <!-- Statistik Akademik -->
+            <div class="col-md-8">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">Statistik Akademik</h6>
+                        <p class="text-muted">Perbandingan jumlah siswa berdasarkan tahun ajaran:</p>
+
+                        <div clss="table-responsive">
+                            <table class="table table-striped">
+                                <thead class="table-light text-center">
+                                    <tr>
+                                        <th>Tahun Ajaran</th>
+                                        @foreach (var item in Enum.GetValues<Jurusan>())
+                                        {
+                                            <th>@item.Humanize()</th>
+                                        }
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-center">
+                                    @{
+                                        var groupTahun = Model.DaftarSiswa.GroupBy(x => x.TahunAjaran.Id).ToDictionary(x => x.Key);
+                                    }
+                                    @foreach (var tahun in Model.DaftarTahunAjaran)
+                                    {
+                                        var groupJurusan = groupTahun.GetValueOrDefault(tahun.Id)?.GroupBy(x => x.Jurusan).ToDictionary(x => x.Key);
+                                        <tr>
+                                            <td>@tahun.Id</td>
+                                            @foreach (var item in Enum.GetValues<Jurusan>())
+                                            {
+                                                var jumlahSiswa = groupJurusan?.GetValueOrDefault(item)?.Count() ?? 0;
+                                                <td>@jumlahSiswa</td>
+                                            }
+                                            <td>@(groupTahun.GetValueOrDefault(tahun.Id)?.Count() ?? 0)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Link Akses Cepat-->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">Akses Cepat</h6>
+                        <ul class="list-group list-group-flush">
+                            @if (user.Role == UserRoles.Admin)
+                            {
+                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                    📋 Data Siswa
+                                    <a asp-action="Index" asp-controller="Siswa" class="btn btn-primary btn-sm">Lihat</a>
+                                </li>
+                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                    👨‍🏫 Data Tahun Ajaran
+                                    <a asp-action="Index" asp-controller="TahunAjaran" class="btn btn-primary btn-sm">Lihat</a>
+                                </li>
+                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                    🏫 Data Kriteria
+                                    <a asp-action="Index" asp-controller="Kriteria" class="btn btn-primary btn-sm">Lihat</a>
+                                </li>
+                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                    📅 Data Mata Pelajaran
+                                    <a asp-action="Index" asp-controller="MataPelajaran" class="btn btn-primary btn-sm">Lihat</a>
+                                </li>
+                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                    📅 Data Sertifikat LSP
+                                    <a asp-action="Index" asp-controller="SertifikatLSP" class="btn btn-primary btn-sm">Lihat</a>
+                                </li>
+                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                    📅 Data Sertifikat TKA
+                                    <a asp-action="Index" asp-controller="SertifikatTKA" class="btn btn-primary btn-sm">Lihat</a>
+                                </li>
+                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                    📅 Data Ekstrakulikuler
+                                    <a asp-action="Index" asp-controller="Ekstrakulikuler" class="btn btn-primary btn-sm">Lihat</a>
+                                </li>
+                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                    📅 Data Presensi
+                                    <a asp-action="Index" asp-controller="Presensi" class="btn btn-primary btn-sm">Lihat</a>
+                                </li>
+                            }
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                ⚙️ Hasil Perhitungan
+                                <a asp-action="Index" asp-controller="Perhitungan" class="btn btn-primary btn-sm">Lihat</a>
+                            </li>
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                🧾 Hasil Seleksi
+                                <a asp-action="Index" asp-controller="Seleksi" class="btn btn-primary btn-sm">Lihat</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mt-5">
+            <!-- Jadwal per Hari -->
+            <div class="col-lg-3 col-md-6 col-12 pr-1">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="card-title text-center">Siswa per Jurusan</h6>
+                        <canvas id="chartJurusan" style="width:100%; height:260px;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Siswa per Jenis Kelamin -->
+            <div class="col-lg-3 col-md-6 col-12 pr-1">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="card-title text-center">Siswa per Tahun Ajaran</h6>
+                        <canvas id="chartTahun" style="width:100%; height:260px;"></canvas>
+                    </div>
+                </div>
+            </div>
+@* 
+            <!-- Siswa per Kelas -->
+            <div class="col-lg-3 col-md-6 col-12 pr-1">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="card-title text-center">Siswa per Kelas</h6>
+                        <canvas id="chartKelas" style="width:100%; height:260px;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistik Guru/Pegawai -->
+            <div class="col-lg-3 col-md-6 col-12">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="card-title text-center">Statistik Guru/Tendik</h6>
+                        <canvas id="chartPegawai" style="width:100%; height:260px;"></canvas>
+                    </div>
+                </div>
+            </div> *@
+        </div>
+    </div>
+</section>
+
+
+@section Scripts {
+    <script src="~/js/chart-chartjs.js" asp-append-version="true"></script>
+
+    <script>
+        new Chart(document.getElementById('chartJurusan'), {
+            type: 'bar',
+            data: {
+                labels: [ @(Html.Raw(string.Join(", ", Enum.GetValues<Jurusan>().Select(x => $"\"{x}\"")))) ],
+                datasets: [{
+                    label: "Jumlah Siswa",
+                    data: [ @(string.Join(", ", Enum.GetValues<Jurusan>().Select(x => Model.DaftarSiswa.Count(y => y.Jurusan == x)))) ],
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderRadius: 6
+                }]
+            }
+        });
+
+        new Chart(document.getElementById('chartTahun'), {
+            type: 'bar',
+            data: {
+                labels: [ @(Html.Raw(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => $"\"{x.Id}\"")))) ],
+                datasets: [{
+                    label: "Jumlah Siswa",
+                    data: [ @(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => x.DaftarSiswa.Count))) ],
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderRadius: 6
+                }]
+            }
+        });
+    </script>
 }
