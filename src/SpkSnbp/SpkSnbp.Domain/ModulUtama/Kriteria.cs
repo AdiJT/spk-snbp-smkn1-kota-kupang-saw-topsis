@@ -34,7 +34,7 @@ public enum KriteriaEnum
     SertLSP = 3,
     SertTKA = 4,
     Ekstrakulikuler = 5,
-    Absensi = 6
+    Presensi = 6
 }
 
 public enum SertifikatLSP

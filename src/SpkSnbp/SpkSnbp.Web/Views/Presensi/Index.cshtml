@@ -1,10 +1,10 @@
-﻿@using SpkSnbp.Web.Models.Absensi
+﻿@using SpkSnbp.Web.Models.Presensi
 @model IndexVM
 
 @inject ITahunAjaranRepository TahunAjaranRepository
 
 @{
-    ViewData["Title"] = "Absensi";
+    ViewData["Title"] = "Presensi";
     var daftarTahun = await TahunAjaranRepository.GetAll();
 }
 
@@ -13,7 +13,7 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="#">Data</a></li>
-            <li class="breadcrumb-item"><a asp-action="Index"></a>Absensi</li>
+            <li class="breadcrumb-item"><a asp-action="Index"></a>Presensi</li>
         </ol>
     </nav>
 </div>
@@ -22,7 +22,7 @@
 <div class="card card-primary">
     <!-- Judul -->
     <div class="card-header">
-        <h4>Daftar Absensi</h4>
+        <h4>Daftar Presensi</h4>
     </div>
     <div class="padding-20">
 
@@ -87,7 +87,7 @@
                             <th>Jurusan</th>
                             <th>Tahun Ajaran</th>
                             <th>
-                                <p>(C@((int)KriteriaEnum.SertTKA)) Absensi</p>
+                                <p>(C@((int)KriteriaEnum.Presensi)) Presensi</p>
                                 (JumlahAbsen:37-JumlahAbsen:45=1; 28-36=2; 19-27=3; 18-10=4; 9-0=5)
                             </th>
                             <th>Jumlah Absen 3 Tahun (0-45)</th>
@@ -103,9 +103,9 @@
                                 <td>@entry.Siswa.NISN</td>
                                 <td>@entry.Siswa.Jurusan.Humanize()</td>
                                 <td>@entry.Siswa.TahunAjaran.Id</td>
-                                @if (entry.Absensi is not null)
+                                @if (entry.Presensi is not null)
                                 {
-                                    <td>@entry.Absensi</td>
+                                    <td>@entry.Presensi</td>
                                 }
                                 else
                                 {

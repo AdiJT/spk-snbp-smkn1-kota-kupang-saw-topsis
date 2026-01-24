@@ -1,6 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
-using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpkSnbp.Domain.Auth;
@@ -9,13 +8,13 @@ using SpkSnbp.Domain.ModulUtama;
 using SpkSnbp.Infrastructure.Services.FileServices;
 using SpkSnbp.Web.Helpers;
 using SpkSnbp.Web.Models;
-using SpkSnbp.Web.Models.Absensi;
+using SpkSnbp.Web.Models.Presensi;
 using SpkSnbp.Web.Services.Toastr;
 
 namespace SpkSnbp.Web.Controllers;
 
 [Authorize(Roles = UserRoles.Admin)]
-public class AbsensiController : Controller
+public class PresensiController : Controller
 {
     private readonly ISiswaRepository _siswaRepository;
     private readonly IKriteriaRepository _kriteriaRepository;
@@ -25,7 +24,7 @@ public class AbsensiController : Controller
     private readonly ISiswaKriteriaRepository _siswaKriteriaRepository;
     private readonly IFileService _fileService;
 
-    public AbsensiController(
+    public PresensiController(
         ISiswaRepository siswaRepository,
         IKriteriaRepository kriteriaRepository,
         ITahunAjaranRepository tahunAjaranRepository,
@@ -65,14 +64,14 @@ public class AbsensiController : Controller
             var siswa = await _siswaRepository.Get(entry.IdSiswa);
             if (siswa is null) continue;
 
-            var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Absensi);
+            var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Presensi);
 
             if (siswaKriteria is null)
             {
                 siswaKriteria = new SiswaKriteria
                 {
                     IdSiswa = siswa.Id,
-                    IdKriteria = (int)KriteriaEnum.Absensi,
+                    IdKriteria = (int)KriteriaEnum.Presensi,
                     Nilai = default
                 };
 
@@ -166,13 +165,13 @@ public class AbsensiController : Controller
             var siswa = daftarSiswa.FirstOrDefault(x => x.Nama.ToLower() == nama.ToLower());
             if (siswa is null) continue;
 
-            var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Absensi);
+            var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Presensi);
             if (siswaKriteria is null)
             {
                 siswaKriteria = new SiswaKriteria
                 {
                     Siswa = siswa,
-                    IdKriteria = (int)KriteriaEnum.Absensi,
+                    IdKriteria = (int)KriteriaEnum.Presensi,
                     Nilai = default
                 };
 
