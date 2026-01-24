@@ -41,3 +41,12 @@ public enum SertifikatLSP
 {
     BelumKompeten = 1, Kompeten = 5
 }
+
+public enum PredikatEkstrakulikuler
+{
+    SangatKurang = 1,
+    Kurang = 2,
+    Cukup = 3,
+    Baik = 4,
+    SangatBaik = 5
+}

@@ -28,10 +28,13 @@
 
         <div class="d-flex justify-content-between align-items-center mb-3">
             <form asp-action="Index" method="get" class="d-flex align-items-center">
-                <div class="d-flex align-items-center mr-3" style="gap: 8px;">
+                <div class="d-flex align-items-center" style="gap: 8px;">
                     <label asp-for="@Model.Tahun" class="mb-0" style="font-weight: 600; white-space: nowrap;">Tahun Ajaran:</label>
                     <select asp-for="@Model.Tahun" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
-                        <option value="@null">-- Semua --</option>
+                        @if (Model.Tahun is null)
+                        {
+                            <option value="@null">-- Tidak ada Tahun Ajaran --</option>
+                        }
                         @foreach (var item in daftarTahun)
                         {
                             <option value="@item.Id">@item.Id</option>
@@ -42,7 +45,6 @@
                 <div class="d-flex align-items-center" style="gap: 8px;">
                     <label asp-for="@Model.Jurusan" class="mb-0" style="font-weight: 600; white-space: nowrap;">Jurusan:</label>
                     <select asp-for="@Model.Jurusan" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
-                        <option value="@null">-- Semua --</option>
                         @foreach (var item in Enum.GetValues<Jurusan>())
                         {
                             <option value="@item">@item.Humanize()</option>

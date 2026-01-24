@@ -1,11 +1,13 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Vml.Office;
 using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpkSnbp.Domain.Auth;
 using SpkSnbp.Domain.Contracts;
 using SpkSnbp.Domain.ModulUtama;
+using SpkSnbp.Domain.Shared;
 using SpkSnbp.Infrastructure.Services.FileServices;
 using SpkSnbp.Web.Helpers;
 using SpkSnbp.Web.Models;
@@ -43,15 +45,20 @@ public class EkstrakulikulerController : Controller
         _fileService = fileService;
     }
 
-    public async Task<IActionResult> Index(Jurusan? jurusan = null, int? tahun = null)
+    public async Task<IActionResult> Index(Jurusan jurusan = Jurusan.TJKT, int? tahun = null)
     {
-        var tahunAjaran = tahun is null ? null : await _tahunAjaranRepository.Get(tahun.Value);
+        var tahunAjaran = tahun is null ?
+            await _tahunAjaranRepository.Get(CultureInfos.DateOnlyNow.Year) :
+            await _tahunAjaranRepository.Get(tahun.Value);
+
+        tahunAjaran ??= await _tahunAjaranRepository.GetLatest();
+
         if (tahunAjaran is null)
-            return View(new IndexVM { Jurusan = jurusan, DaftarEntry = (await _siswaRepository.GetAll(jurusan)).ToIndexEntryList() });
+            return View(new IndexVM { Jurusan = jurusan, DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList() });
 
         return View(new IndexVM
         {
-            Tahun = tahun,
+            Tahun = tahunAjaran.Id,
             TahunAjaran = tahunAjaran,
             Jurusan = jurusan,
             DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList()
@@ -80,6 +87,10 @@ public class EkstrakulikulerController : Controller
             }
 
             siswaKriteria.Nilai = entry.DaftarEkskul.Select(x => (double)(int)x).Average() * entry.DaftarEkskul.Count;
+
+            siswa.Ekstrakulikuler1 = entry.Ekstrakulikuler1;
+            siswa.Ekstrakulikuler2 = entry.Ekstrakulikuler2;
+            siswa.Ekstrakulikuler3 = entry.Ekstrakulikuler3;
         }
 
         var result = await _unitOfWork.SaveChangesAsync();
@@ -207,6 +218,10 @@ public class EkstrakulikulerController : Controller
             }
 
             siswaKriteria.Nilai = total / jumlah * jumlah;
+
+            siswa.Ekstrakulikuler1 = ekstrakulikuler1;
+            siswa.Ekstrakulikuler2 = ekstrakulikuler2;
+            siswa.Ekstrakulikuler3 = ekstrakulikuler3;
         }
 
         var result = await _unitOfWork.SaveChangesAsync();

@@ -39,7 +39,7 @@ internal class TahunAjaranRepository : ITahunAjaranRepository
         .Include(x => x.DaftarSiswa)
         .ToListAsync();
 
-    public async Task<TahunAjaran?> GetByLatest() => await _appDbContext
+    public async Task<TahunAjaran?> GetLatest() => await _appDbContext
         .TahunAjaran
         .Include(x => x.DaftarSiswa)
         .OrderBy(x => x.Id)

@@ -6,6 +6,11 @@ public class Siswa : Entity<int>
 {
     public required string NISN { get; set; }
     public required string Nama { get; set; }
+    public double? SkorTKA { get; set; }
+    public PredikatEkstrakulikuler? Ekstrakulikuler1 { get; set; }
+    public PredikatEkstrakulikuler? Ekstrakulikuler2 { get; set; }
+    public PredikatEkstrakulikuler? Ekstrakulikuler3 { get; set; }
+    public int? JumlahAbsen { get; set; }
     public double? NilaiTopsis { get; set; }
     public Eligible? Eligible { get; set; }
     public required Jurusan Jurusan { get; set; }

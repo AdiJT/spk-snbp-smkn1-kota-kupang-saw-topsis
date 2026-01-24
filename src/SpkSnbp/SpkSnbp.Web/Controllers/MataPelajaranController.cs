@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using SpkSnbp.Domain.Auth;
 using SpkSnbp.Domain.Contracts;
 using SpkSnbp.Domain.ModulUtama;
+using SpkSnbp.Domain.Shared;
 using SpkSnbp.Infrastructure.Services.FileServices;
 using SpkSnbp.Web.Helpers;
 using SpkSnbp.Web.Models;
@@ -44,15 +45,20 @@ public class MataPelajaranController : Controller
         _fileService = fileService;
     }
 
-    public async Task<IActionResult> Index(Jurusan? jurusan = null, int? tahun = null)
+    public async Task<IActionResult> Index(Jurusan jurusan = Jurusan.TJKT, int? tahun = null)
     {
-        var tahunAjaran = tahun is null ? null : await _tahunAjaranRepository.Get(tahun.Value);
+        var tahunAjaran = tahun is null ?
+            await _tahunAjaranRepository.Get(CultureInfos.DateOnlyNow.Year) :
+            await _tahunAjaranRepository.Get(tahun.Value);
+
+        tahunAjaran ??= await _tahunAjaranRepository.GetLatest();
+
         if (tahunAjaran is null)
-            return View(new IndexVM { Jurusan = jurusan, DaftarEntry = (await _siswaRepository.GetAll(jurusan)).ToIndexEntryList() });
+            return View(new IndexVM { Jurusan = jurusan, DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList() });
 
         return View(new IndexVM
         {
-            Tahun = tahun,
+            Tahun = tahunAjaran.Id,
             TahunAjaran = tahunAjaran,
             Jurusan = jurusan,
             DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList()

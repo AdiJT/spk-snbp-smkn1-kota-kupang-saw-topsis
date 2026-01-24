@@ -34,7 +34,7 @@ public class SeleksiController : Controller
             await _tahunAjaranRepository.Get(CultureInfos.DateOnlyNow.Year) :
             await _tahunAjaranRepository.Get(tahun.Value);
 
-        tahunAjaran ??= await _tahunAjaranRepository.GetByLatest();
+        tahunAjaran ??= await _tahunAjaranRepository.GetLatest();
 
         if (tahunAjaran is null)
             return View(new IndexVM { Jurusan = jurusan, DaftarSiswa = [] });

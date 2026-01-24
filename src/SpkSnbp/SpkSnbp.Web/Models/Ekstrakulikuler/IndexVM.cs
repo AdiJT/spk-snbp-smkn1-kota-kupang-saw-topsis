@@ -1,5 +1,4 @@
 ﻿using SpkSnbp.Domain.ModulUtama;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace SpkSnbp.Web.Models.Ekstrakulikuler;
@@ -33,15 +32,6 @@ public class IndexEntryVM
         [.. new List<PredikatEkstrakulikuler?> { Ekstrakulikuler1, Ekstrakulikuler2, Ekstrakulikuler3}.Where(x => x.HasValue).Select(x => x!.Value)];
 }
 
-public enum PredikatEkstrakulikuler
-{
-    SangatKurang = 1,
-    Kurang = 2,
-    Cukup = 3,
-    Baik = 4,
-    SangatBaik = 5
-}
-
 public static class EnumerableExtensions 
 {
     public static List<IndexEntryVM> ToIndexEntryList(this IEnumerable<Siswa> daftarSiswa) => daftarSiswa
@@ -49,6 +39,9 @@ public static class EnumerableExtensions
         {
             Siswa = x,
             IdSiswa = x.Id,
-            Ekstrakulikuler = x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Ekstrakulikuler)?.Nilai
+            Ekstrakulikuler = x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Ekstrakulikuler)?.Nilai,
+            Ekstrakulikuler1 = x.Ekstrakulikuler1,
+            Ekstrakulikuler2 = x.Ekstrakulikuler2,
+            Ekstrakulikuler3 = x.Ekstrakulikuler3
         }).ToList();
 }

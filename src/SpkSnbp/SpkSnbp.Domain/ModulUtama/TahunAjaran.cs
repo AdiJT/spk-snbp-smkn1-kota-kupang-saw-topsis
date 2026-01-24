@@ -11,7 +11,7 @@ public class TahunAjaran : Entity<int>
 public interface ITahunAjaranRepository
 {
     Task<TahunAjaran?> Get(int id);
-    Task<TahunAjaran?> GetByLatest();
+    Task<TahunAjaran?> GetLatest();
     Task<List<TahunAjaran>> GetAll();
     Task<bool> IsExist(int tahun);
 
