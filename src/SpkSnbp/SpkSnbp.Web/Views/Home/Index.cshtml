@@ -163,18 +163,7 @@
         </div>
 
         <div class="row g-3 mt-5">
-            <!-- Jadwal per Hari -->
-            <div class="col-lg-3 col-md-6 col-12 pr-1">
-                <div class="card shadow-sm h-100">
-                    <div class="card-body">
-                        <h6 class="card-title text-center">Siswa per Jurusan</h6>
-                        <canvas id="chartJurusan" style="width:100%; height:260px;"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Siswa per Jenis Kelamin -->
-            <div class="col-lg-3 col-md-6 col-12 pr-1">
+            <div class="col-lg-6 col-md-6 col-12 pr-1">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
                         <h6 class="card-title text-center">Siswa per Tahun Ajaran</h6>
@@ -182,26 +171,15 @@
                     </div>
                 </div>
             </div>
-@* 
-            <!-- Siswa per Kelas -->
-            <div class="col-lg-3 col-md-6 col-12 pr-1">
+
+            <div class="col-lg-6 col-md-6 col-12 pr-1">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
-                        <h6 class="card-title text-center">Siswa per Kelas</h6>
-                        <canvas id="chartKelas" style="width:100%; height:260px;"></canvas>
+                        <h6 class="card-title text-center">Seleksi Siswa</h6>
+                        <canvas id="chartSeleksi" style="width:100%; height:260px;"></canvas>
                     </div>
                 </div>
             </div>
-
-            <!-- Statistik Guru/Pegawai -->
-            <div class="col-lg-3 col-md-6 col-12">
-                <div class="card shadow-sm h-100">
-                    <div class="card-body">
-                        <h6 class="card-title text-center">Statistik Guru/Tendik</h6>
-                        <canvas id="chartPegawai" style="width:100%; height:260px;"></canvas>
-                    </div>
-                </div>
-            </div> *@
         </div>
     </div>
 </section>
@@ -210,30 +188,100 @@
 @section Scripts {
     <script src="~/js/chart-chartjs.js" asp-append-version="true"></script>
 
-    <script>
-        new Chart(document.getElementById('chartJurusan'), {
-            type: 'bar',
-            data: {
-                labels: [ @(Html.Raw(string.Join(", ", Enum.GetValues<Jurusan>().Select(x => $"\"{x}\"")))) ],
-                datasets: [{
-                    label: "Jumlah Siswa",
-                    data: [ @(string.Join(", ", Enum.GetValues<Jurusan>().Select(x => Model.DaftarSiswa.Count(y => y.Jurusan == x)))) ],
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderRadius: 6
-                }]
-            }
-        });
-
+    <script type="text/javascript">
         new Chart(document.getElementById('chartTahun'), {
             type: 'bar',
             data: {
                 labels: [ @(Html.Raw(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => $"\"{x.Id}\"")))) ],
-                datasets: [{
-                    label: "Jumlah Siswa",
-                    data: [ @(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => x.DaftarSiswa.Count))) ],
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderRadius: 6
-                }]
+                datasets: [
+                    {
+                        label: "@(Jurusan.TJKT)",
+                        data: [ @(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => x.DaftarSiswa.Where(x => x.Jurusan == Jurusan.TJKT).Count()))) ],
+                        backgroundColor: 'rgba(0, 0, 235, 0.6)',
+                        borderRadius: 6,
+                        stack: 'stack 0'
+                    },
+                    {
+                        label: "@(Jurusan.Akuntasi)",
+                        data: [ @(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => x.DaftarSiswa.Where(x => x.Jurusan == Jurusan.Akuntasi).Count()))) ],
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderRadius: 6,
+                        stack: 'stack 0'
+                    },
+                    {
+                        label: "@(Jurusan.Perkantoran)",
+                        data: [ @(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => x.DaftarSiswa.Where(x => x.Jurusan == Jurusan.Perkantoran).Count()))) ],
+                        backgroundColor: 'rgba(235, 235, 54, 0.6)',
+                        borderRadius: 6,
+                        stack: 'stack 0'
+                    },
+                    {
+                        label: "@(Jurusan.Pariwisata)",
+                        data: [ @(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => x.DaftarSiswa.Where(x => x.Jurusan == Jurusan.Pariwisata).Count()))) ],
+                        backgroundColor: 'rgba(54, 235, 162, 0.6)',
+                        borderRadius: 6,
+                        stack: 'stack 0'
+                    },
+                    {
+                        label: "@(Jurusan.Pemasaran)",
+                        data: [ @(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => x.DaftarSiswa.Where(x => x.Jurusan == Jurusan.Pemasaran).Count()))) ],
+                        backgroundColor: 'rgba(235, 54, 54, 0.6)',
+                        borderRadius: 6,
+                        stack: 'stack 0'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                  x: {
+                    stacked: true,
+                  },
+                  y: {
+                    stacked: true
+                  }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('chartSeleksi'), {
+            type: 'bar',
+            data: {
+                labels: [ @(Html.Raw(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => $"\"{x.Id}\"")))) ],
+                datasets: [
+                    {
+                        label: "Eligible",
+                        data: [ @(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => x.DaftarSiswa.Where(x => x.Eligible == Eligible.Ya).Count()))) ],
+                        backgroundColor: 'rgba(54, 54, 235, 0.6)',
+                        borderRadius: 6,
+                        stack: 'stack 0'
+                    },
+                    {
+                        label: "Tidak Eligible",
+                        data: [ @(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => x.DaftarSiswa.Where(x => x.Eligible == Eligible.Tidak).Count()))) ],
+                        backgroundColor: 'rgba(235, 54, 54, 0.6)',
+                        borderRadius: 6,
+                        stack: 'stack 0'
+                    },
+                    {
+                        label: "Belum Seleksi",
+                        data: [ @(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => x.DaftarSiswa.Where(x => x.Eligible == null).Count()))) ],
+                        backgroundColor: 'rgba(162, 162, 162, 0.6)',
+                        borderRadius: 6,
+                        stack: 'stack 0'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                  x: {
+                    stacked: true,
+                  },
+                  y: {
+                    stacked: true
+                  }
+                }
             }
         });
     </script>

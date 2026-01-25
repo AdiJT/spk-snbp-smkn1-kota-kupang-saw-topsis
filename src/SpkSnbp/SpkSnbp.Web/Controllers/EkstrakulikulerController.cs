@@ -1,9 +1,11 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Vml.Office;
 using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using SpkSnbp.Domain.Auth;
 using SpkSnbp.Domain.Contracts;
 using SpkSnbp.Domain.ModulUtama;
@@ -26,6 +28,7 @@ public class EkstrakulikulerController : Controller
     private readonly IToastrNotificationService _notificationService;
     private readonly ISiswaKriteriaRepository _siswaKriteriaRepository;
     private readonly IFileService _fileService;
+    private readonly ITempDataDictionaryFactory _tempDataDictionaryFactory;
 
     public EkstrakulikulerController(
         ISiswaRepository siswaRepository,
@@ -34,7 +37,8 @@ public class EkstrakulikulerController : Controller
         IUnitOfWork unitOfWork,
         IToastrNotificationService notificationService,
         ISiswaKriteriaRepository siswaKriteriaRepository,
-        IFileService fileService)
+        IFileService fileService,
+        ITempDataDictionaryFactory tempDataDictionaryFactory)
     {
         _siswaRepository = siswaRepository;
         _kriteriaRepository = kriteriaRepository;
@@ -43,10 +47,27 @@ public class EkstrakulikulerController : Controller
         _notificationService = notificationService;
         _siswaKriteriaRepository = siswaKriteriaRepository;
         _fileService = fileService;
+        _tempDataDictionaryFactory = tempDataDictionaryFactory;
     }
 
-    public async Task<IActionResult> Index(Jurusan jurusan = Jurusan.TJKT, int? tahun = null)
+    public async Task<IActionResult> Index(Jurusan jurusan = Jurusan.TJKT, int? tahun = null, bool first = true)
     {
+        var tempDataDict = _tempDataDictionaryFactory.GetTempData(HttpContext);
+
+        if (first)
+        {
+            var jurusanTempData = tempDataDict.Peek(TempDataKeys.Jurusan);
+            var tahunTempData = tempDataDict.Peek(TempDataKeys.Tahun);
+
+            if (jurusanTempData is not null)
+                jurusan = (Jurusan)jurusanTempData;
+
+            if (tahunTempData is not null)
+                tahun = (int)tahunTempData;
+        }
+        else
+            tempDataDict[TempDataKeys.Jurusan] = jurusan;
+
         var tahunAjaran = tahun is null ?
             await _tahunAjaranRepository.Get(CultureInfos.DateOnlyNow.Year) :
             await _tahunAjaranRepository.Get(tahun.Value);
@@ -55,6 +76,8 @@ public class EkstrakulikulerController : Controller
 
         if (tahunAjaran is null)
             return View(new IndexVM { Jurusan = jurusan, DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList() });
+
+        if (!first) tempDataDict[TempDataKeys.Tahun] = tahunAjaran.Id;
 
         return View(new IndexVM
         {
