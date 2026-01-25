@@ -68,9 +68,7 @@ public class SeleksiController : Controller
             Jurusan = jurusan,
             Tahun = tahunAjaran.Id,
             TahunAjaran = tahunAjaran,
-            DaftarSiswa = [.. (await _siswaRepository.GetAll(jurusan, tahunAjaran.Id))
-                .Where(x => x.NilaiTopsis != null)
-                .OrderByDescending(x => x.NilaiTopsis)]
+            DaftarSiswa = [.. (await _siswaRepository.GetAll(jurusan, tahunAjaran.Id)).OrderByDescending(x => x.NilaiTopsis)]
         });
     }
 

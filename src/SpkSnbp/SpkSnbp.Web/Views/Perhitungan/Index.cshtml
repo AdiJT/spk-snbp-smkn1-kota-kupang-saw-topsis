@@ -1,8 +1,11 @@
-﻿@using SpkSnbp.Web.Models.Perhitungan
+﻿@using SpkSnbp.Domain.Auth
+@using SpkSnbp.Web.Authentication
+@using SpkSnbp.Web.Models.Perhitungan
 @model IndexVM
 
 @inject ITahunAjaranRepository TahunAjaranRepository
 @inject IKriteriaRepository KriteriaRepository
+@inject ISignInManager SignInManager
 
 @{
     ViewData["Title"] = "Perhitungan";
@@ -80,6 +83,18 @@
                         </div>
                     }
                 }
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between mb-3 mr-3">
+            <div class="mb-0 card card-body rounded" style="background-color: #d9edf7; font-weight: 400; padding: 15px; color: #31708f;">
+                <p class="mb-0">
+                    Perhitungan hanya dapat dilakukan jika setiap data kriteria siswa lengkap!
+                    @if(await SignInManager.IsInRole(UserRoles.Admin) == false)
+                    {
+                        @("Hubungi Admin untuk melengkapi data kriteria siswa");
+                    }
+                </p>
             </div>
         </div>
 

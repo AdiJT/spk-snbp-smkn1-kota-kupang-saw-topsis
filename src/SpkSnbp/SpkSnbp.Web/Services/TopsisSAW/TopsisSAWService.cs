@@ -205,7 +205,7 @@ public class TopsisSAWService : ITopsisSAWService
         daftarSiswa = [.. daftarSiswa.Where(x => x.NilaiTopsis != null).OrderByDescending(x => x.NilaiTopsis)];
 
         if (daftarSiswa.Count == 0)
-            return new Error("SeleksiEligible.SiswaTidakAda", "Tidak ada data siswa");
+            return new Error("SeleksiEligible.SiswaTidakAda", "Tidak ada siswa yang memiliki nilai preferensi");
 
         var jumlahEligible = daftarSiswa.Count / (double)Enum.GetValues<Jurusan>().Length * PERSEN_ELIGIBLE;
 
