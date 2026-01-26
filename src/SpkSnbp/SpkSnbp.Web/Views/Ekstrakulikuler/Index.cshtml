@@ -95,7 +95,7 @@
                                 <p>(C@((int)KriteriaEnum.Ekstrakulikuler)) Ekstrakulikuler</p>
                                 (Rata-Rata Predikat * Jumlah Ekstrakulikuler)
                             </th>
-                            <th colspan="3">Predikat</th>
+                            <th width="25%">Predikat</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -117,34 +117,46 @@
                                     <td>-</td>
                                 }
                                 <td>
-                                    <select asp-for="@Model.DaftarEntry[@i].Ekstrakulikuler1" class="form-control">
-                                        <option value="@null">-- Pilih Predikat--</option>
-                                        @foreach (var item in Enum.GetValues<PredikatEkstrakulikuler>())
-                                        {
-                                            <option value="@item">@item.Humanize() (@((int)item))</option>
-                                        }
-                                    </select>
-                                    <span asp-validation-for="@Model.DaftarEntry[@i].Ekstrakulikuler1" class="text-danger"></span>
-                                </td>
-                                <td>
-                                    <select asp-for="@Model.DaftarEntry[@i].Ekstrakulikuler2" class="form-control">
-                                        <option value="@null">-- Pilih Predikat--</option>
-                                        @foreach (var item in Enum.GetValues<PredikatEkstrakulikuler>())
-                                        {
-                                            <option value="@item">@item.Humanize() (@((int)item))</option>
-                                        }
-                                    </select>
-                                    <span asp-validation-for="@Model.DaftarEntry[@i].Ekstrakulikuler2" class="text-danger"></span>
-                                </td>
-                                <td>
-                                    <select asp-for="@Model.DaftarEntry[@i].Ekstrakulikuler3" class="form-control">
-                                        <option value="@null">-- Pilih Predikat--</option>
-                                        @foreach (var item in Enum.GetValues<PredikatEkstrakulikuler>())
-                                        {
-                                            <option value="@item">@item.Humanize() (@((int)item))</option>
-                                        }
-                                    </select>
-                                    <span asp-validation-for="@Model.DaftarEntry[@i].Ekstrakulikuler3" class="text-danger"></span>
+                                    <table class="table">
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <select asp-for="@Model.DaftarEntry[@i].Ekstrakulikuler1" class="form-control">
+                                                        <option value="@null">-- Pilih Predikat--</option>
+                                                        @foreach (var item in Enum.GetValues<PredikatEkstrakulikuler>())
+                                                        {
+                                                            <option value="@item">@item.Humanize() (@((int)item))</option>
+                                                        }
+                                                    </select>
+                                                    <span asp-validation-for="@Model.DaftarEntry[@i].Ekstrakulikuler1" class="text-danger"></span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <select asp-for="@Model.DaftarEntry[@i].Ekstrakulikuler2" class="form-control">
+                                                        <option value="@null">-- Pilih Predikat--</option>
+                                                        @foreach (var item in Enum.GetValues<PredikatEkstrakulikuler>())
+                                                        {
+                                                            <option value="@item">@item.Humanize() (@((int)item))</option>
+                                                        }
+                                                    </select>
+                                                    <span asp-validation-for="@Model.DaftarEntry[@i].Ekstrakulikuler2" class="text-danger"></span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <select asp-for="@Model.DaftarEntry[@i].Ekstrakulikuler3" class="form-control">
+                                                        <option value="@null">-- Pilih Predikat--</option>
+                                                        @foreach (var item in Enum.GetValues<PredikatEkstrakulikuler>())
+                                                        {
+                                                            <option value="@item">@item.Humanize() (@((int)item))</option>
+                                                        }
+                                                    </select>
+                                                    <span asp-validation-for="@Model.DaftarEntry[@i].Ekstrakulikuler3" class="text-danger"></span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </td>
                             </tr>
                         }
