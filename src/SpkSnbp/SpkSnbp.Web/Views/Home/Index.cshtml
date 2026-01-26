@@ -128,19 +128,19 @@
                                     <a asp-action="Index" asp-controller="Kriteria" class="btn btn-primary btn-sm">Lihat</a>
                                 </li>
                                 <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                                    📅 Data Mata Pelajaran
+                                    📖 Data Mata Pelajaran
                                     <a asp-action="Index" asp-controller="MataPelajaran" class="btn btn-primary btn-sm">Lihat</a>
                                 </li>
                                 <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                                    📅 Data Sertifikat LSP
+                                    🗃️ Data Sertifikat LSP
                                     <a asp-action="Index" asp-controller="SertifikatLSP" class="btn btn-primary btn-sm">Lihat</a>
                                 </li>
                                 <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                                    📅 Data Sertifikat TKA
+                                    📄 Data Sertifikat TKA
                                     <a asp-action="Index" asp-controller="SertifikatTKA" class="btn btn-primary btn-sm">Lihat</a>
                                 </li>
                                 <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                                    📅 Data Ekstrakulikuler
+                                    🎷 Data Ekstrakulikuler
                                     <a asp-action="Index" asp-controller="Ekstrakulikuler" class="btn btn-primary btn-sm">Lihat</a>
                                 </li>
                                 <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
@@ -149,7 +149,7 @@
                                 </li>
                             }
                             <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                                ⚙️ Hasil Perhitungan
+                                💻 Hasil Perhitungan
                                 <a asp-action="Index" asp-controller="Perhitungan" class="btn btn-primary btn-sm">Lihat</a>
                             </li>
                             <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
@@ -166,16 +166,7 @@
             <div class="col-lg-6 col-md-6 col-12 pr-1">
                 <div class="card shadow-sm h-100">
                     <div class="card-body">
-                        <h6 class="card-title text-center">Siswa per Tahun Ajaran</h6>
-                        <canvas id="chartTahun" style="width:100%; height:260px;"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-6 col-md-6 col-12 pr-1">
-                <div class="card shadow-sm h-100">
-                    <div class="card-body">
-                        <h6 class="card-title text-center">Seleksi Siswa</h6>
+                        <h6 class="card-title text-center">Hasil Seleksi Siswa per Tahun Ajaran</h6>
                         <canvas id="chartSeleksi" style="width:100%; height:260px;"></canvas>
                     </div>
                 </div>
@@ -189,61 +180,6 @@
     <script src="~/js/chart-chartjs.js" asp-append-version="true"></script>
 
     <script type="text/javascript">
-        new Chart(document.getElementById('chartTahun'), {
-            type: 'bar',
-            data: {
-                labels: [ @(Html.Raw(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => $"\"{x.Id}\"")))) ],
-                datasets: [
-                    {
-                        label: "@(Jurusan.TJKT)",
-                        data: [ @(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => x.DaftarSiswa.Where(x => x.Jurusan == Jurusan.TJKT).Count()))) ],
-                        backgroundColor: 'rgba(0, 0, 235, 0.6)',
-                        borderRadius: 6,
-                        stack: 'stack 0'
-                    },
-                    {
-                        label: "@(Jurusan.Akuntasi)",
-                        data: [ @(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => x.DaftarSiswa.Where(x => x.Jurusan == Jurusan.Akuntasi).Count()))) ],
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                        borderRadius: 6,
-                        stack: 'stack 0'
-                    },
-                    {
-                        label: "@(Jurusan.Perkantoran)",
-                        data: [ @(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => x.DaftarSiswa.Where(x => x.Jurusan == Jurusan.Perkantoran).Count()))) ],
-                        backgroundColor: 'rgba(235, 235, 54, 0.6)',
-                        borderRadius: 6,
-                        stack: 'stack 0'
-                    },
-                    {
-                        label: "@(Jurusan.Pariwisata)",
-                        data: [ @(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => x.DaftarSiswa.Where(x => x.Jurusan == Jurusan.Pariwisata).Count()))) ],
-                        backgroundColor: 'rgba(54, 235, 162, 0.6)',
-                        borderRadius: 6,
-                        stack: 'stack 0'
-                    },
-                    {
-                        label: "@(Jurusan.Pemasaran)",
-                        data: [ @(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => x.DaftarSiswa.Where(x => x.Jurusan == Jurusan.Pemasaran).Count()))) ],
-                        backgroundColor: 'rgba(235, 54, 54, 0.6)',
-                        borderRadius: 6,
-                        stack: 'stack 0'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                  x: {
-                    stacked: true,
-                  },
-                  y: {
-                    stacked: true
-                  }
-                }
-            }
-        });
-
         new Chart(document.getElementById('chartSeleksi'), {
             type: 'bar',
             data: {
@@ -264,7 +200,7 @@
                         stack: 'stack 0'
                     },
                     {
-                        label: "Belum Seleksi",
+                        label: "Data Tidak Lengkap",
                         data: [ @(string.Join(", ", Model.DaftarTahunAjaran.TakeLast(5).Select(x => x.DaftarSiswa.Where(x => x.Eligible == null).Count()))) ],
                         backgroundColor: 'rgba(162, 162, 162, 0.6)',
                         borderRadius: 6,
