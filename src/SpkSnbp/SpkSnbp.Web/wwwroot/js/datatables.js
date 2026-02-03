@@ -96,10 +96,10 @@ $('#table-akun-1').DataTable({
 
 $('.table-export').each(function () {
     $(this).DataTable({
-        dom: '<"row justify-content-between"lf><"row"B>rt<"bottom-wrapper"ip>', // Atur posisi elemen
-        buttons: [
-            'csv', 'excel', 'pdf', 'print' // Tombol ekspor
-        ],
+        //dom: '<"row justify-content-between"lf><"row"B>rt<"bottom-wrapper"ip>', // Atur posisi elemen
+        //buttons: [
+        //    'csv', 'excel', 'pdf', 'print' // Tombol ekspor
+        //],
         columnDefs: [
             { "sortable": false, "targets": [2] } // Menonaktifkan pengurutan untuk kolom tertentu
         ],

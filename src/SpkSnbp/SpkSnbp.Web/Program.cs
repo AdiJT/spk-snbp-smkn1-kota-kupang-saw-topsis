@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using SpkSnbp.Domain.Auth;
 using SpkSnbp.Infrastructure;
 using SpkSnbp.Web.Authentication;
+using SpkSnbp.Web.Services.PDFGenerator;
 using SpkSnbp.Web.Services.Toastr;
 using SpkSnbp.Web.Services.TopsisSAW;
 
@@ -27,6 +28,8 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddScoped<ISignInManager, SignInManager>();
 builder.Services.AddScoped<IToastrNotificationService, ToastrNotificationService>();
 builder.Services.AddScoped<ITopsisSAWService, TopsisSAWService>();
+builder.Services.AddRazorTemplating();
+builder.Services.AddSingleton<IPDFGeneratorService, PDFGeneratorService>();
 
 var app = builder.Build();
 

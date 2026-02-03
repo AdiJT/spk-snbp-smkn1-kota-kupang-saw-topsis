@@ -1,0 +1,93 @@
+﻿@model List<Siswa>
+
+@inject IKriteriaRepository KriteriaRepository
+
+@{
+    Layout = null;
+    var daftarKriteria = await KriteriaRepository.GetAll();
+}
+
+<head>
+    <link rel="stylesheet" href="~/lib/datatables/datatables.min.css" asp-append-version="true" />
+</head>
+
+
+<style>
+    table {
+        width: 100%;
+        font-size: 11px;
+        font-family: 'Trebuchet MS', sans-serif;
+    }
+
+    table, th, tr, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+
+    thead tr th {
+        background-color: #F8F8FF !important;
+        -webkit-print-color-adjust: exact; /* p */
+        print-color-adjust: exact; /* p */
+        color-adjust: exact; /* p */
+    }
+
+    th, td {
+        padding: 10px;
+    }
+
+    h1, h2 {
+        font-family: Calibri
+    }
+
+    h1 {
+        font-size: 16px
+    }
+
+    h2 {
+        font-size: 14px
+    }
+</style>
+
+
+<h1 style="font-size:18px !important; text-align:center; margin-top:5px">Siswa</h1>
+
+<table style="margin-top:20px">
+    <thead>
+        <tr>
+            <th style="text-align:center" rowspan="2">Nama</th>
+            <th style="text-align:center" rowspan="2">NISN</th>
+            <th style="text-align:center" rowspan="2">Jurusan</th>
+            <th style="text-align:center" rowspan="2">Tahun Ajaran</th>
+            <th style="text-align:center" colspan="@daftarKriteria.Count">Kriteria</th>
+        </tr>
+        <tr>
+            @foreach (var kriteria in daftarKriteria)
+            {
+                <th style="text-align:center">(@kriteria.Kode) @kriteria.Nama</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var siswa in Model)
+        {
+            <tr>
+                <td style="text-align:center">@siswa.Nama</td>
+                <td style="text-align:center">@siswa.NISN</td>
+                <td style="text-align:center">@siswa.Jurusan.Humanize()</td>
+                <td style="text-align:center">@siswa.TahunAjaran.Id</td>
+                @foreach (var kriteria in daftarKriteria)
+                {
+                    var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.Kriteria == kriteria);
+                    if (siswaKriteria is null)
+                    {
+                        <td style="text-align:center"> - </td>
+                    }
+                    else
+                    {
+                        <td style="text-align:center">@siswaKriteria.Nilai</td>
+                    }
+                }
+            </tr>
+        }
+    </tbody>
+</table>
