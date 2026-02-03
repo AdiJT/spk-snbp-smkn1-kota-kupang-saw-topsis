@@ -1,0 +1,365 @@
+﻿/* ================================= NAVIGATION ================================= */
+nav {
+    position: fixed;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1vw 8vw;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+    z-index: 999;
+    width: calc(100% - 20px);
+    margin: 10px 0 0 10px;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+}
+
+    /* ========== LOGO ========== */
+    nav .logo {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        align-items: center;
+    }
+
+        nav .logo img {
+            width: 40px;
+            cursor: pointer;
+        }
+
+        nav .logo ::deep a {
+            text-decoration: none;
+            color: rgb(24, 24, 49);
+            line-height: 1.2;
+            font-size: 1rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+    /* ========== NAVIGATION MENU ========== */
+    nav .navigation {
+        display: flex;
+        align-items: center;
+    }
+
+/* Tombol Menu */
+#menu-btn {
+    width: 32px;
+    height: 32px;
+    display: none;
+    cursor: pointer;
+}
+
+#menu-close {
+    font-size: 28px;
+    color: #222;
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    cursor: pointer;
+    display: none;
+}
+
+/* Menu Utama */
+nav .navigation ::deep ul {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 30px;
+}
+
+    nav .navigation ::deep ul li {
+        list-style: none;
+        position: relative;
+    }
+
+        nav .navigation ::deep ul li a {
+            text-decoration: none;
+            color: rgb(21, 21, 100);
+            font-size: 16px;
+            font-weight: 500;
+            transition: 0.3s ease;
+        }
+
+            nav .navigation ::deep ul li a:hover {
+                color: #fdc93b;
+            }
+
+/* ========== SUBMENU ========== */
+nav .navigation .submenu {
+    gap: 0px;
+    align-items: start;
+}
+
+nav .navigation ::deep ul li.has-submenu a {
+    cursor: pointer;
+}
+
+nav .navigation ::deep ul li.has-submenu i {
+    font-size: 16px;
+}
+
+nav .navigation ::deep ul li.has-submenu .submenu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #ffffff;
+    padding: 15px 0 10px;
+    flex-direction: column;
+    min-width: 250px;
+    border-radius: 5px;
+    transition: 0.1s ease-in-out;
+    z-index: 1000;
+}
+
+nav .navigation ::deep ul li.has-submenu:hover .submenu {
+    display: flex;
+}
+
+nav .navigation ::deep ul li.has-submenu .submenu li a {
+    padding: 10px 20px;
+    display: block;
+    color: rgb(21, 21, 100);
+    font-size: 15px;
+    transition: 0.3s ease;
+}
+
+    nav .navigation ::deep ul li.has-submenu .submenu li a:hover {
+        color: #fdc93b;
+    }
+
+/* ------------------------------------ RESPONSIVE ------------------------------------ */
+@media (max-width: 1024px) {
+}
+
+@media (max-width: 992px) {
+    nav {
+        padding: 2vw 6vw;
+    }
+
+    #menu-btn {
+        display: block;
+    }
+
+    nav .navigation ::deep ul {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        height: 100vh;
+        width: 280px;
+        background-color: #ffffff;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        padding: 80px 30px;
+        transition: right 0.3s ease;
+    }
+
+    nav .navigation[b-9x08hnqihf] ul {
+        gap: 0px;
+    }
+
+    nav .navigation ::deep ul.active {
+        right: 0;
+    }
+
+    #menu-close {
+        display: block;
+    }
+
+    nav .navigation ::deep ul li {
+        margin: 20px 0;
+    }
+
+        nav .navigation ::deep ul li.has-submenu .submenu li a {
+            padding: 0px 20px 0px 25px !important;
+            display: block;
+            color: rgb(21, 21, 100);
+            font-size: 15px;
+            transition: 0.3s ease;
+        }
+
+        /* --- SUBMENU --- */
+        nav .navigation ::deep ul li.has-submenu {
+            width: 100%;
+            padding-bottom: 0px;
+        }
+
+            nav .navigation ::deep ul li.has-submenu.active {
+                padding-bottom: 0;
+            }
+
+            nav .navigation ::deep ul li.has-submenu .submenu {
+                position: static;
+                display: none;
+                flex-direction: column;
+                width: 100%;
+                margin-top: 10px;
+                overflow: hidden;
+                max-height: 0;
+                transform: translateY(-10px);
+                opacity: 0;
+                transition: max-height 0.4s ease, transform 0.4s ease, opacity 0.4s ease;
+            }
+
+            nav .navigation ::deep ul li.has-submenu:hover .submenu {
+                position: static;
+                display: none;
+                flex-direction: column;
+                width: 100%;
+            }
+
+            nav .navigation ::deep ul li.has-submenu.active .submenu {
+                display: flex;
+                max-height: 180px;
+                opacity: 1;
+                transform: translateY(0);
+            }
+}
+
+@media (max-width: 768px) {
+}
+
+@media (max-width: 425px) {
+    nav {
+        padding: 3vw 5vw;
+        border-radius: 35px;
+    }
+
+        nav .logo img {
+            width: 35px;
+        }
+
+        nav .logo ::deep a {
+            font-size: 0.9rem;
+        }
+}
+
+
+/* ================================= FOOTER ================================= */
+footer {
+    padding: 5vw 8vw;
+    background-color: #101c32;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+    footer .footer-col {
+        padding-bottom: 40px;
+    }
+
+        footer .footer-col h3 {
+            color: rgb(241, 240, 245);
+            font-weight: 600;
+            padding-bottom: 20px;
+        }
+
+        footer .footer-col li {
+            list-style: none;
+            color: #7b838a;
+            padding: 10px 0;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+            footer .footer-col li:hover {
+                color: rgb(241, 240, 245);
+            }
+
+        footer .footer-col p {
+            color: #7b838a;
+        }
+
+        footer .footer-col .subscribe {
+            margin-top: 20px;
+        }
+
+            footer .footer-col .subscribe input {
+                width: 220px;
+                padding: 12px 15px;
+                border: none;
+                outline: none;
+                background: #334f6c;
+                color: #ffffff;
+            }
+
+            footer .footer-col .subscribe a {
+                text-decoration: none;
+                font-size: 0.9rem;
+                padding: 12px 15px;
+                background-color: #ffffff;
+                font-weight: 600;
+            }
+
+                footer .footer-col .subscribe a.yellow {
+                    color: #2c2c2c;
+                    background-color: #fdc93b;
+                    transition: 0.3s ease;
+                }
+
+                    footer .footer-col .subscribe a.yellow:hover {
+                        color: rgb(21, 21, 100);
+                        background-color: #ffffff;
+                    }
+
+    footer .copyright {
+        margin-top: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+        footer .copyright p {
+            color: #ffffff;
+        }
+
+        footer .copyright .pro-links i {
+            padding: 10px 13px;
+            border: 1px solid rgb(21, 21, 100);
+            cursor: pointer;
+            background-color: #5f7185;
+            color: #fff;
+            transition: 0.3s ease;
+        }
+
+            footer .copyright .pro-links i:hover {
+                background-color: #fdc93b;
+                color: #2c2c2c;
+            }
+
+/* ------------------------------------ RESPONSIVE ------------------------------------ */
+@media (max-width: 1050px) {
+}
+
+@media (max-width: 780px) {
+}
+
+@media (max-width: 700px) {
+    footer .copyright[b-0me0ezrmnu] {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: start;
+        gap: 15px;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 500px) {
+}
+
+@media (max-width: 350px) {
+    footer .footer-col .subscribe input[b-0me0ezrmnu] {
+        margin-bottom: 1rem;
+    }
+}
