@@ -73,17 +73,37 @@
         </div>
 
         <form asp-action="Simpan" asp-route-jurusan="@Model.Jurusan" asp-route-tahun="@Model.Tahun" method="post">
-            <div class="mb-3 d-flex justify-content-start">
-                <button class="btn btn-icon icon-left btn-primary mr-1"
-                        data-toggle="tooltip" title="Simpan Perubahan" type="submit">
+            <div class="mb-3">
+                <button type="button"
+                        id="btnEdit"
+                        class="btn btn-icon icon-left btn-warning"
+                        data-toggle="tooltip" title="Edit Sertifikat">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </div>
+
+            <div class="mb-3 justify-content-start d-none" id="actionButtons">
+                <button type="submit"
+                        class="btn btn-icon icon-left btn-primary mr-1"
+                        data-toggle="tooltip" title="Simpan Perubahan">
                     <i class="fas fa-save"></i> Simpan
                 </button>
 
-                <a asp-action="Index" asp-route-jurusan="@Model.Jurusan" asp-route-tahun="@Model.Tahun"
-                   class="btn btn-icon icon-left btn-danger mr-1" data-toggle="tooltip" title="Reset Perubahan">
-                    <i class="fas fa-save"></i> Reset
-                </a>
+                <button type="button"
+                        id="btnBatal"
+                        class="btn btn-icon icon-left btn-danger mr-1"
+                        data-toggle="tooltip" title="Batalkan Perubahan">
+                    <i class="fas fa-times"></i> Batal
+                </button>
+
+               @*  <button type="button"
+                        id="btnReset"
+                        class="btn btn-icon icon-left btn-secondary"
+                        data-toggle="tooltip" title="Reset Sertifikat">
+                    <i class="fas fa-undo"></i> Reset
+                </button> *@
             </div>
+
 
             <div class="table-responsive">
                 <table style="width: 100%" class="table table-striped table-export">
@@ -107,8 +127,10 @@
                                 <td>@entry.Siswa.Jurusan.Humanize()</td>
                                 <td>@entry.Siswa.TahunAjaran.Id</td>
                                 <td>
-                                    <select asp-for="@Model.DaftarEntry[@i].SertifikatLSP" class="form-control">
-                                        <option value="@null">-</option>
+                                    <select asp-for="@Model.DaftarEntry[@i].SertifikatLSP"
+                                            class="form-control lsp-select"
+                                            disabled>
+                                        <option value="">-</option>
                                         @foreach (var item in Enum.GetValues<SertifikatLSP>())
                                         {
                                             <option value="@item">@item.Humanize() (@((int)item))</option>
@@ -128,4 +150,51 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const btnEdit = document.getElementById("btnEdit");
+        const btnBatal = document.getElementById("btnBatal");
+        const btnReset = document.getElementById("btnReset");
+        const actionButtons = document.getElementById("actionButtons");
+        const selects = document.querySelectorAll(".lsp-select");
+
+        let initialValues = [];
+
+        // EDIT
+        btnEdit.addEventListener("click", function () {
+
+            // simpan nilai awal
+            initialValues = [];
+            selects.forEach(select => {
+                initialValues.push(select.value);
+                select.removeAttribute("disabled");
+            });
+
+            actionButtons.classList.remove("d-none");
+            actionButtons.classList.add("d-flex");
+
+            btnEdit.style.display = "none";
+        });
+
+        // RESET → jadi "-"
+        btnReset.addEventListener("click", function () {
+            selects.forEach(select => {
+                select.value = "";
+            });
+        });
+
+        // BATAL → balik ke nilai awal
+        btnBatal.addEventListener("click", function () {
+
+            selects.forEach((select, index) => {
+                select.value = initialValues[index];
+                select.setAttribute("disabled", true);
+            });
+
+            actionButtons.classList.add("d-none");
+            actionButtons.classList.remove("d-flex");
+
+            btnEdit.style.display = "inline-block";
+        });
+    </script>
 }

@@ -69,16 +69,34 @@
         </div>
 
         <form asp-action="Simpan" asp-route-jurusan="@Model.Jurusan" asp-route-tahun="@Model.Tahun" method="post">
-            <div class="mb-3 d-flex justify-content-start">
+            <div class="mb-3">
+                <button type="button"
+                        id="btnEdit"
+                        class="btn btn-icon icon-left btn-warning"
+                        data-toggle="tooltip" title="Edit Skor">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </div>
+
+            <div class="mb-3 justify-content-start d-none" id="actionButtons">
                 <button class="btn btn-icon icon-left btn-primary mr-1"
-                        data-toggle="tooltip" title="Simpan Perubahan" type="submit">
+                        type="submit" data-toggle="tooltip" title="Simpan perubahan">
                     <i class="fas fa-save"></i> Simpan
                 </button>
 
-                <a asp-action="Index" asp-route-jurusan="@Model.Jurusan" asp-route-tahun="@Model.Tahun"
-                   class="btn btn-icon icon-left btn-danger mr-1" data-toggle="tooltip" title="Reset Perubahan">
-                    <i class="fas fa-save"></i> Reset
-                </a>
+                <button type="button"
+                        id="btnBatal"
+                        class="btn btn-icon icon-left btn-danger mr-1"
+                        data-toggle="tooltip" title="Batalkan perubahan">
+                    <i class="fas fa-times"></i> Batal
+                </button>
+
+                <button type="button"
+                        id="btnReset"
+                        class="btn btn-icon icon-left btn-secondary"
+                        data-toggle="tooltip" title="Reset Skor">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
             </div>
 
             <div class="table-responsive">
@@ -114,7 +132,9 @@
                                     <td>-</td>
                                 }
                                 <td>
-                                    <input asp-for="@Model.DaftarEntry[@i].Skor" class="form-control" />
+                                    <input asp-for="@Model.DaftarEntry[@i].Skor"
+                                           class="form-control skor-input"
+                                           readonly />
                                     <span asp-validation-for="@Model.DaftarEntry[@i].Skor" class="text-danger"></span>
                                 </td>
                             </tr>
@@ -129,4 +149,51 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const btnEdit = document.getElementById("btnEdit");
+        const btnBatal = document.getElementById("btnBatal");
+        const btnReset = document.getElementById("btnReset");
+        const actionButtons = document.getElementById("actionButtons");
+        const inputs = document.querySelectorAll(".skor-input");
+
+        let initialValues = [];
+
+        // EDIT
+        btnEdit.addEventListener("click", function () {
+
+            initialValues = [];
+            inputs.forEach(input => {
+                initialValues.push(input.value);
+                input.removeAttribute("readonly");
+            });
+
+            actionButtons.classList.remove("d-none");
+            actionButtons.classList.add("d-flex");
+
+            btnEdit.style.display = "none";
+        });
+
+        // RESET
+        btnReset.addEventListener("click", function () {
+            inputs.forEach(input => {
+                input.value = 0;
+            });
+        });
+
+        // BATAL
+        btnBatal.addEventListener("click", function () {
+
+            inputs.forEach((input, index) => {
+                input.value = initialValues[index];
+                input.setAttribute("readonly", true);
+            });
+
+            actionButtons.classList.add("d-none");
+            actionButtons.classList.remove("d-flex");
+
+            btnEdit.style.display = "inline-block";
+        });
+    </script>
+
 }

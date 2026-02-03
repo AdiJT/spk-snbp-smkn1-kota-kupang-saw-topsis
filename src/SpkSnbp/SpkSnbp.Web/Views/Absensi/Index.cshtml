@@ -69,16 +69,34 @@
         </div>
 
         <form asp-action="Simpan" asp-route-jurusan="@Model.Jurusan" asp-route-tahun="@Model.Tahun" method="post">
-            <div class="mb-3 d-flex justify-content-start">
+            <div class="mb-3">
+                <button type="button"
+                        id="btnEdit"
+                        class="btn btn-icon icon-left btn-warning"
+                        data-toggle="tooltip" title="Edit Jumlah">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </div>
+
+            <div class="mb-3 justify-content-start d-none" id="actionButtons">
                 <button class="btn btn-icon icon-left btn-primary mr-1"
-                        data-toggle="tooltip" title="Simpan Perubahan" type="submit">
+                        type="submit" data-toggle="tooltip" title="Simpan perubahan">
                     <i class="fas fa-save"></i> Simpan
                 </button>
 
-                <a asp-action="Index" asp-route-jurusan="@Model.Jurusan" asp-route-tahun="@Model.Tahun"
-                   class="btn btn-icon icon-left btn-danger mr-1" data-toggle="tooltip" title="Reset Perubahan">
-                    <i class="fas fa-save"></i> Reset
-                </a>
+                <button type="button"
+                        id="btnBatal"
+                        class="btn btn-icon icon-left btn-danger mr-1"
+                        data-toggle="tooltip" title="Batalkan perubahan">
+                    <i class="fas fa-times"></i> Batal
+                </button>
+
+                <button type="button"
+                        id="btnReset"
+                        class="btn btn-icon icon-left btn-secondary"
+                        data-toggle="tooltip" title="Reset Jumlah">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
             </div>
 
             <div class="table-responsive">
@@ -107,7 +125,7 @@
                                 <td>@entry.Siswa.Jurusan.Humanize()</td>
                                 <td>@entry.Siswa.TahunAjaran.Id</td>
                                 <td>
-                                    <input asp-for="@Model.DaftarEntry[@i].JumlahAbsen" class="form-control" />
+                                    <input asp-for="@Model.DaftarEntry[@i].JumlahAbsen" class="form-control nilai-input" readonly />
                                     <span asp-validation-for="@Model.DaftarEntry[@i].JumlahAbsen" class="text-danger"></span>
                                 </td>
                                 @if (entry.Absensi is not null)
@@ -130,4 +148,51 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        let initialValues = [];
+
+        // EDIT
+        document.getElementById("btnEdit").addEventListener("click", function () {
+
+            const inputs = document.querySelectorAll(".nilai-input");
+
+            initialValues = Array.from(inputs).map(el => el.value);
+
+            inputs.forEach(el => {
+                el.removeAttribute("readonly");
+                el.removeAttribute("disabled");
+            });
+
+            const action = document.getElementById("actionButtons");
+            action.classList.remove("d-none");
+            action.classList.add("d-flex");
+
+            this.style.display = "none";
+        });
+
+        // RESET →
+        document.getElementById("btnReset").addEventListener("click", function () {
+            document.querySelectorAll(".nilai-input").forEach(el => {
+                el.value = 0; 
+            });
+        });
+
+        // BATAL 
+        document.getElementById("btnBatal").addEventListener("click", function () {
+            const inputs = document.querySelectorAll(".nilai-input");
+
+            inputs.forEach((el, i) => {
+                el.value = initialValues[i];
+                el.setAttribute("readonly", true);
+            });
+
+            const action = document.getElementById("actionButtons");
+            action.classList.add("d-none");
+            action.classList.remove("d-flex");
+
+            document.getElementById("btnEdit").style.display = "inline-block";
+        });
+    </script>
+
 }
