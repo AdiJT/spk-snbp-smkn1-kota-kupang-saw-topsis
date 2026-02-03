@@ -1,0 +1,197 @@
+﻿@using SpkSnbp.Web.Areas.Dashboard.Models.MataPelajaran
+@model IndexVM
+
+@inject ITahunAjaranRepository TahunAjaranRepository
+
+@{
+    ViewData["Title"] = "Mata Pelajaran";
+    var daftarTahun = await TahunAjaranRepository.GetAll();
+}
+
+<!-- Breadcrumb -->
+<div class="row">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">Data</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index"></a>Mata Pelajaran</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- Isi Konten -->
+<div class="card card-primary">
+    <!-- Judul -->
+    <div class="card-header">
+        <h4>Daftar Nilai Mata Pelajaran Kejuruan dan Mata Pelajaran Umum</h4>
+    </div>
+    <div class="padding-20">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+            <form asp-action="Index" method="get" class="d-flex align-items-center" style="gap: 15px;">
+                <input name="first" id="first" value="False" readonly hidden/>
+
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <label asp-for="@Model.Tahun" class="mb-0" style="font-weight: 600; white-space: nowrap;">Tahun Ajaran:</label>
+                    <select asp-for="@Model.Tahun" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
+                        @if (Model.Tahun is null)
+                        {
+                            <option value="@null">-- Tidak ada Tahun Ajaran --</option>
+                        }
+                        @foreach (var item in daftarTahun)
+                        {
+                            <option value="@item.Id">@item.Id</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <label asp-for="@Model.Jurusan" class="mb-0" style="font-weight: 600; white-space: nowrap;">Jurusan:</label>
+                    <select asp-for="@Model.Jurusan" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
+                        @foreach (var item in Enum.GetValues<Jurusan>())
+                        {
+                            <option value="@item">@item.Humanize()</option>
+                        }
+                    </select>
+                </div>
+            </form>
+
+            <div class="d-flex align-items-center">
+                @if (Model.Jurusan is not null && Model.Tahun is not null)
+                {
+                    <button class="btn btn-tambah btn-icon icon-left btn-primary"
+                            data-toggle="tooltip" title="Import Data">
+                        <i class="fas fa-file-import"></i> Import
+                    </button>
+                    <div class="form-tambah">
+                        <partial name="_FormImportPartial" model="@(new ImportVM { Tahun = Model.Tahun.Value, Jurusan = Model.Jurusan.Value, ReturnUrl = Context.Request.AbsoluteUri() })" />
+                    </div>
+                }
+            </div>
+
+        </div>
+
+        <form asp-action="Simpan" asp-route-jurusan="@Model.Jurusan" asp-route-tahun="@Model.Tahun" method="post">
+            <div class="mb-3">
+                <button type="button"
+                        id="btnEdit"
+                        class="btn btn-icon icon-left btn-warning"
+                        data-toggle="tooltip" title="Edit Nilai">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </div>
+
+            <div class="mb-3 justify-content-start d-none" id="actionButtons">
+                <button class="btn btn-icon icon-left btn-primary mr-1"
+                        type="submit" data-toggle="tooltip" title="Simpan perubahan">
+                    <i class="fas fa-save"></i> Simpan
+                </button>
+
+                <button type="button"
+                        id="btnBatal"
+                        class="btn btn-icon icon-left btn-danger mr-1"
+                        data-toggle="tooltip" title="Batalkan perubahan">
+                    <i class="fas fa-times"></i> Batal
+                </button>
+
+                <button type="button"
+                        id="btnReset"
+                        class="btn btn-icon icon-left btn-secondary"
+                        data-toggle="tooltip" title="Reset Nilai">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table style="width: 100%" class="table table-striped table-export">
+                    <thead>
+                        <tr>
+                            <th>Nama</th>
+                            <th>NISN</th>
+                            <th>Jurusan</th>
+                            <th>Tahun Ajaran</th>
+                            <th>(C@((int)KriteriaEnum.MPKejuruan)) Mata Pelajaran Kejuruan (0 - 100)</th>
+                            <th>(C@((int)KriteriaEnum.MPUmum)) Mata Pelajaran Umum (0 - 100)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.DaftarEntry.Count; i++)
+                        {
+                            var entry = Model.DaftarEntry[i];
+                            <tr>
+                                <input asp-for="@Model.DaftarEntry[@i].IdSiswa" readonly hidden />
+                                <td>@entry.Siswa.Nama</td>
+                                <td>@entry.Siswa.NISN</td>
+                                <td>@entry.Siswa.Jurusan.Humanize()</td>
+                                <td>@entry.Siswa.TahunAjaran.Id</td>
+                                <td>
+                                    <input asp-for="@Model.DaftarEntry[@i].MataPelajaranKejuruan" class="form-control nilai-input" readonly />
+                                    <span asp-validation-for="@Model.DaftarEntry[@i].MataPelajaranKejuruan" class="text-danger"></span>
+                                </td>
+                                <td>
+                                    <input asp-for="@Model.DaftarEntry[@i].MataPelajaranUmum" class="form-control nilai-input" readonly />
+                                    <span asp-validation-for="@Model.DaftarEntry[@i].MataPelajaranUmum" class="text-danger"></span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </form>
+        <!-- Tabel -->
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const btnEdit = document.getElementById("btnEdit");
+        const btnBatal = document.getElementById("btnBatal");
+        const btnReset = document.getElementById("btnReset");
+        const actionButtons = document.getElementById("actionButtons");
+        const inputs = document.querySelectorAll(".nilai-input");
+
+        // simpan nilai awal
+        let initialValues = [];
+
+        btnEdit.addEventListener("click", function () {
+
+            // simpan nilai awal
+            initialValues = [];
+            inputs.forEach(input => {
+                initialValues.push(input.value);
+                input.removeAttribute("readonly");
+            });
+
+            // tampilkan tombol
+            actionButtons.classList.remove("d-none");
+            actionButtons.classList.add("d-flex");
+
+            // sembunyikan edit
+            btnEdit.style.display = "none";
+        });
+
+        btnReset.addEventListener("click", function () {
+            inputs.forEach(input => {
+                input.value = 0;
+            });
+        });
+
+        btnBatal.addEventListener("click", function () {
+
+            // kembalikan nilai awal
+            inputs.forEach((input, index) => {
+                input.value = initialValues[index];
+                input.setAttribute("readonly", true);
+            });
+
+            // sembunyikan tombol simpan/batal/reset
+            actionButtons.classList.add("d-none");
+            actionButtons.classList.remove("d-flex");
+
+            // tampilkan edit
+            btnEdit.style.display = "inline-block";
+        });
+    </script>
+}

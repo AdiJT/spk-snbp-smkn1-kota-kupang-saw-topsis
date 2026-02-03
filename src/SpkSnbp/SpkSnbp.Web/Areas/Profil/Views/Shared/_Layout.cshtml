@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    @if (ViewData["Title"] is null)
+    {
+        <title>Sistem Seleksi Siswa Eligible SNBP SMKN 1 Kota Kupang</title>
+    }
+    else
+    {
+        <title>@ViewData["Title"] | Sistem Seleksi Siswa Eligible SNBP SMKN 1 Kota Kupang</title>
+    }
+
+    <link rel="stylesheet" href="~/lib/datatables/datatables.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="~/SpkSnbp.Web.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <div id="app">
+        <div class="main-wrapper main-wrapper-1">
+            <div class="main-content">
+                <div class="section">
+                    <main role="main">
+                        @RenderBody()
+                    </main>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* JAVASCRIPT *@
+    <script src="~/lib/datatables/datatables.min.js" asp-append-version="true"></script>
+    <script src="~/lib/bootstrap-daterangepicker/daterangepicker.js" asp-append-version="true"></script>
+    <script src="~/js/datatables.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

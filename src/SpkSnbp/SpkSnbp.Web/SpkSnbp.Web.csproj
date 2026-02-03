@@ -29,4 +29,8 @@
     <ProjectReference Include="..\SpkSnbp.Infrastructure\SpkSnbp.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Areas\Profil\Models\" />
+  </ItemGroup>
+
 </Project>

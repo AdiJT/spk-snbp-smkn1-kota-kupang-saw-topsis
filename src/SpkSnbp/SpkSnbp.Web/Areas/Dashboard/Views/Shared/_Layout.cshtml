@@ -1,0 +1,229 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    @if (ViewData["Title"] is null)
+    {
+        <title>Sistem Seleksi Siswa Eligible SNBP SMKN 1 Kota Kupang</title>
+    }
+    else
+    {
+        <title>@ViewData["Title"] | Sistem Seleksi Siswa Eligible SNBP SMKN 1 Kota Kupang</title>
+    }
+
+    <link rel="stylesheet" href="~/SpkSnbp.Web.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/app.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/datatables/datatables.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap-daterangepicker/daterangepicker.css" asp-append-version="true" />
+    @*     <link rel="stylesheet" href="~/lib/datatables/DataTables-1.10.16/css/dataTables.bootstrap4.min.css" asp-append-version="true" /> *@
+    <link rel="stylesheet" href="~/css/components.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
+    @* <link rel="stylesheet" href="~/lib/izitoast/css/iziToast.min.css" asp-append-version="true" /> *@
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
+</head>
+<body>
+    <div id="app">
+        <div class="main-wrapper main-wrapper-1">
+            <partial name="_NavbarPartial" />
+            <partial name="_SidebarPartial" />
+
+            <div class="main-content">
+                <div class="section">
+                    <main role="main">
+                        @RenderBody()
+                    </main>
+                </div>
+
+                @*                 <partial name="_ModalPartial" />*@                
+@*                 <partial name="_SettingsthemePartial" />
+ *@            </div>
+        </div>
+    </div>
+
+    <partial name="_ModalContainer" />
+
+    @* JAVASCRIPT *@
+    <script src="~/js/app.min.js" asp-append-version="true"></script>
+    <script src="~/lib/chartjs/chart.min.js" asp-append-version="true"></script>
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+    <script src="~/lib/datatables/datatables.min.js" asp-append-version="true"></script>
+    <script src="~/lib/bootstrap-daterangepicker/daterangepicker.js" asp-append-version="true"></script>
+    <script src="~/js/sweetalert.js" asp-append-version="true"></script>
+    <script src="~/lib/sweetalert/sweetalert.min.js" asp-append-version="true"></script>
+    @*     <script src="~/js/toastr.js" asp-append-version="true"></script>
+    <script src="~/lib/izitoast/js/iziToast.min.js" asp-append-version="true"></script> *@
+    <script src="~/lib/datatables/export-tables/dataTables.buttons.min.js" asp-append-version="true"></script>
+    <script src="~/lib/datatables/export-tables/buttons.flash.min.js" asp-append-version="true"></script>
+    <script src="~/lib/datatables/export-tables/buttons.print.min.js" asp-append-version="true"></script>
+    <script src="~/lib/datatables/export-tables/jszip.min.js" asp-append-version="true"></script>
+    <script src="~/lib/datatables/export-tables/pdfmake.min.js" asp-append-version="true"></script>
+    <script src="~/lib/datatables/export-tables/vfs_fonts.js" asp-append-version="true"></script>
+    <script src="~/js/datatables.js" asp-append-version="true"></script>
+    @*     <script src="~/lib/datatables/DataTables-1.10.16/js/dataTables.bootstrap4.min.js" asp-append-version="true"></script> *@
+    <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+    <script src="~/js/import-dropzone.js"></script>
+
+    @{
+        var globalOptions = new ToastrOptions
+        {
+            closeButton = true,
+            progressBar = true,
+            newestOnTop = true,
+            preventDuplicates = false,
+            timeOut = (int)TimeSpan.FromSeconds(5).TotalMilliseconds,
+            extendedTimeOut = (int)TimeSpan.FromSeconds(5).TotalMilliseconds,
+            showDuration = (int)TimeSpan.FromSeconds(0.5).TotalMilliseconds,
+            hideDuration = (int)TimeSpan.FromSeconds(0.5).TotalMilliseconds,
+            showEasing = Easings.Swing,
+            hideEasing = Easings.Swing,
+            showMethod = AnimationMethods.FadeIn,
+            hideMethod = AnimationMethods.FadeOut,
+            positionClass = PositionClasses.TopRight,
+        };
+    }
+
+    <vc:toastr global-options=globalOptions></vc:toastr>
+
+    <script type="text/javascript">
+        const matchLink = (linkHref, currentUrl, match) => {
+            if (match === "partial") {
+                return currentUrl.startsWith(linkHref);
+            } else {
+                return currentUrl === linkHref
+            }
+        }
+
+        // LINK SIDEBAR ACTIVE
+        document.addEventListener('DOMContentLoaded', () => {
+            const links = document.querySelectorAll('.nav-link');
+
+            const currentUrl = window.location.href;
+
+            links.forEach(link => {
+                if (matchLink(link.href, currentUrl, link.dataset.match)) {
+                    link.parentNode.classList.add('active');
+                } else {
+                    link.parentNode.classList.remove('active');
+                }
+            });
+        });
+
+        $(function() {
+            $('.submit-on-change').on('change', function() {
+                $(this).closest('form').trigger('submit');
+            });
+
+            $('.form-tambah').each(function() {
+                const formTambah = $(this);
+                const html = $(formTambah).html();
+
+                $(formTambah).html('');
+
+                $(formTambah).siblings('.btn-tambah').on('click', function() {
+                    if ($('#modalTambahContent').html().trim() == '') {
+                        $('#modalTambahContent').html(html);
+                        resetDropzone();
+                        initDropzone();
+                    }
+
+                    $("form").removeData("validator").removeData("unobtrusiveValidation");
+                    $.validator.unobtrusive.parse("form");
+                    
+
+                    $('#modalTambah').modal('show');
+                });
+
+                $('#modelTambah').on('modal-dismiss', function() {
+                    $('#modalTambahContent').html('');
+                });
+            });
+
+            $('.form-edit').each(function() {
+                const formTambah = $(this);
+                $(formTambah).siblings('.btn-edit').on('click', function() {
+                    $('#modalEditContent').html($(formTambah).html());
+
+                    $("form").removeData("validator").removeData("unobtrusiveValidation");
+                    $.validator.unobtrusive.parse("form");
+
+                    $('#modalEdit').modal('show');
+                });
+            });
+        });
+
+        $(function() {
+            $('input[type="checkbox"].select-all').each(function() {
+                const selectAll = $(this);
+                const id = $(selectAll).attr('id');
+
+                if($(`input[type="checkbox"][data-checkbox-all="#${id}"]:checked`).length ==
+                    $(`input[type="checkbox"][data-checkbox-all="#${id}"]`).length) {
+                    $(selectAll).prop('checked', true);
+                    $(selectAll).prop("indeterminate", false);
+                }
+                else if ($(`input[type="checkbox"][data-checkbox-all="#${id}"]:not(:checked)`).length ==
+                    $(`input[type="checkbox"][data-checkbox-all="#${id}"]`).length) {
+                    $(selectAll).prop('checked', false);
+                    $(selectAll).prop("indeterminate", false);
+                }
+                else {
+                    $(selectAll).prop("indeterminate", true);
+                }
+
+                $(selectAll).on('change', function() {
+                    $(`input[type="checkbox"][data-checkbox-all="#${id}"]`).prop('checked', $(selectAll).is(':checked'));
+                    $(selectAll).prop("indeterminate", false);
+                });
+
+                $(`input[type="checkbox"][data-checkbox-all="#${id}"]`).on('change', function() {
+                    if($(`input[type="checkbox"][data-checkbox-all="#${id}"]:checked`).length ==
+                        $(`input[type="checkbox"][data-checkbox-all="#${id}"]`).length) {
+                        $(selectAll).prop('checked', true);
+                        $(selectAll).prop("indeterminate", false);
+                    }
+                    else if ($(`input[type="checkbox"][data-checkbox-all="#${id}"]:not(:checked)`).length ==
+                        $(`input[type="checkbox"][data-checkbox-all="#${id}"]`).length) {
+                        $(selectAll).prop('checked', false);
+                        $(selectAll).prop("indeterminate", false);
+                    }
+                    else {
+                        $(selectAll).prop("indeterminate", true);
+                    }
+                });
+            });
+        });
+
+        document.querySelectorAll('.btn-toggle-password').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var input = btn.closest('.input-group').querySelector('input');
+                if (!input) return;
+
+                var icon = btn.querySelector('i');
+                var wasPassword = (input.type === 'password');
+                input.type = wasPassword ? 'text' : 'password';
+
+                if (wasPassword) {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                    btn.setAttribute('aria-label', 'Hide password');
+                    btn.setAttribute('aria-pressed', 'true');
+                } else {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                    btn.setAttribute('aria-label', 'Show password');
+                    btn.setAttribute('aria-pressed', 'false');
+                }
+
+                input.focus();
+                try { input.setSelectionRange(input.value.length, input.value.length); } catch (e) { }
+            });
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

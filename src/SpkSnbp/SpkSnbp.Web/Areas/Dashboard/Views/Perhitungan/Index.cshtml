@@ -1,0 +1,168 @@
+﻿@using SpkSnbp.Domain.Auth
+@using SpkSnbp.Web.Areas.Dashboard.Models.Perhitungan
+@using SpkSnbp.Web.Authentication
+@model IndexVM
+
+@inject ITahunAjaranRepository TahunAjaranRepository
+@inject IKriteriaRepository KriteriaRepository
+@inject ISignInManager SignInManager
+
+@{
+    ViewData["Title"] = "Perhitungan";
+    var daftarTahun = await TahunAjaranRepository.GetAll();
+    var daftarKriteria = await KriteriaRepository.GetAll();
+}
+
+<!-- Breadcrumb -->
+<div class="row">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">Hasil</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index"></a>Perhitungan</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- Isi Konten -->
+<div class="card card-primary">
+    <!-- Judul -->
+    <div class="card-header">
+        <h4>Hasil Perhitungan</h4>
+    </div>
+    <div class="padding-20">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+            <form asp-action="Index" method="get" class="d-flex align-items-center">
+                <input name="first" id="first" value="False" readonly hidden />
+                <div class="d-flex align-items-center mr-3" style="gap: 8px;">
+                    <label asp-for="@Model.Tahun" class="mb-0" style="font-weight: 600; white-space: nowrap;">Tahun Ajaran:</label>
+                    <select asp-for="@Model.Tahun" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
+                        @if(Model.Tahun is null) 
+                        {
+                            <option value="@null">-- Tidak ada Tahun Ajaran --</option>
+                        }
+                        @foreach (var item in daftarTahun)
+                        {
+                            <option value="@item.Id">@item.Id</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <label asp-for="@Model.Jurusan" class="mb-0" style="font-weight: 600; white-space: nowrap;">Jurusan:</label>
+                    <select asp-for="@Model.Jurusan" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
+                        @foreach (var item in Enum.GetValues<Jurusan>())
+                        {
+                            <option value="@item">@item.Humanize()</option>
+                        }
+                    </select>
+                </div>
+            </form>
+
+            <div class="d-flex align-items-center" style="gap: 8px;">
+                @if (Model.Tahun is not null && Model.DaftarSiswa.Count != 0)
+                {
+                    <form asp-action="Hitung" asp-route-jurusan="@Model.Jurusan" asp-route-tahun="@Model.Tahun" class="mb-0">
+                        <button class="btn btn-icon icon-left btn-primary"
+                                data-toggle="tooltip" title="Mulai Perhitungan" type="submit">
+                            <i class="fas fa-calculator"></i> Hitung
+                        </button>
+                    </form>
+
+                    @if (Model.HasilPerhitungan is not null)
+                    {
+                        <div class="mb-0">
+                            <button class="btn btn-tambah btn-icon icon-left btn-info"
+                                    data-toggle="tooltip" title="Lihat Detail Perhitungan">
+                                <i class="fas fa-search-plus"></i> Detail
+                            </button>
+                            <div class="form-tambah">
+                                <partial name="_FormHasilPartial" model="@Model.HasilPerhitungan" />
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between mb-3 mr-3">
+            <div class="mb-0 card card-body rounded" style="background-color: #d9edf7; font-weight: 400; padding: 15px; color: #31708f;">
+                <p class="mb-0">
+                    Perhitungan hanya dapat dilakukan jika setiap data kriteria siswa lengkap!
+                    @if(await SignInManager.IsInRole(UserRoles.Admin) == false)
+                    {
+                        @("Hubungi Admin untuk melengkapi data kriteria siswa");
+                    }
+                </p>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table style="width: 100%" class="table table-striped table-export">
+                <thead>
+                    <tr>
+                        <th rowspan="2">Rangking</th>
+                        <th rowspan="2">Nilai Preferensi</th>
+                        <th rowspan="2">NISN</th>
+                        <th rowspan="2">Nama</th>
+                        <th colspan="6">Kriteria</th>
+                    </tr>
+                    <tr>
+                        @foreach (var item in daftarKriteria)
+                        {
+                            <th>(@item.Kode) @item.Nama</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Tahun is null)
+                    {
+                        <tr>
+                            <td colspan="@(3 + daftarKriteria.Count)">Pilih Tahun Ajaran</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        var rank = 1;
+                        @foreach (var item in Model.DaftarSiswa.OrderByDescending(x => x.NilaiTopsis))
+                        {
+                            <tr>
+                                @if (item.NilaiTopsis is not null)
+                                {
+                                    <td>@rank</td>
+                                    <td>@item.NilaiTopsis?.ToString("F3")</td>
+                                    rank++;
+                                }
+                                else
+                                {
+                                    <td>-</td>
+                                    <td>-</td>
+                                }
+                                <td>@item.NISN</td>
+                                <td>@item.Nama</td>
+                                @foreach (var kriteria in daftarKriteria)
+                                {
+                                    var siswaKriteria = item.DaftarSiswaKriteria.FirstOrDefault(x => x.Kriteria == kriteria);
+                                    if (siswaKriteria is not null)
+                                    {
+                                        <td>@siswaKriteria.Nilai</td>
+                                    }
+                                    else
+                                    {
+                                        <td>-</td>
+                                    }
+                                }
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <!-- Tabel -->
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

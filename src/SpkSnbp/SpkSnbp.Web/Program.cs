@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using SpkSnbp.Domain.Auth;
 using SpkSnbp.Infrastructure;
+using SpkSnbp.Web.Areas;
 using SpkSnbp.Web.Authentication;
 using SpkSnbp.Web.Services.PDFGenerator;
 using SpkSnbp.Web.Services.Toastr;
@@ -18,7 +19,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(options =>
     {
         options.AccessDeniedPath = new PathString("/Home/AccessDenied");
-        options.LoginPath = new PathString("/Home/Login");
+        options.LoginPath = new PathString("/Dashboard/Home/Login");
         options.ExpireTimeSpan = TimeSpan.FromHours(4);
         options.SlidingExpiration = true;
     });
@@ -53,8 +54,14 @@ app.UseRouting();
 
 app.UseAuthorization();
 
-app.MapControllerRoute(
-    name: "default",
+app.MapAreaControllerRoute(
+    name: AreaNames.Profil,
+    areaName: AreaNames.Profil,
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapAreaControllerRoute(
+    name: AreaNames.Dashboard,
+    areaName: AreaNames.Dashboard,
+    pattern: "Dashboard/{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

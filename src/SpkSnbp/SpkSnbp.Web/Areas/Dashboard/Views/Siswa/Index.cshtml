@@ -1,0 +1,159 @@
+﻿@using SpkSnbp.Web.Areas.Dashboard.Models.SiswaModels
+@model IndexVM
+
+@inject ITahunAjaranRepository TahunAjaranRepository
+@inject IKriteriaRepository KriteriaRepository
+
+@{
+    ViewData["Title"] = "Siswa";
+    var daftarTahun = await TahunAjaranRepository.GetAll();
+    var daftarKriteria = await KriteriaRepository.GetAll();
+}
+
+<!-- Breadcrumb -->
+<div class="row">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">Data</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index"></a>Siswa</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- Isi Konten -->
+<div class="card card-primary">
+    <!-- Judul -->
+    <div class="card-header">
+        <h4>Daftar Siswa</h4>
+    </div>
+    <div class="padding-20">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="mb-0">
+                <button class="btn btn-tambah btn-icon icon-left btn-primary mr-1"
+                        data-toggle="tooltip" title="Tambah Data Siswa">
+                    <i class="fas fa-plus"></i> Tambah Data
+                </button>
+                <div class="form-tambah">
+                    <partial name="_FormTambahPartial" model="@(new TambahVM { IdTahunAjaran = Model.Tahun ?? default, Jurusan = Model.Jurusan ?? default, ReturnUrl = Context.Request.AbsoluteUri() })" />
+                </div>
+            </div>
+
+            <div class="mb-0">
+                <a asp-action="PDF" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" class="btn btn-icon icon left btn-primary mr-1">
+                    <i class="fas fa-file-pdf"></i> PDF
+                </a>
+            </div>
+
+            <div class="mb-0">
+                <a asp-action="Excel" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" class="btn btn-icon icon left btn-primary mr-1">
+                    <i class="fas fa-file-excel"></i> Excel
+                </a>
+            </div>
+
+            <div class="d-flex align-items-center mr-auto ml-3">
+                @if (Model.Jurusan is not null && Model.Tahun is not null)
+                {
+                    <button class="btn btn-tambah btn-icon icon-left btn-primary"
+                            data-toggle="tooltip" title="Import Data">
+                        <i class="fas fa-file-import"></i> Import
+                    </button>
+                    <div class="form-tambah">
+                        <partial name="_FormImportPartial" model="@(new ImportVM { Tahun = Model.Tahun.Value, Jurusan = Model.Jurusan.Value, ReturnUrl = Context.Request.AbsoluteUri() })" />
+                    </div>
+                }
+            </div>
+
+            <form asp-action="Index" method="get" class="d-flex align-items-center" style="gap: 15px;">
+                <input name="first" id="first" value="False" readonly hidden />
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <label asp-for="@Model.Tahun" class="mb-0" style="font-weight: 600;">Tahun Ajaran:</label>
+                    <select asp-for="@Model.Tahun" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
+                        <option value="@null">-- Semua --</option>
+                        @foreach (var item in daftarTahun)
+                        {
+                            <option value="@item.Id">@item.Id</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <label asp-for="@Model.Jurusan" class="mb-0" style="font-weight: 600;">Jurusan:</label>
+                    <select asp-for="@Model.Jurusan" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
+                        <option value="@null">-- Semua --</option>
+                        @foreach (var item in Enum.GetValues<Jurusan>())
+                        {
+                            <option value="@item">@item.Humanize()</option>
+                        }
+                    </select>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabel -->
+        <div class="table-responsive">
+            <table style="width: 100%" class="table table-striped table-export">
+                <thead>
+                    <tr>
+                        <th rowspan="2">Nama</th>
+                        <th rowspan="2">NISN</th>
+                        <th rowspan="2">Jurusan</th>
+                        <th rowspan="2">Tahun Ajaran</th>
+                        <th colspan="@daftarKriteria.Count">Kriteria</th>
+                        <th rowspan="2" style="min-width: 130px">Aksi</th>
+                    </tr>
+                    <tr>
+                        @foreach (var kriteria in daftarKriteria)
+                        {
+                            <th>(@kriteria.Kode) @kriteria.Nama</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var siswa in Model.DaftarSiswa)
+                    {
+                        var editVM = new EditVM { Id = siswa.Id, NISN = siswa.NISN, Nama = siswa.Nama, Jurusan = siswa.Jurusan, IdTahunAjaran = siswa.TahunAjaran.Id, ReturnUrl = Context.Request.AbsoluteUri() };
+
+                        <tr>
+                            <td>@siswa.Nama</td>
+                            <td>@siswa.NISN</td>
+                            <td>@siswa.Jurusan.Humanize()</td>
+                            <td>@siswa.TahunAjaran.Id</td>
+                            @foreach (var kriteria in daftarKriteria)
+                            {
+                                var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.Kriteria == kriteria);
+                                if (siswaKriteria is null)
+                                {
+                                    <td> - </td>
+                                }
+                                else
+                                {
+                                    <td>@siswaKriteria.Nilai</td>
+                                }
+                            }
+                            <td>
+                                <button class="btn-edit btn btn-primary btn-action">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </button>
+
+                                <div class="form-edit">
+                                    <partial name="_FormEditPartial" model="@editVM" />
+                                </div>
+
+                                <form asp-action="Hapus" asp-route-id="@siswa.Id" asp-route-returnUrl="@Context.Request.AbsoluteUri()" style="display:inline" method="post">
+                                    <button type="button" class="btn btn-danger btn-action swal-confirm">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
