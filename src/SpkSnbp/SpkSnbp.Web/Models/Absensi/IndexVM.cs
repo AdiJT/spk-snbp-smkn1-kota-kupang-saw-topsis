@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace SpkSnbp.Web.Models.Presensi;
+namespace SpkSnbp.Web.Models.Absensi;
 
 public class IndexVM
 {
@@ -18,7 +18,7 @@ public class IndexEntryVM
 {
     public required Siswa Siswa { get; set; }
     public required int IdSiswa { get; set; }
-    public required double? Presensi { get; set; }
+    public required double? Absensi { get; set; }
 
     [Display(Name = "Jumlah Absen")]
     [Required(ErrorMessage = "{0} harus diisi")]
@@ -33,7 +33,7 @@ public static class EnumerableExtensions
         {
             Siswa = x,
             IdSiswa = x.Id,
-            Presensi = x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Presensi)?.Nilai,
+            Absensi = x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Absensi)?.Nilai,
             JumlahAbsen = x.JumlahAbsen ?? 0,
         }).ToList();
 }

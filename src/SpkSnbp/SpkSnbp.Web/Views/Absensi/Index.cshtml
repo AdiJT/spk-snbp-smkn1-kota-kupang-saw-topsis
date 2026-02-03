@@ -1,10 +1,10 @@
-﻿@using SpkSnbp.Web.Models.Presensi
+﻿@using SpkSnbp.Web.Models.Absensi
 @model IndexVM
 
 @inject ITahunAjaranRepository TahunAjaranRepository
 
 @{
-    ViewData["Title"] = "Presensi";
+    ViewData["Title"] = "Absensi";
     var daftarTahun = await TahunAjaranRepository.GetAll();
 }
 
@@ -13,7 +13,7 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="#">Data</a></li>
-            <li class="breadcrumb-item"><a asp-action="Index"></a>Presensi</li>
+            <li class="breadcrumb-item"><a asp-action="Index"></a>Absensi</li>
         </ol>
     </nav>
 </div>
@@ -22,7 +22,7 @@
 <div class="card card-primary">
     <!-- Judul -->
     <div class="card-header">
-        <h4>Daftar Presensi</h4>
+        <h4>Daftar Absensi</h4>
     </div>
     <div class="padding-20">
 
@@ -89,11 +89,11 @@
                             <th>NISN</th>
                             <th>Jurusan</th>
                             <th>Tahun Ajaran</th>
+                            <th>Jumlah Absen 3 Tahun (0-45)</th>
                             <th>
-                                <p>(C@((int)KriteriaEnum.Presensi)) Presensi</p>
+                                <p>(C@((int)KriteriaEnum.Absensi)) Absensi</p>
                                 (JumlahAbsen:37-JumlahAbsen:45=1; 28-36=2; 19-27=3; 18-10=4; 9-0=5)
                             </th>
-                            <th>Jumlah Absen 3 Tahun (0-45)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -106,18 +106,18 @@
                                 <td>@entry.Siswa.NISN</td>
                                 <td>@entry.Siswa.Jurusan.Humanize()</td>
                                 <td>@entry.Siswa.TahunAjaran.Id</td>
-                                @if (entry.Presensi is not null)
+                                <td>
+                                    <input asp-for="@Model.DaftarEntry[@i].JumlahAbsen" class="form-control" />
+                                    <span asp-validation-for="@Model.DaftarEntry[@i].JumlahAbsen" class="text-danger"></span>
+                                </td>
+                                @if (entry.Absensi is not null)
                                 {
-                                    <td>@entry.Presensi</td>
+                                    <td>@entry.Absensi</td>
                                 }
                                 else
                                 {
                                     <td>-</td>
                                 }
-                                <td>
-                                    <input asp-for="@Model.DaftarEntry[@i].JumlahAbsen" class="form-control" />
-                                    <span asp-validation-for="@Model.DaftarEntry[@i].JumlahAbsen" class="text-danger"></span>
-                                </td>
                             </tr>
                         }
                     </tbody>

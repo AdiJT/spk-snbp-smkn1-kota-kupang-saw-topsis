@@ -55,8 +55,8 @@ internal class KriteriaConfiguration : IEntityTypeConfiguration<Kriteria>
             },
             new Kriteria
             {
-                Id = (int)KriteriaEnum.Presensi,
-                Nama = "Presensi",
+                Id = (int)KriteriaEnum.Absensi,
+                Nama = "Absensi",
                 Bobot = 1,
                 Jenis = JenisKriteria.Cost
             }
