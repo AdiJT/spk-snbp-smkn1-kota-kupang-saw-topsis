@@ -13,29 +13,153 @@
         <title>@ViewData["Title"] | Sistem Seleksi Siswa Eligible SNBP SMKN 1 Kota Kupang</title>
     }
 
-    <link rel="stylesheet" href="~/lib/datatables/datatables.min.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="~/css/profil-site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SpkSnbp.Web.styles.css" asp-append-version="true" />
+
+    <!-- RemixIcon CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet" />
+
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
 </head>
 <body>
-    <div id="app">
-        <div class="main-wrapper main-wrapper-1">
-            <div class="main-content">
-                <div class="section">
-                    <main role="main">
-                        @RenderBody()
-                    </main>
-                </div>
-            </div>
+
+    <!-- ======================================= NAVIGATION ======================================= -->
+    <nav>
+        <div class="logo">
+            <img src="#" alt="Logo Sekolah" />
+            <a asp-action="Index" asp-controller="Home" asp-area="Profil">
+                SMK NEGERI 1 <br/>
+                KOTA KUPANG
+            </a>
         </div>
+        <div class="navigation">
+            <ul>
+                <i id="menu-close" class="ri-close-fill"></i>
+                <li><a href="#sambutan">Beranda</a></li>
+                <li><a href="#visimisi">Visi Misi</a></li>
+                <li><a href="#ekskul">Ekstrakulikuler</a></li>
+                <li><a href="#kontak">Kontak</a></li>
+                <li><a asp-action="Login" asp-controller="Home" asp-area="Dashboard">Login</a></li>
+
+            </ul>
+            <img id="menu-btn" src="/images/menu.png" alt="Menu Button" />
+        </div>
+    </nav>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
     </div>
 
-    @* JAVASCRIPT *@
-    <script src="~/lib/datatables/datatables.min.js" asp-append-version="true"></script>
-    <script src="~/lib/bootstrap-daterangepicker/daterangepicker.js" asp-append-version="true"></script>
-    <script src="~/js/datatables.js" asp-append-version="true"></script>
+    <!-- ======================================= FOOTER ======================================= -->
+    <footer>
+        <div class="footer-col">
+            <h3>Informasi Sekolah</h3>
+            <li>Berita & Pengumuman</li>
+            <li>Guru & Karyawan</li>
+            <li>Galeri</li>
+            <li>Statistik</li>
+        </div>
+        <div class="footer-col">
+            <h3>Fasilitas</h3>
+            <li>Asrama</li>
+            <li>Lab Komputer</li>
+            <li>Perpustakaan</li>
+            <li>Lapangan Futsal</li>
+        </div>
+        <div class="footer-col">
+            <h3>Tentang Kami</h3>
+            <li>Visi & Misi</li>
+            <li>Mars Sekolah</li>
+            <li>Kurikulum</li>
+            <li>Core Value</li>
+        </div>
+        <div class="footer-col">
+            <h3>Keterampilan</h3>
+            <li>Public Speaking</li>
+            <li>Team Work</li>
+            <li>Problem Solving</li>
+            <li>Dan Lainnya</li>
+        </div>
+        <div class="footer-col">
+            <h3>Mencari Informasi PPDB ?</h3>
+            <p>
+                Masukkan email Anda untuk menerima <br />informasi saat PPDB dibuka.
+            </p>
+            <div class="subscribe">
+                <input type="text" placeholder="Alamat Email Kamu" name="" id="" />
+                <a href="" class="yellow">KIRIM</a>
+            </div>
+        </div>
 
+        <div class="copyright">
+            <p>Copyright ©2026 All rights reserved | Made by AFA</p>
+            <div class="pro-links">
+                <i class="ri-facebook-fill"></i>
+                <i class="ri-instagram-fill"></i>
+                <i class="ri-linkedin-fill"></i>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scroll to Top Button Only -->
+    <div class="scroll-buttons">
+        <button id="scrollTopBtn" class="scroll-btn top">
+            <i class="ri-arrow-drop-up-line"></i>
+        </button>
+    </div>
+
+    <!-- Link ke JS -->
+    <script src="/js/scroll.js"></script>
+
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <!-- Swiper Configuration JS -->
+    <script>
+        const swiper = new Swiper(".swiper", {
+            loop: true,
+            spaceBetween: 20,
+            pagination: {
+                el: ".swiper-pagination",
+                clickable: true,
+            },
+            navigation: {
+                nextEl: ".swiper-button-next",
+                prevEl: ".swiper-button-prev",
+            },
+            autoplay: {
+                delay: 3000,
+                disableOnInteraction: false,
+            },
+            breakpoints: {
+                0: {
+                    slidesPerView: 1,
+                },
+                576: {
+                    slidesPerView: 2,
+                },
+                770: {
+                    slidesPerView: 3,
+                },
+                1024: {
+                    slidesPerView: 4,
+                },
+                1300: {
+                    slidesPerView: 5,
+                },
+            },
+        });
+    </script>
+
+    @* JAVASCRIPT *@
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/profil-site.js" asp-append-version="true"></script>
+    <script src="~/js/responsive.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
