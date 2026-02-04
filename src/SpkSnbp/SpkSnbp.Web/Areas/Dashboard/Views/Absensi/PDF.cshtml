@@ -1,0 +1,74 @@
+﻿@using SpkSnbp.Web.Areas.Dashboard.Models.Absensi
+@model IndexVM
+
+@{
+    Layout = null;
+}
+
+<head>
+    <link rel="stylesheet" href="~/lib/datatables/datatables.min.css" asp-append-version="true" />
+</head>
+
+<style>
+    table {
+        width: 100%;
+        font-size: 11px;
+        font-family: 'Trebuchet MS', sans-serif;
+    }
+
+    table, th, tr, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+
+    thead tr th {
+        background-color: #F8F8FF !important;
+        -webkit-print-color-adjust: exact; /* p */
+        print-color-adjust: exact; /* p */
+        color-adjust: exact; /* p */
+    }
+
+    th, td {
+        padding: 5px;
+    }
+
+    h1, h2 {
+        font-family: Calibri
+    }
+
+    h1 {
+        font-size: 16px
+    }
+
+    h2 {
+        font-size: 14px
+    }
+</style>
+
+
+<h1 style="font-size:18px !important; text-align:center; margin-top:5px">Absensi</h1>
+
+<table style="margin-top:20px">
+    <thead>
+        <tr>
+            <th style="text-align:center">Nama</th>
+            <th style="text-align:center">NISN</th>
+            <th style="text-align:center">Jurusan</th>
+            <th style="text-align:center">Tahun Ajaran</th>
+            <th style="text-align:center">Jumlah Absen 3 Tahun (0-45)</th>
+            <th style="text-align:center">(C@((int)KriteriaEnum.Absensi)) @KriteriaEnum.Absensi.Humanize()</th>
+    </thead>
+    <tbody>
+        @foreach (var entry in Model.DaftarEntry)
+        {
+            <tr>
+                <td style="text-align:center">@entry.Siswa.Nama</td>
+                <td style="text-align:center">@entry.Siswa.NISN</td>
+                <td style="text-align:center">@entry.Siswa.Jurusan.Humanize()</td>
+                <td style="text-align:center">@entry.Siswa.TahunAjaran.Id</td>
+                <td style="text-align:center">@(entry.Siswa.JumlahAbsen?.ToString() ?? "-")</td>
+                <td style="text-align:center">@(entry.Absensi?.ToString() ?? "-")</td>
+            </tr>
+        }
+    </tbody>
+</table>

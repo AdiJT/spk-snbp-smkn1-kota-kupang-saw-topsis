@@ -38,7 +38,7 @@
                 <div class="d-flex align-items-center mr-3" style="gap: 8px;">
                     <label asp-for="@Model.Tahun" class="mb-0" style="font-weight: 600; white-space: nowrap;">Tahun Ajaran:</label>
                     <select asp-for="@Model.Tahun" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
-                        @if(Model.Tahun is null) 
+                        @if (Model.Tahun is null)
                         {
                             <option value="@null">-- Tidak ada Tahun Ajaran --</option>
                         }
@@ -72,16 +72,26 @@
 
                     @if (Model.HasilPerhitungan is not null)
                     {
-                        <div class="mb-0">
-                            <button class="btn btn-tambah btn-icon icon-left btn-info"
-                                    data-toggle="tooltip" title="Lihat Detail Perhitungan">
-                                <i class="fas fa-search-plus"></i> Detail
-                            </button>
-                            <div class="form-tambah">
-                                <partial name="_FormHasilPartial" model="@Model.HasilPerhitungan" />
-                            </div>
+                        <button class="btn btn-tambah btn-icon icon-left btn-info"
+                                data-toggle="tooltip" title="Lihat Detail Perhitungan">
+                            <i class="fas fa-search-plus"></i> Detail
+                        </button>
+                        <div class="form-tambah">
+                            <partial name="_FormHasilPartial" model="@Model.HasilPerhitungan" />
                         </div>
                     }
+
+                    <div class="ml-1 mb-0">
+                        <a asp-action="PDF" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" class="btn btn-icon icon left btn-primary mr-1">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </a>
+                    </div>
+
+                    <div class="mb-0">
+                        <a asp-action="Excel" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" class="btn btn-icon icon left btn-primary mr-1">
+                            <i class="fas fa-file-excel"></i> Excel
+                        </a>
+                    </div>
                 }
             </div>
         </div>
@@ -90,9 +100,10 @@
             <div class="mb-0 card card-body rounded" style="background-color: #d9edf7; font-weight: 400; padding: 15px; color: #31708f;">
                 <p class="mb-0">
                     Perhitungan hanya dapat dilakukan jika setiap data kriteria siswa lengkap!
-                    @if(await SignInManager.IsInRole(UserRoles.Admin) == false)
+                    @if (await SignInManager.IsInRole(UserRoles.Admin) == false)
                     {
-                        @("Hubungi Admin untuk melengkapi data kriteria siswa");
+                        @("Hubungi Admin untuk melengkapi data kriteria siswa")
+                        ;
                     }
                 </p>
             </div>

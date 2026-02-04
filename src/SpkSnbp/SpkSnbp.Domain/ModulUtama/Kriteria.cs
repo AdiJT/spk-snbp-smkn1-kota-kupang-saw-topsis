@@ -1,4 +1,5 @@
 ﻿using SpkSnbp.Domain.Abstracts;
+using System.ComponentModel;
 
 namespace SpkSnbp.Domain.ModulUtama;
 
@@ -29,11 +30,22 @@ public enum JenisKriteria
 
 public enum KriteriaEnum
 {
+    [Description("Mata Pelajaran Kejuruan")]
     MPKejuruan = 1,
+
+    [Description("Mata Pelajaran Umum")]
     MPUmum = 2,
+
+    [Description("Sertifikat LSP")]
     SertLSP = 3,
+
+    [Description("Sertifikat TKA")]
     SertTKA = 4,
+
+    [Description("Ekstrakurikuler")]
     Ekstrakulikuler = 5,
+
+    [Description("Absensi")]
     Absensi = 6
 }
 

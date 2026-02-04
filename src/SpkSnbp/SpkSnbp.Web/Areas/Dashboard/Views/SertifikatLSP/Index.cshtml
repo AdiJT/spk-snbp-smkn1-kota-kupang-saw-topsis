@@ -55,7 +55,7 @@
                 </div>
             </form>
 
-            <div>
+            <div class="d-flex align-items-center">
                 @if (Model.Jurusan is not null && Model.Tahun is not null)
                 {
                     <div class="d-flex align-items-center">
@@ -68,8 +68,19 @@
                         </div>
                     </div>
                 }
-            </div>
 
+                <div class="ml-1 mb-0">
+                    <a asp-action="PDF" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" class="btn btn-icon icon left btn-primary mr-1">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </a>
+                </div>
+
+                <div class="mb-0">
+                    <a asp-action="Excel" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" class="btn btn-icon icon left btn-primary mr-1">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </a>
+                </div>
+            </div>
         </div>
 
         <form asp-action="Simpan" asp-route-jurusan="@Model.Jurusan" asp-route-tahun="@Model.Tahun" method="post">

@@ -1,8 +1,10 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Razor.Templating.Core;
 using SpkSnbp.Domain.Auth;
 using SpkSnbp.Domain.Contracts;
 using SpkSnbp.Domain.ModulUtama;
@@ -11,6 +13,7 @@ using SpkSnbp.Infrastructure.Services.FileServices;
 using SpkSnbp.Web.Areas.Dashboard.Models;
 using SpkSnbp.Web.Areas.Dashboard.Models.Absensi;
 using SpkSnbp.Web.Helpers;
+using SpkSnbp.Web.Services.PDFGenerator;
 using SpkSnbp.Web.Services.Toastr;
 
 namespace SpkSnbp.Web.Areas.Dashboard.Controllers;
@@ -27,6 +30,8 @@ public class AbsensiController : Controller
     private readonly ISiswaKriteriaRepository _siswaKriteriaRepository;
     private readonly IFileService _fileService;
     private readonly ITempDataDictionaryFactory _tempDataDictionaryFactory;
+    private readonly IRazorTemplateEngine _templateEngine;
+    private readonly IPDFGeneratorService _pDFGeneratorService;
 
     public AbsensiController(
         ISiswaRepository siswaRepository,
@@ -36,7 +41,9 @@ public class AbsensiController : Controller
         IToastrNotificationService notificationService,
         ISiswaKriteriaRepository siswaKriteriaRepository,
         IFileService fileService,
-        ITempDataDictionaryFactory tempDataDictionaryFactory)
+        ITempDataDictionaryFactory tempDataDictionaryFactory,
+        IRazorTemplateEngine templateEngine,
+        IPDFGeneratorService pDFGeneratorService)
     {
         _siswaRepository = siswaRepository;
         _kriteriaRepository = kriteriaRepository;
@@ -46,6 +53,8 @@ public class AbsensiController : Controller
         _siswaKriteriaRepository = siswaKriteriaRepository;
         _fileService = fileService;
         _tempDataDictionaryFactory = tempDataDictionaryFactory;
+        _templateEngine = templateEngine;
+        _pDFGeneratorService = pDFGeneratorService;
     }
 
     public async Task<IActionResult> Index(Jurusan jurusan = Jurusan.TJKT, int? tahun = null, bool first = true)
@@ -229,5 +238,258 @@ public class AbsensiController : Controller
             _notificationService.AddError("Import Gagal", "Import");
 
         return RedirectPermanent(returnUrl);
+    }
+
+    public async Task<IActionResult> PDF(int tahun, Jurusan jurusan)
+    {
+        var indexVM = new IndexVM
+        {
+            Tahun = tahun,
+            Jurusan = jurusan,
+            DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList()
+        };
+
+        var html = await _templateEngine.RenderAsync("Areas/Dashboard/Views/Absensi/PDF.cshtml", indexVM);
+
+        var pdf = await _pDFGeneratorService.GeneratePDF(
+            html,
+            marginTop: 75,
+            marginBottom: 75,
+            marginLeft: 75,
+            marginRight: 75);
+
+        return File(
+            pdf,
+            "application/pdf",
+            fileDownloadName: $"Absensi-{tahun}-{jurusan}.pdf"
+        );
+    }
+
+    public async Task<IActionResult> Excel(int tahun, Jurusan jurusan)
+    {
+        var daftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList();
+
+        using var memoryStream = new MemoryStream();
+        using var spreadSheet = SpreadsheetDocument.Create(memoryStream, DocumentFormat.OpenXml.SpreadsheetDocumentType.Workbook);
+
+        var workBookPart = spreadSheet.AddWorkbookPart();
+        workBookPart.Workbook = new Workbook();
+
+        var stylePart = workBookPart.AddNewPart<WorkbookStylesPart>();
+        stylePart.Stylesheet = new()
+        {
+            Fonts = new
+            (
+                new Font { FontSize = new() { Val = 11 }, FontName = new() { Val = "Calibri" } }
+            )
+            { Count = 1 },
+
+            Fills = new
+            (
+                new Fill { PatternFill = new() { PatternType = PatternValues.None } },
+                new Fill { PatternFill = new() { PatternType = PatternValues.Gray125 } }
+            )
+            { Count = 2 },
+
+            Borders = new
+            (
+                new Border(),
+                new Border
+                {
+                    BottomBorder = new() { Style = BorderStyleValues.Thin, Color = new() { Auto = true } },
+                    TopBorder = new() { Style = BorderStyleValues.Thin, Color = new() { Auto = true } },
+                    LeftBorder = new() { Style = BorderStyleValues.Thin, Color = new() { Auto = true } },
+                    RightBorder = new() { Style = BorderStyleValues.Thin, Color = new() { Auto = true } },
+                }
+            )
+            { Count = 2 },
+
+            CellStyleFormats = new
+            (
+                new CellFormat()
+            )
+            { Count = 1 },
+
+            CellFormats = new
+            (
+                new CellFormat(),
+                new CellFormat(new Alignment { Horizontal = HorizontalAlignmentValues.Center, Vertical = VerticalAlignmentValues.Center })
+                {
+                    FormatId = 0,
+                    FontId = 0,
+                    BorderId = 1,
+                    FillId = 0,
+                    ApplyFill = true,
+                    ApplyBorder = true,
+                    ApplyFont = true
+                },
+                new CellFormat(new Alignment { Horizontal = HorizontalAlignmentValues.Center, Vertical = VerticalAlignmentValues.Center, WrapText = true })
+                {
+                    FormatId = 0,
+                    FontId = 0,
+                    BorderId = 1,
+                    FillId = 0,
+                    ApplyFill = true,
+                    ApplyBorder = true,
+                    ApplyFont = true
+                }
+            )
+            { Count = 3 }
+        };
+
+        var worksheetPart = workBookPart.AddNewPart<WorksheetPart>();
+        var sheetData = new SheetData();
+        worksheetPart.Worksheet = new Worksheet(
+            new Columns(
+                new Column
+                {
+                    Min = 1,
+                    Max = 1,
+                    Width = 40,
+                    CustomWidth = true,
+                },
+                new Column
+                {
+                    Min = 2,
+                    Max = 2,
+                    Width = 24,
+                    CustomWidth = true,
+                },
+                new Column
+                {
+                    Min = 3,
+                    Max = 3,
+                    Width = 15,
+                    CustomWidth = true,
+                },
+                new Column
+                {
+                    Min = 4,
+                    Max = 4,
+                    Width = 15,
+                    CustomWidth = true,
+                },
+                new Column
+                {
+                    Min = 5,
+                    Max = 5,
+                    Width = 24,
+                    CustomWidth = true,
+                },
+                new Column
+                {
+                    Min = 6,
+                    Max = 6,
+                    Width = 24,
+                    CustomWidth = true,
+                }
+            ),
+            sheetData);
+
+        var sheets = workBookPart.Workbook.AppendChild(new Sheets());
+        var relationshipId = workBookPart.GetIdOfPart(worksheetPart);
+
+        var sheetId = 1u;
+        var sheetName = "Sheet" + sheetId;
+        var sheet = new Sheet() { Id = relationshipId, SheetId = sheetId, Name = sheetName };
+        sheets.Append(sheet);
+
+        var headerRow = new Row() { RowIndex = 1 };
+        headerRow.Append(
+            [
+                new Cell
+                {
+                    CellReference = $"A{headerRow.RowIndex}",
+                    CellValue = new CellValue("Nama"),
+                    StyleIndex = 2,
+                },
+                new Cell
+                {
+                    CellReference = $"B{headerRow.RowIndex}",
+                    CellValue = new CellValue("NISN"),
+                    StyleIndex = 1,
+                },
+                new Cell
+                {
+                    CellReference = $"C{headerRow.RowIndex}",
+                    CellValue = new CellValue("Jurusan"),
+                    StyleIndex = 1,
+                },
+                new Cell
+                {
+                    CellReference = $"D{headerRow.RowIndex}",
+                    CellValue = new CellValue("Tahun Ajaran"),
+                    StyleIndex = 1,
+                },
+                new Cell
+                {
+                    CellReference = $"E{headerRow.RowIndex}",
+                    CellValue = new CellValue("Jumlah Absen 3 Tahun (0-45)"),
+                    StyleIndex = 2,
+                },
+                new Cell
+                {
+                    CellReference = $"F{headerRow.RowIndex}",
+                    CellValue = new CellValue($"(C{(int)KriteriaEnum.Absensi}) {KriteriaEnum.Absensi.Humanize()}"),
+                    StyleIndex = 2,
+                }
+            ]
+        );
+        sheetData.Append(headerRow);
+
+        for (int i = 0; i < daftarEntry.Count; i++)
+        {
+            var rowIndex = headerRow.RowIndex + (uint)i + 1u;
+            var entry = daftarEntry[i];
+
+            var row = new Row { RowIndex = rowIndex };
+            row.Append([
+                new Cell
+                {
+                    CellReference = $"A{row.RowIndex}",
+                    CellValue = new CellValue(entry.Siswa.Nama),
+                    StyleIndex = 2,
+                },
+                new Cell
+                {
+                    CellReference = $"B{row.RowIndex}",
+                    CellValue = new CellValue(entry.Siswa.NISN),
+                    StyleIndex = 1,
+                },
+                new Cell
+                {
+                    CellReference = $"C{row.RowIndex}",
+                    CellValue = new CellValue(entry.Siswa.Jurusan.Humanize()),
+                    StyleIndex = 1,
+                },
+                new Cell
+                {
+                    CellReference = $"D{row.RowIndex}",
+                    CellValue = new CellValue(entry.Siswa.TahunAjaran.Id),
+                    StyleIndex = 1,
+                },
+                new Cell
+                {
+                    CellReference = $"E{row.RowIndex}",
+                    CellValue = new(entry.Siswa.JumlahAbsen?.ToString() ?? "-"),
+                    StyleIndex = 2,
+                },
+                new Cell
+                {
+                    CellReference = $"F{row.RowIndex}",
+                    CellValue = new(entry.Absensi?.ToString() ?? "-"),
+                    StyleIndex = 2,
+                }
+            ]);
+
+            sheetData.Append(row);
+        }
+
+        spreadSheet.Save();
+
+        return File(
+            memoryStream.ToArray(),
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            fileDownloadName: $"Absensi-{tahun}-{jurusan}.xlsx");
     }
 }

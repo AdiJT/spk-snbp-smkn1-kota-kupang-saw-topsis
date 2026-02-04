@@ -1,4 +1,5 @@
-﻿@model List<Siswa>
+﻿@using SpkSnbp.Web.Areas.Dashboard.Models.Seleksi
+@model IndexVM
 
 @inject IKriteriaRepository KriteriaRepository
 
@@ -48,15 +49,16 @@
 </style>
 
 
-<h1 style="font-size:18px !important; text-align:center; margin-top:5px">Siswa</h1>
+<h1 style="font-size:18px !important; text-align:center; margin-top:5px">Hasil Seleksi</h1>
 
 <table style="margin-top:20px">
     <thead>
         <tr>
-            <th style="text-align:center" rowspan="2">Nama</th>
+            <th style="text-align:center" rowspan="2">Rangking</th>
+            <th style="text-align:center" rowspan="2">Nilai Prefrensi</th>
             <th style="text-align:center" rowspan="2">NISN</th>
-            <th style="text-align:center" rowspan="2">Jurusan</th>
-            <th style="text-align:center" rowspan="2">Tahun Ajaran</th>
+            <th style="text-align:center" rowspan="2">Nama</th>
+            <th style="text-align:center" rowspan="2">Eligible</th>
             <th style="text-align:center" colspan="@daftarKriteria.Count">Kriteria</th>
         </tr>
         <tr>
@@ -67,19 +69,29 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var siswa in Model)
+        @for(int i = 0; i < Model.DaftarSiswa.Count; i++)
         {
+            var siswa = Model.DaftarSiswa[i];
             <tr>
-                <td style="text-align:center">@siswa.Nama</td>
+                @if(siswa.NilaiTopsis is null)
+                {
+                    <td style="text-align:center">-</td>
+                    <td style="text-align:center">-</td>
+                }
+                else
+                {
+                    <td style="text-align:center">@(i + 1)</td>
+                    <td style="text-align:center">@siswa.NilaiTopsis.Value.ToString("F2")</td>
+                }
                 <td style="text-align:center">@siswa.NISN</td>
-                <td style="text-align:center">@siswa.Jurusan.Humanize()</td>
-                <td style="text-align:center">@siswa.TahunAjaran.Id</td>
+                <td style="text-align:center">@siswa.Nama</td>
+                <td style="text-align:center">@(siswa.Eligible?.Humanize() ?? "-")</td>
                 @foreach (var kriteria in daftarKriteria)
                 {
                     var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.Kriteria == kriteria);
                     if (siswaKriteria is null)
                     {
-                        <td style="text-align:center"> - </td>
+                        <td style="text-align:center">-</td>
                     }
                     else
                     {
