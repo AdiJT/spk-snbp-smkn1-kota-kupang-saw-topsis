@@ -23,7 +23,7 @@ nav {
         align-items: center;
     }
 
-        nav .logo img {
+        nav .logo ::deep img {
             width: 40px;
             cursor: pointer;
         }

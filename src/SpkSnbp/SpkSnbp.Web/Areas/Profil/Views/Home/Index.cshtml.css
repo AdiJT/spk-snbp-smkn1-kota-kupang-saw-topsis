@@ -80,8 +80,8 @@
         flex-wrap: wrap;
     }
 
-        #sambutan .sambutan-wrapper .sambutan-image img {
-            width: 600px;
+        #sambutan .sambutan-wrapper .sambutan-image ::deep img {
+            width: 500px;
             height: 300px;
             border-radius: 8px;
             object-fit: cover;
@@ -450,11 +450,6 @@
             width: 100%;
             height: 300px;
         }
-
-    /* ------------------------------------ SECTION BERITA ------------------------------------ */
-    #berita .beritas .berita-tanggal[b-5k926p3mh8] {
-        bottom: 200px;
-    }
 }
 
 /* ------------------------------------ TABLET ------------------------------------ */
@@ -522,27 +517,6 @@
         font-size: 14px;
     }
 
-    /* ------------------------------------ SECTION BERITA ------------------------------------ */
-    #berita[b-5k926p3mh8] {
-        padding: 12vw 8vw;
-        text-align: center;
-    }
-
-    #berita .berita-box[b-5k926p3mh8] {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        grid-gap: 1rem;
-        margin-top: 30px;
-    }
-
-    #berita .beritas .berita-tanggal[b-5k926p3mh8] {
-        bottom: 180px;
-    }
-
-    .para-berita {
-        margin-top: 10px;
-    }
-
     /* ------------------------------------ SECTION EKSTRAKURIKULER ------------------------------------ */
     #ekskul[b-5k926p3mh8] {
         padding: 8vw 8vw 10vw;
@@ -558,11 +532,6 @@
     }
 
     .para-ekskul {
-        margin-top: 10px;
-    }
-
-    /* ------------------------------------ SECTION GURU & KARYAWAN ------------------------------------ */
-    .para-guru {
         margin-top: 10px;
     }
 
@@ -624,18 +593,5 @@
         padding: 0px 0px;
         gap: 10px;
         flex-wrap: wrap;
-    }
-
-    /* ------------------------------------ SECTION BERITA ------------------------------------ */
-    #berita .berita-box[b-5k926p3mh8][b-5k926p3mh8] {
-        grid-gap: 2rem;
-    }
-
-    #berita .beritas .berita-tanggal[b-5k926p3mh8] {
-        bottom: 150px;
-    }
-
-    .button_lihat_semua {
-        margin-top: 40px;
     }
 }
