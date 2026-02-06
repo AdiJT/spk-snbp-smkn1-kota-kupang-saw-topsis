@@ -108,6 +108,7 @@ public class AbsensiController : Controller
         });
     }
 
+    [HttpPost]
     public async Task<IActionResult> Simpan(IndexVM vm)
     {
         foreach (var entry in vm.DaftarEntry)
@@ -149,6 +150,34 @@ public class AbsensiController : Controller
             _notificationService.AddError("Simpan Gagal");
 
         return RedirectToActionPermanent(nameof(Index), new { vm.Jurusan, vm.Tahun, vm.IdKelas });
+    }
+
+    public async Task<IActionResult> Reset(
+        Jurusan jurusan,
+        int tahun,
+        int? idKelas = null,
+        string? returnUrl = null)
+    {
+        returnUrl ??= Url.Action(nameof(Index))!;
+
+        var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun, idKelas);
+
+        foreach (var siswa in daftarSiswa)
+        {
+            var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.Kriteria.Id == (int)KriteriaEnum.Absensi);
+            if (siswaKriteria is not null)
+                _siswaKriteriaRepository.Delete(siswaKriteria);
+
+            siswa.JumlahAbsen = null;
+        }
+
+        var result = await _unitOfWork.SaveChangesAsync();
+        if (result.IsSuccess)
+            _notificationService.AddSuccess("Reset Berhasil!");
+        else
+            _notificationService.AddSuccess("Reset Gagal!");
+
+        return RedirectPermanent(returnUrl);
     }
 
     [HttpPost]

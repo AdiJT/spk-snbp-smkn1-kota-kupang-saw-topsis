@@ -159,6 +159,36 @@ public class MataPelajaranController : Controller
         return RedirectToActionPermanent(nameof(Index), new { vm.Jurusan, vm.Tahun, vm.IdKelas });
     }
 
+    public async Task<IActionResult> Reset(
+        Jurusan jurusan,
+        int tahun,
+        int? idKelas = null,
+        string? returnUrl = null)
+    {
+        returnUrl ??= Url.Action(nameof(Index))!;
+
+        var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun, idKelas);
+
+        foreach (var siswa in daftarSiswa)
+        {
+            var siswaKriteriaMPKejuruan = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.Kriteria.Id == (int)KriteriaEnum.MPKejuruan);
+            if (siswaKriteriaMPKejuruan is not null)
+                _siswaKriteriaRepository.Delete(siswaKriteriaMPKejuruan);
+
+            var siswaKriteriaMPUmum = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.Kriteria.Id == (int)KriteriaEnum.MPUmum);
+            if (siswaKriteriaMPUmum is not null)
+                _siswaKriteriaRepository.Delete(siswaKriteriaMPUmum);
+        }
+
+        var result = await _unitOfWork.SaveChangesAsync();
+        if (result.IsSuccess)
+            _notificationService.AddSuccess("Reset Berhasil!");
+        else
+            _notificationService.AddSuccess("Reset Gagal!");
+
+        return RedirectPermanent(returnUrl);
+    }
+
     [HttpPost]
     public async Task<IActionResult> Import(ImportVM vm)
     {

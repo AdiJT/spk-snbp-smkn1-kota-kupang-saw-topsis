@@ -118,12 +118,10 @@
                     <i class="fas fa-times"></i> Batal
                 </button>
 
-                <button type="button"
-                        id="btnReset"
-                        class="btn btn-icon icon-left btn-secondary"
+                <a asp-action="Reset" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" asp-route-idKelas="@Model.IdKelas" asp-route-returnUrl="@Context.Request.AbsoluteUri()" class="btn btn-icon icon-left btn-secondary"
                         data-toggle="tooltip" title="Reset Jumlah">
                     <i class="fas fa-undo"></i> Reset
-                </button>
+                </a>
             </div>
 
             <div class="table-responsive">
