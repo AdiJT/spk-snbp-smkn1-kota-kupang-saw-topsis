@@ -80,7 +80,7 @@ public class HomeController : Controller
     {
         await _signInManager.Logout();
 
-        return RedirectToAction(nameof(Login));
+        return RedirectToActionPermanent("Index", "Home", new { Area = AreaNames.Profil });
     }
 
     [AllowAnonymous]
