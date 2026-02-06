@@ -54,6 +54,7 @@
             <th style="text-align:center">Nama</th>
             <th style="text-align:center">NISN</th>
             <th style="text-align:center">Jurusan</th>
+            <th style="text-align:center">Kelas</th>
             <th style="text-align:center">Tahun Ajaran</th>
             <th style="text-align:center">(C@((int)KriteriaEnum.Ekstrakulikuler)) @KriteriaEnum.Ekstrakulikuler.Humanize()</th>
             <th style="text-align:center" colspan="3">Predikat</th>
@@ -65,6 +66,7 @@
                 <td style="text-align:center">@entry.Siswa.Nama</td>
                 <td style="text-align:center">@entry.Siswa.NISN</td>
                 <td style="text-align:center">@entry.Siswa.Jurusan.Humanize()</td>
+                <td style="text-align:center">@entry.Siswa.Kelas.Nama</td>
                 <td style="text-align:center">@entry.Siswa.TahunAjaran.Id</td>
                 <td style="text-align:center">@(entry.Ekstrakulikuler?.ToString() ?? "-")</td>
                 <td style="text-align:center">@(entry.Siswa.Ekstrakulikuler1?.Humanize() ?? "-")</td>

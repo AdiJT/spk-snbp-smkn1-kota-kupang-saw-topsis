@@ -1,7 +1,7 @@
 ﻿@using SpkSnbp.Web.Areas.Dashboard.Models
 @model ImportVM
 
-<form asp-action="Import" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan"
+<form asp-action="Import" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" asp-route-idKelas="@Model.IdKelas"
       asp-route-returnUrl="@Model.ReturnUrl" method="post" enctype="multipart/form-data">
     <div class="modal-header">
         <h5 class="modal-title" id="modalTambahTitle">Import</h5>

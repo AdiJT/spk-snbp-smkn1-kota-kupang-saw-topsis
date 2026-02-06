@@ -33,6 +33,7 @@ public class SertifikatTKAController : Controller
     private readonly ITempDataDictionaryFactory _tempDataDictionaryFactory;
     private readonly IRazorTemplateEngine _templateEngine;
     private readonly IPDFGeneratorService _pDFGeneratorService;
+    private readonly IKelasRepository _kelasRepository;
 
     public SertifikatTKAController(
         ISiswaRepository siswaRepository,
@@ -44,7 +45,8 @@ public class SertifikatTKAController : Controller
         IFileService fileService,
         ITempDataDictionaryFactory tempDataDictionaryFactory,
         IRazorTemplateEngine templateEngine,
-        IPDFGeneratorService pDFGeneratorService)
+        IPDFGeneratorService pDFGeneratorService,
+        IKelasRepository kelasRepository)
     {
         _siswaRepository = siswaRepository;
         _kriteriaRepository = kriteriaRepository;
@@ -56,9 +58,10 @@ public class SertifikatTKAController : Controller
         _tempDataDictionaryFactory = tempDataDictionaryFactory;
         _templateEngine = templateEngine;
         _pDFGeneratorService = pDFGeneratorService;
+        _kelasRepository = kelasRepository;
     }
 
-    public async Task<IActionResult> Index(Jurusan jurusan = Jurusan.TJKT, int? tahun = null, bool first = true)
+    public async Task<IActionResult> Index(Jurusan jurusan = Jurusan.TJKT, int? tahun = null, int? idKelas = null, bool first = true)
     {
         var tempDataDict = _tempDataDictionaryFactory.GetTempData(HttpContext);
 
@@ -66,12 +69,16 @@ public class SertifikatTKAController : Controller
         {
             var jurusanTempData = tempDataDict.Peek(TempDataKeys.Jurusan);
             var tahunTempData = tempDataDict.Peek(TempDataKeys.Tahun);
+            var kelasTempData = tempDataDict.Peek(TempDataKeys.Kelas);
 
             if (jurusanTempData is not null)
                 jurusan = (Jurusan)jurusanTempData;
 
             if (tahunTempData is not null)
                 tahun = (int)tahunTempData;
+
+            if (kelasTempData is not null)
+                idKelas = (int)kelasTempData;
         }
         else
             tempDataDict[TempDataKeys.Jurusan] = jurusan;
@@ -81,18 +88,19 @@ public class SertifikatTKAController : Controller
             await _tahunAjaranRepository.Get(tahun.Value);
 
         tahunAjaran ??= await _tahunAjaranRepository.GetLatest();
+        var kelas = idKelas is null ? null : await _kelasRepository.Get(idKelas.Value);
 
-        if (tahunAjaran is null)
-            return View(new IndexVM { Jurusan = jurusan, DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList() });
-
-        if (!first) tempDataDict[TempDataKeys.Tahun] = tahunAjaran.Id;
+        if (!first && tahunAjaran is not null) tempDataDict[TempDataKeys.Tahun] = tahunAjaran.Id;
+        if (!first) tempDataDict[TempDataKeys.Kelas] = kelas?.Id;
 
         return View(new IndexVM
         {
-            Tahun = tahunAjaran.Id,
+            Tahun = tahunAjaran?.Id,
             TahunAjaran = tahunAjaran,
+            IdKelas = kelas?.Id,
+            Kelas = kelas,
             Jurusan = jurusan,
-            DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList()
+            DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun, idKelas)).ToIndexEntryList()
         });
     }
 
@@ -136,7 +144,35 @@ public class SertifikatTKAController : Controller
         else
             _notificationService.AddError("Simpan Gagal");
 
-        return RedirectToActionPermanent(nameof(Index), new { vm.Jurusan, vm.Tahun });
+        return RedirectToActionPermanent(nameof(Index), new { vm.Jurusan, vm.Tahun, vm.IdKelas });
+    }
+
+    public async Task<IActionResult> Reset(
+        Jurusan jurusan,
+        int tahun,
+        int? idKelas = null,
+        string? returnUrl = null)
+    {
+        returnUrl ??= Url.Action(nameof(Index))!;
+
+        var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun, idKelas);
+
+        foreach (var siswa in daftarSiswa)
+        {
+            var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.Kriteria.Id == (int)KriteriaEnum.SertTKA);
+            if (siswaKriteria is not null)
+                _siswaKriteriaRepository.Delete(siswaKriteria);
+
+            siswa.SkorTKA = null;
+        }
+
+        var result = await _unitOfWork.SaveChangesAsync();
+        if (result.IsSuccess)
+            _notificationService.AddSuccess("Reset Berhasil!");
+        else
+            _notificationService.AddSuccess("Reset Gagal!");
+
+        return RedirectPermanent(returnUrl);
     }
 
     [HttpPost]
@@ -189,7 +225,7 @@ public class SertifikatTKAController : Controller
         var workSheetPart = (WorksheetPart)workBookPart.GetPartById(sheet.Id!);
         var sheetData = workSheetPart.Worksheet.Elements<SheetData>().First();
 
-        var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun);
+        var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun, vm.IdKelas);
 
         foreach (var row in sheetData.Elements<Row>())
         {
@@ -244,13 +280,16 @@ public class SertifikatTKAController : Controller
         return RedirectPermanent(returnUrl);
     }
 
-    public async Task<IActionResult> PDF(int tahun, Jurusan jurusan)
+    public async Task<IActionResult> PDF(int tahun, Jurusan jurusan, int? idKelas = null)
     {
+        var kelas = idKelas is null ? null : await _kelasRepository.Get(idKelas.Value);
         var indexVM = new IndexVM
         {
             Tahun = tahun,
             Jurusan = jurusan,
-            DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList()
+            Kelas = kelas,
+            IdKelas = kelas?.Id,
+            DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun, idKelas)).ToIndexEntryList()
         };
 
         var html = await _templateEngine.RenderAsync("Areas/Dashboard/Views/SertifikatTKA/PDF.cshtml", indexVM);
@@ -265,13 +304,14 @@ public class SertifikatTKAController : Controller
         return File(
             pdf,
             "application/pdf",
-            fileDownloadName: $"Sertifikat TKA-{tahun}-{jurusan}.pdf"
+            fileDownloadName: $"Sertifikat TKA-{tahun}-{jurusan}{(kelas is null ? null : $"-{kelas.Nama}")}.pdf"
         );
     }
 
-    public async Task<IActionResult> Excel(int tahun, Jurusan jurusan)
+    public async Task<IActionResult> Excel(int tahun, Jurusan jurusan, int? idKelas = null)
     {
-        var daftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList();
+        var kelas = idKelas is null ? null : await _kelasRepository.Get(idKelas.Value);
+        var daftarEntry = (await _siswaRepository.GetAll(jurusan, tahun, idKelas)).ToIndexEntryList();
 
         using var memoryStream = new MemoryStream();
         using var spreadSheet = SpreadsheetDocument.Create(memoryStream, DocumentFormat.OpenXml.SpreadsheetDocumentType.Workbook);
@@ -377,13 +417,20 @@ public class SertifikatTKAController : Controller
                 {
                     Min = 5,
                     Max = 5,
-                    Width = 24,
+                    Width = 15,
                     CustomWidth = true,
                 },
                 new Column
                 {
                     Min = 6,
                     Max = 6,
+                    Width = 24,
+                    CustomWidth = true,
+                },
+                new Column
+                {
+                    Min = 7,
+                    Max = 7,
                     Width = 24,
                     CustomWidth = true,
                 }
@@ -422,18 +469,24 @@ public class SertifikatTKAController : Controller
                 new Cell
                 {
                     CellReference = $"D{headerRow.RowIndex}",
-                    CellValue = new CellValue("Tahun Ajaran"),
+                    CellValue = new CellValue("Kelas"),
                     StyleIndex = 1,
                 },
                 new Cell
                 {
                     CellReference = $"E{headerRow.RowIndex}",
+                    CellValue = new CellValue("Tahun Ajaran"),
+                    StyleIndex = 1,
+                },
+                new Cell
+                {
+                    CellReference = $"F{headerRow.RowIndex}",
                     CellValue = new CellValue($"(C{(int)KriteriaEnum.SertTKA}) {KriteriaEnum.SertTKA.Humanize()}"),
                     StyleIndex = 2,
                 },
                 new Cell
                 {
-                    CellReference = $"F{headerRow.RowIndex}",
+                    CellReference = $"G{headerRow.RowIndex}",
                     CellValue = new CellValue("Skor (1-100)"),
                     StyleIndex = 2,
                 }
@@ -469,18 +522,24 @@ public class SertifikatTKAController : Controller
                 new Cell
                 {
                     CellReference = $"D{row.RowIndex}",
-                    CellValue = new CellValue(entry.Siswa.TahunAjaran.Id),
+                    CellValue = new CellValue(entry.Siswa.Kelas.Nama),
                     StyleIndex = 1,
                 },
                 new Cell
                 {
                     CellReference = $"E{row.RowIndex}",
+                    CellValue = new CellValue(entry.Siswa.TahunAjaran.Id),
+                    StyleIndex = 1,
+                },
+                new Cell
+                {
+                    CellReference = $"F{row.RowIndex}",
                     CellValue = new(entry.SertifikatTKA?.ToString() ?? "-"),
                     StyleIndex = 2,
                 },
                 new Cell
                 {
-                    CellReference = $"F{row.RowIndex}",
+                    CellReference = $"G{row.RowIndex}",
                     CellValue = new(entry.Siswa.SkorTKA?.ToString() ?? "-"),
                     StyleIndex = 2,
                 }
@@ -494,6 +553,7 @@ public class SertifikatTKAController : Controller
         return File(
             memoryStream.ToArray(),
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            fileDownloadName: $"Sertifikat TKA-{tahun}-{jurusan}.xlsx");
+            fileDownloadName: $"Sertifikat TKA-{tahun}-{jurusan}{(kelas is null ? null : $"-{kelas.Nama}")}.xlsx"
+        );
     }
 }

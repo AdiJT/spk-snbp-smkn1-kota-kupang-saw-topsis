@@ -2,10 +2,12 @@
 @model IndexVM
 
 @inject ITahunAjaranRepository TahunAjaranRepository
+@inject IKelasRepository KelasRepository
 
 @{
     ViewData["Title"] = "Absensi";
     var daftarTahun = await TahunAjaranRepository.GetAll();
+    var daftarKelas = await KelasRepository.GetAll();
 }
 
 <!-- Breadcrumb -->
@@ -52,6 +54,17 @@
                         }
                     </select>
                 </div>
+
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <label asp-for="@Model.IdKelas" class="mb-0" style="font-weight: 600; white-space: nowrap;">Kelas:</label>
+                    <select asp-for="@Model.IdKelas" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
+                        <option value="@null">-- Semua --</option>
+                        @foreach (var item in daftarKelas)
+                        {
+                            <option value="@item.Id">@item.Nama</option>
+                        }
+                    </select>
+                </div>
             </form>
 
             <div class="d-flex align-items-center">
@@ -63,13 +76,13 @@
                             <i class="fas fa-file-import"></i> Import
                         </button>
                         <div class="form-tambah">
-                            <partial name="_FormImportPartial" model="@(new ImportVM { Tahun = Model.Tahun.Value, Jurusan = Model.Jurusan.Value, ReturnUrl = Context.Request.AbsoluteUri() })" />
+                            <partial name="_FormImportPartial" model="@(new ImportVM { Tahun = Model.Tahun.Value, Jurusan = Model.Jurusan.Value, IdKelas = Model.IdKelas, ReturnUrl = Context.Request.AbsoluteUri() })" />
                         </div>
                     </div>
                 }
 
                 <div class="ml-1 mb-0">
-                    <a asp-action="PDF" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" class="btn btn-icon icon left btn-danger mr-1">
+                    <a asp-action="PDF" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" asp-route-idKelas="@Model.IdKelas" class="btn btn-icon icon left btn-danger mr-1">
                         <i class="fas fa-file-pdf"></i> PDF
                     </a>
                 </div>
@@ -82,7 +95,7 @@
             </div>
         </div>
 
-        <form asp-action="Simpan" asp-route-jurusan="@Model.Jurusan" asp-route-tahun="@Model.Tahun" method="post">
+        <form asp-action="Simpan" asp-route-jurusan="@Model.Jurusan" asp-route-tahun="@Model.Tahun" asp-route-idKelas="@Model.IdKelas" method="post">
             <div class="mb-3">
                 <button type="button"
                         id="btnEdit"
@@ -105,12 +118,10 @@
                     <i class="fas fa-times"></i> Batal
                 </button>
 
-                <button type="button"
-                        id="btnReset"
-                        class="btn btn-icon icon-left btn-secondary"
+                <a asp-action="Reset" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" asp-route-idKelas="@Model.IdKelas" asp-route-returnUrl="@Context.Request.AbsoluteUri()" class="btn btn-icon icon-left btn-secondary"
                         data-toggle="tooltip" title="Reset Jumlah">
                     <i class="fas fa-undo"></i> Reset
-                </button>
+                </a>
             </div>
 
             <div class="table-responsive">
@@ -120,6 +131,7 @@
                             <th>Nama</th>
                             <th>NISN</th>
                             <th>Jurusan</th>
+                            <th>Kelas</th>
                             <th>Tahun Ajaran</th>
                             <th>Jumlah Absen 3 Tahun (0-45)</th>
                             <th>
@@ -137,6 +149,7 @@
                                 <td>@entry.Siswa.Nama</td>
                                 <td>@entry.Siswa.NISN</td>
                                 <td>@entry.Siswa.Jurusan.Humanize()</td>
+                                <td>@entry.Siswa.Kelas.Nama</td>
                                 <td>@entry.Siswa.TahunAjaran.Id</td>
                                 <td>
                                     <input asp-for="@Model.DaftarEntry[@i].JumlahAbsen" class="form-control nilai-input" readonly />
@@ -188,11 +201,11 @@
         // RESET →
         document.getElementById("btnReset").addEventListener("click", function () {
             document.querySelectorAll(".nilai-input").forEach(el => {
-                el.value = 0; 
+                el.value = 0;
             });
         });
 
-        // BATAL 
+        // BATAL
         document.getElementById("btnBatal").addEventListener("click", function () {
             const inputs = document.querySelectorAll(".nilai-input");
 

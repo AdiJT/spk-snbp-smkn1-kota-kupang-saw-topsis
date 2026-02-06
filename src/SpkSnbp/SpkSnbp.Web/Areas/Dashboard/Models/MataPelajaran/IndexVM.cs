@@ -8,6 +8,9 @@ public class IndexVM
     public int? Tahun { get; set; }
     public TahunAjaran? TahunAjaran { get; set; }
 
+    public int? IdKelas { get; set; }
+    public Kelas? Kelas { get; set; }
+
     public Jurusan? Jurusan { get; set; }
 
     public List<IndexEntryVM> DaftarEntry { get; set; } = [];

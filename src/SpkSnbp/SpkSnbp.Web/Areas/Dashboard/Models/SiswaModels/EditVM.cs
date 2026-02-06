@@ -19,6 +19,10 @@ public class EditVM
     [Required(ErrorMessage = "{0} harus diisi")]
     public required Jurusan Jurusan { get; set; }
 
+    [Display(Name = "Kelas")]
+    [Required(ErrorMessage = "{0} harus diisi")]
+    public required int IdKelas { get; set; }
+
     [Display(Name = "Tahun Ajaran")]
     [Required(ErrorMessage = "{0} harus diisi")]
     public required int IdTahunAjaran { get; set; }

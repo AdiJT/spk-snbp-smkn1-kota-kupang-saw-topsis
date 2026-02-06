@@ -2,9 +2,11 @@
 @model TambahVM
 
 @inject ITahunAjaranRepository TahunAjaranRepository
+@inject IKelasRepository KelasRepository
 
 @{
     var daftarTahunAjaran = await TahunAjaranRepository.GetAll();
+    var daftarKelas = await KelasRepository.GetAll();
 }
 
 <form asp-action="Tambah" asp-controller="Siswa" asp-route-returnUrl="@Model.ReturnUrl" method="post">
@@ -48,6 +50,17 @@
                 }
             </select>
             <span asp-validation-for="@Model.IdTahunAjaran" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="@Model.IdKelas"></label>
+            <select asp-for="@Model.IdKelas" class="form-control">
+                @foreach (var item in daftarKelas)
+                {
+                    <option value="@item.Id">@item.Nama</option>
+                }
+            </select>
+            <span asp-validation-for="@Model.IdKelas" class="text-danger"></span>
         </div>
     </div>
 

@@ -53,6 +53,7 @@
             <th style="text-align:center">Nama</th>
             <th style="text-align:center">NISN</th>
             <th style="text-align:center">Jurusan</th>
+            <th style="text-align:center">Kelas</th>
             <th style="text-align:center">Tahun Ajaran</th>
             <th style="text-align:center">(C@((int)KriteriaEnum.MPKejuruan)) @KriteriaEnum.MPKejuruan.Humanize()</th>
             <th style="text-align:center">(C@((int)KriteriaEnum.MPUmum)) @KriteriaEnum.MPUmum.Humanize()</th>
@@ -64,6 +65,7 @@
                 <td style="text-align:center">@siswa.Nama</td>
                 <td style="text-align:center">@siswa.NISN</td>
                 <td style="text-align:center">@siswa.Jurusan.Humanize()</td>
+                <td style="text-align:center">@siswa.Kelas.Nama</td>
                 <td style="text-align:center">@siswa.TahunAjaran.Id</td>
                 <td style="text-align:center">@(siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.MPKejuruan)?.Nilai.ToString("F3") ?? "-")</td>
                 <td style="text-align:center">@(siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.MPUmum)?.Nilai.ToString("F3") ?? "-")</td>

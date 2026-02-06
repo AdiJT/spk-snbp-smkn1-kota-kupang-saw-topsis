@@ -7,6 +7,7 @@ public class ImportVM
 {
     public required int Tahun { get; set; }
     public required Jurusan Jurusan { get; set; }
+    public int? IdKelas { get; set; }
 
     [Display(Name = "File (.xlxs)")]
     [Required(ErrorMessage = "{0} harus diupload")]

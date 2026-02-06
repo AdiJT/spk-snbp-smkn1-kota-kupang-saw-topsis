@@ -27,6 +27,7 @@ public class SeleksiController : Controller
     private readonly IRazorTemplateEngine _templateEngine;
     private readonly IPDFGeneratorService _pDFGeneratorService;
     private readonly IKriteriaRepository _kriteriaRepository;
+    private readonly IKelasRepository _kelasRepository;
 
     public SeleksiController(
         ISiswaRepository siswaRepository,
@@ -36,7 +37,8 @@ public class SeleksiController : Controller
         ITempDataDictionaryFactory tempDataDictionaryFactory,
         IRazorTemplateEngine templateEngine,
         IPDFGeneratorService pDFGeneratorService,
-        IKriteriaRepository kriteriaRepository)
+        IKriteriaRepository kriteriaRepository,
+        IKelasRepository kelasRepository)
     {
         _siswaRepository = siswaRepository;
         _topsisSAWService = topsisSAWService;
@@ -46,9 +48,10 @@ public class SeleksiController : Controller
         _templateEngine = templateEngine;
         _pDFGeneratorService = pDFGeneratorService;
         _kriteriaRepository = kriteriaRepository;
+        _kelasRepository = kelasRepository;
     }
 
-    public async Task<IActionResult> Index(Jurusan jurusan = Jurusan.TJKT, int? tahun = null, bool first = true)
+    public async Task<IActionResult> Index(Jurusan jurusan = Jurusan.TJKT, int? tahun = null, int? idKelas = null, bool first = true)
     {
         var tempDataDict = _tempDataDictionaryFactory.GetTempData(HttpContext);
 
@@ -56,12 +59,16 @@ public class SeleksiController : Controller
         {
             var jurusanTempData = tempDataDict.Peek(TempDataKeys.Jurusan);
             var tahunTempData = tempDataDict.Peek(TempDataKeys.Tahun);
+            var kelasTempData = tempDataDict.Peek(TempDataKeys.Kelas);
 
             if (jurusanTempData is not null)
                 jurusan = (Jurusan)jurusanTempData;
 
             if (tahunTempData is not null)
                 tahun = (int)tahunTempData;
+
+            if (kelasTempData is not null)
+                idKelas = (int)kelasTempData;
         }
         else
             tempDataDict[TempDataKeys.Jurusan] = jurusan;
@@ -71,23 +78,24 @@ public class SeleksiController : Controller
             await _tahunAjaranRepository.Get(tahun.Value);
 
         tahunAjaran ??= await _tahunAjaranRepository.GetLatest();
+        var kelas = idKelas is null ? null : await _kelasRepository.Get(idKelas.Value);
 
-        if (tahunAjaran is null)
-            return View(new IndexVM { Jurusan = jurusan, DaftarSiswa = [] });
-
-        if (!first) tempDataDict[TempDataKeys.Tahun] = tahunAjaran.Id;
+        if (!first && tahunAjaran is not null) tempDataDict[TempDataKeys.Tahun] = tahunAjaran.Id;
+        if (!first) tempDataDict[TempDataKeys.Kelas] = kelas?.Id;
 
         return View(new IndexVM
         {
             Jurusan = jurusan,
-            Tahun = tahunAjaran.Id,
+            Tahun = tahunAjaran?.Id,
             TahunAjaran = tahunAjaran,
-            DaftarSiswa = [.. (await _siswaRepository.GetAll(jurusan, tahunAjaran.Id)).OrderByDescending(x => x.NilaiTopsis)]
+            IdKelas = kelas?.Id,
+            Kelas = kelas,
+            DaftarSiswa = [.. (await _siswaRepository.GetAll(jurusan, tahunAjaran?.Id, kelas?.Id)).OrderByDescending(x => x.NilaiTopsis)]
         });
     }
 
     [HttpPost]
-    public async Task<IActionResult> Index(Jurusan jurusan, int tahun, string? returnUrl = null)
+    public async Task<IActionResult> Index(Jurusan jurusan, int tahun, int? idKelas = null, string? returnUrl = null)
     {
         returnUrl ??= Url.ActionLink(nameof(Index))!;
 
@@ -108,13 +116,14 @@ public class SeleksiController : Controller
         return RedirectPermanent(returnUrl);
     }
 
-    public async Task<IActionResult> PDF(int tahun, Jurusan jurusan)
+    public async Task<IActionResult> PDF(int tahun, Jurusan jurusan, int? idKelas = null)
     {
+        var kelas = idKelas is null ? null : await _kelasRepository.Get(idKelas.Value);
         var indexVM = new IndexVM
         {
             Jurusan = jurusan,
             Tahun = tahun,
-            DaftarSiswa = [.. (await _siswaRepository.GetAll(jurusan, tahun)).OrderByDescending(x => x.NilaiTopsis)]
+            DaftarSiswa = [.. (await _siswaRepository.GetAll(jurusan, tahun, kelas?.Id)).OrderByDescending(x => x.NilaiTopsis)]
         };
 
         var html = await _templateEngine.RenderAsync("Areas/Dashboard/Views/Seleksi/PDF.cshtml", indexVM);
@@ -129,13 +138,14 @@ public class SeleksiController : Controller
         return File(
             pdf,
             "application/pdf",
-            fileDownloadName: $"Hasil Seleksi-{tahun}-{jurusan}.pdf"
+            fileDownloadName: $"Hasil Seleksi-{tahun}-{jurusan}{(kelas is null ? "" : $"-{kelas.Nama}")}.pdf"
         );
     }
 
-    public async Task<IActionResult> Excel(int tahun, Jurusan jurusan)
+    public async Task<IActionResult> Excel(int tahun, Jurusan jurusan, int? idKelas = null)
     {
-        var daftarSiswa = await _siswaRepository.GetAll();
+        var kelas = idKelas is null ? null : await _kelasRepository.Get(idKelas.Value);
+        var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun, kelas?.Id);
         daftarSiswa = [.. daftarSiswa.OrderByDescending(x => x.NilaiTopsis)];
         var daftarKriteria = await _kriteriaRepository.GetAll();
 
@@ -446,6 +456,6 @@ public class SeleksiController : Controller
         return File(
             memoryStream.ToArray(),
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            fileDownloadName: $"Hasil Seleksi-{tahun}-{jurusan}.xlsx");
+            fileDownloadName: $"Hasil Seleksi-{tahun}-{jurusan}{(kelas is null ? "" : $"-{kelas.Nama}")}.xlsx");
     }
 }

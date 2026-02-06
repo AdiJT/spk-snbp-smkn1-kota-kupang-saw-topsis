@@ -17,6 +17,7 @@ public class Siswa : Entity<int>
 
     public TahunAjaran TahunAjaran { get; set; }
     public HasilPerhitungan? HasilPerhitungan { get; set; }
+    public Kelas Kelas { get; set; }
 
     public List<Kriteria> DaftarKriteria { get; set; } = [];
     public List<SiswaKriteria> DaftarSiswaKriteria { get; set; } = [];
@@ -25,7 +26,7 @@ public class Siswa : Entity<int>
 public interface ISiswaRepository
 {
     Task<Siswa?> Get(int id);
-    Task<List<Siswa>> GetAll(Jurusan? jurusan = null, int? tahunAjaran = null);
+    Task<List<Siswa>> GetAll(Jurusan? jurusan = null, int? tahunAjaran = null, int? idKelas = null);
     Task<bool> IsExist(string nisn, int? idFilter = null);
 
     void Add(Siswa siswa);
