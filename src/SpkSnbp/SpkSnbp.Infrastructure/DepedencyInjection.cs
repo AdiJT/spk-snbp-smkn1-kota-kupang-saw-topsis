@@ -33,6 +33,7 @@ public static class DepedencyInjection
         services.AddScoped<ISiswaKriteriaRepository, SiswaKriteriaRepository>();
         services.AddScoped<IHasilPerhitunganRepository, HasilPerhitunganRepository>();
         services.AddScoped<IInformasiSekolahRepository, InformasiSekolahRepository>();
+        services.AddScoped<IKelasRepository, KelasRepository>();
 
         services.Configure<FileConfigurationOptions>(configuration.GetSection(FileConfigurationOptions.FileConfiguration));
         services.AddScoped(sp => sp.GetRequiredService<IOptionsSnapshot<FileConfigurationOptions>>().Value);

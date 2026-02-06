@@ -43,4 +43,5 @@ internal class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(
     public DbSet<SiswaKriteria> SiswaKriteria { get; set; }
     public DbSet<HasilPerhitungan> HasilPerhitungan { get; set; }
     public DbSet<InformasiSekolah> InformasiSekolah { get; set; }
+    public DbSet<Kelas> Kelas { get; set; }
 }

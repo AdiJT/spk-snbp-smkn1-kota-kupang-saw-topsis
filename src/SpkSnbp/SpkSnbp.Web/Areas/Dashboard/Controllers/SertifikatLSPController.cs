@@ -15,7 +15,6 @@ using SpkSnbp.Web.Areas.Dashboard.Models.SertifikatLSPModels;
 using SpkSnbp.Web.Helpers;
 using SpkSnbp.Web.Services.PDFGenerator;
 using SpkSnbp.Web.Services.Toastr;
-using System.Text.RegularExpressions;
 
 namespace SpkSnbp.Web.Areas.Dashboard.Controllers;
 
@@ -33,6 +32,7 @@ public class SertifikatLSPController : Controller
     private readonly ITempDataDictionaryFactory _tempDataDictionaryFactory;
     private readonly IRazorTemplateEngine _templateEngine;
     private readonly IPDFGeneratorService _pDFGeneratorService;
+    private readonly IKelasRepository _kelasRepository;
 
     public SertifikatLSPController(
         ISiswaRepository siswaRepository,
@@ -44,7 +44,8 @@ public class SertifikatLSPController : Controller
         IFileService fileService,
         ITempDataDictionaryFactory tempDataDictionaryFactory,
         IRazorTemplateEngine templateEngine,
-        IPDFGeneratorService pDFGeneratorService)
+        IPDFGeneratorService pDFGeneratorService,
+        IKelasRepository kelasRepository)
     {
         _siswaRepository = siswaRepository;
         _kriteriaRepository = kriteriaRepository;
@@ -56,9 +57,10 @@ public class SertifikatLSPController : Controller
         _tempDataDictionaryFactory = tempDataDictionaryFactory;
         _templateEngine = templateEngine;
         _pDFGeneratorService = pDFGeneratorService;
+        _kelasRepository = kelasRepository;
     }
 
-    public async Task<IActionResult> Index(Jurusan jurusan = Jurusan.TJKT, int? tahun = null, bool first = true)
+    public async Task<IActionResult> Index(Jurusan jurusan = Jurusan.TJKT, int? tahun = null, int? idKelas = null, bool first = true)
     {
         var tempDataDict = _tempDataDictionaryFactory.GetTempData(HttpContext);
 
@@ -66,12 +68,16 @@ public class SertifikatLSPController : Controller
         {
             var jurusanTempData = tempDataDict.Peek(TempDataKeys.Jurusan);
             var tahunTempData = tempDataDict.Peek(TempDataKeys.Tahun);
+            var kelasTempData = tempDataDict.Peek(TempDataKeys.Kelas);
 
             if (jurusanTempData is not null)
                 jurusan = (Jurusan)jurusanTempData;
 
             if (tahunTempData is not null)
                 tahun = (int)tahunTempData;
+
+            if (kelasTempData is not null)
+                idKelas = (int)kelasTempData;
         }
         else
             tempDataDict[TempDataKeys.Jurusan] = jurusan;
@@ -81,18 +87,19 @@ public class SertifikatLSPController : Controller
             await _tahunAjaranRepository.Get(tahun.Value);
 
         tahunAjaran ??= await _tahunAjaranRepository.GetLatest();
+        var kelas = idKelas is null ? null : await _kelasRepository.Get(idKelas.Value);
 
-        if (tahunAjaran is null)
-            return View(new IndexVM { Jurusan = jurusan, DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList() });
-
-        if (!first) tempDataDict[TempDataKeys.Tahun] = tahunAjaran.Id;
+        if (!first && tahunAjaran is not null) tempDataDict[TempDataKeys.Tahun] = tahunAjaran.Id;
+        if (!first) tempDataDict[TempDataKeys.Kelas] = kelas?.Id;
 
         return View(new IndexVM
         {
-            Tahun = tahunAjaran.Id,
+            Tahun = tahunAjaran?.Id,
             TahunAjaran = tahunAjaran,
+            IdKelas = kelas?.Id,
+            Kelas = kelas,
             Jurusan = jurusan,
-            DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList()
+            DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun, kelas?.Id)).ToIndexEntryList()
         });
     }
 
@@ -126,7 +133,7 @@ public class SertifikatLSPController : Controller
         else
             _notificationService.AddError("Simpan Gagal");
 
-        return RedirectToActionPermanent(nameof(Index), new { vm.Jurusan, vm.Tahun });
+        return RedirectToActionPermanent(nameof(Index), new { vm.Jurusan, vm.Tahun, vm.IdKelas });
     }
 
     [HttpPost]
@@ -179,7 +186,7 @@ public class SertifikatLSPController : Controller
         var workSheetPart = (WorksheetPart)workBookPart.GetPartById(sheet.Id!);
         var sheetData = workSheetPart.Worksheet.Elements<SheetData>().First();
 
-        var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun);
+        var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun, vm.IdKelas);
 
         foreach (var row in sheetData.Elements<Row>())
         {
@@ -227,13 +234,17 @@ public class SertifikatLSPController : Controller
         return RedirectPermanent(returnUrl);
     }
 
-    public async Task<IActionResult> PDF(int tahun, Jurusan jurusan)
+    public async Task<IActionResult> PDF(int tahun, Jurusan jurusan, int? idKelas = null)
     {
+        var kelas = idKelas is null ? null : await _kelasRepository.Get(idKelas.Value);
+
         var indexVM = new IndexVM
         {
             Tahun = tahun,
+            Kelas = kelas,
+            IdKelas = kelas?.Id,
             Jurusan = jurusan,
-            DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList()
+            DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun, kelas?.Id)).ToIndexEntryList()
         };
 
         var html = await _templateEngine.RenderAsync("Areas/Dashboard/Views/SertifikatLSP/PDF.cshtml", indexVM);
@@ -248,13 +259,15 @@ public class SertifikatLSPController : Controller
         return File(
             pdf,
             "application/pdf",
-            fileDownloadName: $"Sertifikat LSP-{tahun}-{jurusan}.pdf"
+            fileDownloadName: $"Sertifikat LSP-{tahun}-{jurusan}{(kelas is null ? "" : $"-{kelas.Nama}")}.pdf"
         );
     }
 
-    public async Task<IActionResult> Excel(int tahun, Jurusan jurusan)
+    public async Task<IActionResult> Excel(int tahun, Jurusan jurusan, int? idKelas = null)
     {
-        var daftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList();
+        var kelas = idKelas is null ? null : await _kelasRepository.Get(idKelas.Value);
+
+        var daftarEntry = (await _siswaRepository.GetAll(jurusan, tahun, kelas?.Id)).ToIndexEntryList();
 
         using var memoryStream = new MemoryStream();
         using var spreadSheet = SpreadsheetDocument.Create(memoryStream, DocumentFormat.OpenXml.SpreadsheetDocumentType.Workbook);
@@ -360,6 +373,13 @@ public class SertifikatLSPController : Controller
                 {
                     Min = 5,
                     Max = 5,
+                    Width = 15,
+                    CustomWidth = true,
+                },
+                new Column
+                {
+                    Min = 6,
+                    Max = 6,
                     Width = 24,
                     CustomWidth = true,
                 }
@@ -398,12 +418,18 @@ public class SertifikatLSPController : Controller
                 new Cell
                 {
                     CellReference = $"D{headerRow.RowIndex}",
-                    CellValue = new CellValue("Tahun Ajaran"),
+                    CellValue = new CellValue("Kelas"),
                     StyleIndex = 1,
                 },
                 new Cell
                 {
                     CellReference = $"E{headerRow.RowIndex}",
+                    CellValue = new CellValue("Tahun Ajaran"),
+                    StyleIndex = 1,
+                },
+                new Cell
+                {
+                    CellReference = $"F{headerRow.RowIndex}",
                     CellValue = new CellValue($"(C{(int)KriteriaEnum.SertLSP}) {KriteriaEnum.SertLSP.Humanize()}"),
                     StyleIndex = 2,
                 }
@@ -439,12 +465,18 @@ public class SertifikatLSPController : Controller
                 new Cell
                 {
                     CellReference = $"D{row.RowIndex}",
-                    CellValue = new CellValue(entry.Siswa.TahunAjaran.Id),
+                    CellValue = new CellValue(entry.Siswa.Kelas.Nama),
                     StyleIndex = 1,
                 },
                 new Cell
                 {
                     CellReference = $"E{row.RowIndex}",
+                    CellValue = new CellValue(entry.Siswa.TahunAjaran.Id),
+                    StyleIndex = 1,
+                },
+                new Cell
+                {
+                    CellReference = $"F{row.RowIndex}",
                     CellValue = new(entry.SertifikatLSP is null ? "-" : $"{entry.SertifikatLSP.Value.Humanize()} ({(int)entry.SertifikatLSP})"),
                     StyleIndex = 2,
                 }
@@ -458,6 +490,7 @@ public class SertifikatLSPController : Controller
         return File(
             memoryStream.ToArray(),
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            fileDownloadName: $"Sertifikat LSP-{tahun}-{jurusan}.xlsx");
+            fileDownloadName: $"Sertifikat LSP-{tahun}-{jurusan}{(kelas is null ? "" : $"-{kelas.Nama}")}.xlsx"
+        );
     }
 }

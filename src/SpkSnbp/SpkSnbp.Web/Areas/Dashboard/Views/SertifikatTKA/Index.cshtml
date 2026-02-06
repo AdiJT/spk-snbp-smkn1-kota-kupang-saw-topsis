@@ -2,10 +2,12 @@
 @model IndexVM
 
 @inject ITahunAjaranRepository TahunAjaranRepository
+@inject IKelasRepository KelasRepository
 
 @{
     ViewData["Title"] = "Sertifikat TKA";
     var daftarTahun = await TahunAjaranRepository.GetAll();
+    var daftarKelas = await KelasRepository.GetAll();
 }
 
 <!-- Breadcrumb -->
@@ -52,6 +54,17 @@
                         }
                     </select>
                 </div>
+
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <label asp-for="@Model.IdKelas" class="mb-0" style="font-weight: 600; white-space: nowrap;">Kelas:</label>
+                    <select asp-for="@Model.IdKelas" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
+                        <option value="@null">-- Semua --</option>
+                        @foreach (var item in daftarKelas)
+                        {
+                            <option value="@item.Id">@item.Nama</option>
+                        }
+                    </select>
+                </div>
             </form>
 
             <div class="mb-0 d-flex align-items-center">
@@ -62,25 +75,25 @@
                         <i class="fas fa-file-import"></i> Import
                     </button>
                     <div class="form-tambah">
-                        <partial name="_FormImportPartial" model="@(new ImportVM { Tahun = Model.Tahun.Value, Jurusan = Model.Jurusan.Value, ReturnUrl = Context.Request.AbsoluteUri() })" />
+                        <partial name="_FormImportPartial" model="@(new ImportVM { Tahun = Model.Tahun.Value, Jurusan = Model.Jurusan.Value, IdKelas = Model.IdKelas, ReturnUrl = Context.Request.AbsoluteUri() })" />
                     </div>
                 }
 
                 <div class="ml-1 mb-0">
-                    <a asp-action="PDF" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" class="btn btn-icon icon left btn-primary mr-1">
+                    <a asp-action="PDF" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" asp-route-idKelas="@Model.IdKelas" class="btn btn-icon icon left btn-primary mr-1">
                         <i class="fas fa-file-pdf"></i> PDF
                     </a>
                 </div>
 
                 <div class="mb-0">
-                    <a asp-action="Excel" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" class="btn btn-icon icon left btn-primary mr-1">
+                    <a asp-action="Excel" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" asp-route-idKelas="@Model.IdKelas" class="btn btn-icon icon left btn-primary mr-1">
                         <i class="fas fa-file-excel"></i> Excel
                     </a>
                 </div>
             </div>
         </div>
 
-        <form asp-action="Simpan" asp-route-jurusan="@Model.Jurusan" asp-route-tahun="@Model.Tahun" method="post">
+        <form asp-action="Simpan" asp-route-jurusan="@Model.Jurusan" asp-route-tahun="@Model.Tahun" asp-route-idKelas="@Model.IdKelas" method="post">
             <div class="mb-3">
                 <button type="button"
                         id="btnEdit"
@@ -118,6 +131,7 @@
                             <th>Nama</th>
                             <th>NISN</th>
                             <th>Jurusan</th>
+                            <th>Kelas</th>
                             <th>Tahun Ajaran</th>
                             <th>
                                 <p>(C@((int)KriteriaEnum.SertTKA)) Sertifikat TKA</p>
@@ -135,6 +149,7 @@
                                 <td>@entry.Siswa.Nama</td>
                                 <td>@entry.Siswa.NISN</td>
                                 <td>@entry.Siswa.Jurusan.Humanize()</td>
+                                <td>@entry.Siswa.Kelas.Nama</td>
                                 <td>@entry.Siswa.TahunAjaran.Id</td>
                                 @if (entry.SertifikatTKA is not null)
                                 {

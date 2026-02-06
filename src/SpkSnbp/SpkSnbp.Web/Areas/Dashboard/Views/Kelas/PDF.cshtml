@@ -1,0 +1,73 @@
+﻿@model List<Kelas>
+
+@{
+    Layout = null;
+}
+
+<head>
+    <link rel="stylesheet" href="~/lib/datatables/datatables.min.css" asp-append-version="true" />
+</head>
+
+
+<style>
+    table {
+        width: 100%;
+        font-size: 11px;
+        font-family: 'Trebuchet MS', sans-serif;
+    }
+
+    table, th, tr, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+
+    thead tr th {
+        background-color: #F8F8FF !important;
+        -webkit-print-color-adjust: exact; /* p */
+        print-color-adjust: exact; /* p */
+        color-adjust: exact; /* p */
+    }
+
+    th, td {
+        padding: 10px;
+    }
+
+    h1, h2 {
+        font-family: Calibri
+    }
+
+    h1 {
+        font-size: 16px
+    }
+
+    h2 {
+        font-size: 14px
+    }
+</style>
+
+
+<h1 style="font-size:18px !important; text-align:center; margin-top:5px">Kelas</h1>
+
+<table style="margin-top:20px">
+    <thead>
+        <tr>
+            <th style="text-align:center;">Kelas</th>
+            @foreach (var item in Enum.GetValues<Jurusan>())
+            {
+                <th style="text-align:center;">@item.Humanize()</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var kelas in Model)
+        {
+            <tr>
+                <td style="text-align:center">@kelas.Nama</td>
+                @foreach (var item in Enum.GetValues<Jurusan>())
+                {
+                    <td style="text-align:center">@kelas.DaftarSiswa.Count(x => x.Jurusan == item)</td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>

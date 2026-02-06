@@ -3,11 +3,13 @@
 
 @inject ITahunAjaranRepository TahunAjaranRepository
 @inject IKriteriaRepository KriteriaRepository
+@inject IKelasRepository KelasRepository
 
 @{
     ViewData["Title"] = "Siswa";
     var daftarTahun = await TahunAjaranRepository.GetAll();
     var daftarKriteria = await KriteriaRepository.GetAll();
+    var daftarKelas = await KelasRepository.GetAll();
 }
 
 <!-- Breadcrumb -->
@@ -35,31 +37,31 @@
                     <i class="fas fa-plus"></i> Tambah Data
                 </button>
                 <div class="form-tambah">
-                    <partial name="_FormTambahPartial" model="@(new TambahVM { IdTahunAjaran = Model.Tahun ?? default, Jurusan = Model.Jurusan ?? default, ReturnUrl = Context.Request.AbsoluteUri() })" />
+                    <partial name="_FormTambahPartial" model="@(new TambahVM { IdTahunAjaran = Model.Tahun ?? default, Jurusan = Model.Jurusan ?? default, IdKelas = Model.IdKelas ?? default, ReturnUrl = Context.Request.AbsoluteUri() })" />
                 </div>
             </div>
 
             <div class="mb-0">
-                <a asp-action="PDF" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" class="btn btn-icon icon left btn-primary mr-1">
+                <a asp-action="PDF" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" asp-route-idKelas="@Model.IdKelas" class="btn btn-icon icon left btn-primary mr-1">
                     <i class="fas fa-file-pdf"></i> PDF
                 </a>
             </div>
 
             <div class="mb-0">
-                <a asp-action="Excel" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" class="btn btn-icon icon left btn-primary mr-1">
+                <a asp-action="Excel" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" asp-route-idKelas="@Model.IdKelas" class="btn btn-icon icon left btn-primary mr-1">
                     <i class="fas fa-file-excel"></i> Excel
                 </a>
             </div>
 
             <div class="d-flex align-items-center mr-auto ml-3">
-                @if (Model.Jurusan is not null && Model.Tahun is not null)
+                @if (Model.Jurusan is not null && Model.Tahun is not null && Model.IdKelas is not null)
                 {
                     <button class="btn btn-tambah btn-icon icon-left btn-primary"
                             data-toggle="tooltip" title="Import Data">
                         <i class="fas fa-file-import"></i> Import
                     </button>
                     <div class="form-tambah">
-                        <partial name="_FormImportPartial" model="@(new ImportVM { Tahun = Model.Tahun.Value, Jurusan = Model.Jurusan.Value, ReturnUrl = Context.Request.AbsoluteUri() })" />
+                        <partial name="_FormImportPartial" model="@(new ImportVM { Tahun = Model.Tahun.Value, Jurusan = Model.Jurusan.Value, IdKelas = Model.IdKelas, ReturnUrl = Context.Request.AbsoluteUri() })" />
                     </div>
                 }
             </div>
@@ -87,6 +89,17 @@
                         }
                     </select>
                 </div>
+
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <label asp-for="@Model.IdKelas" class="mb-0" style="font-weight: 600;">Kelas:</label>
+                    <select asp-for="@Model.IdKelas" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
+                        <option value="@null">-- Semua --</option>
+                        @foreach (var item in daftarKelas)
+                        {
+                            <option value="@item.Id">@item.Nama</option>
+                        }
+                    </select>
+                </div>
             </form>
         </div>
 
@@ -98,6 +111,7 @@
                         <th rowspan="2">Nama</th>
                         <th rowspan="2">NISN</th>
                         <th rowspan="2">Jurusan</th>
+                        <th rowspan="2">Kelas</th>
                         <th rowspan="2">Tahun Ajaran</th>
                         <th colspan="@daftarKriteria.Count">Kriteria</th>
                         <th rowspan="2" style="min-width: 130px">Aksi</th>
@@ -112,12 +126,13 @@
                 <tbody>
                     @foreach (var siswa in Model.DaftarSiswa)
                     {
-                        var editVM = new EditVM { Id = siswa.Id, NISN = siswa.NISN, Nama = siswa.Nama, Jurusan = siswa.Jurusan, IdTahunAjaran = siswa.TahunAjaran.Id, ReturnUrl = Context.Request.AbsoluteUri() };
+                        var editVM = new EditVM { Id = siswa.Id, NISN = siswa.NISN, Nama = siswa.Nama, Jurusan = siswa.Jurusan, IdTahunAjaran = siswa.TahunAjaran.Id, IdKelas = siswa.Kelas.Id, ReturnUrl = Context.Request.AbsoluteUri() };
 
                         <tr>
                             <td>@siswa.Nama</td>
                             <td>@siswa.NISN</td>
                             <td>@siswa.Jurusan.Humanize()</td>
+                            <td>@siswa.Kelas.Nama</td>
                             <td>@siswa.TahunAjaran.Id</td>
                             @foreach (var kriteria in daftarKriteria)
                             {

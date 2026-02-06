@@ -23,7 +23,6 @@ namespace SpkSnbp.Web.Areas.Dashboard.Controllers;
 public class EkstrakulikulerController : Controller
 {
     private readonly ISiswaRepository _siswaRepository;
-    private readonly IKriteriaRepository _kriteriaRepository;
     private readonly ITahunAjaranRepository _tahunAjaranRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IToastrNotificationService _notificationService;
@@ -32,10 +31,10 @@ public class EkstrakulikulerController : Controller
     private readonly ITempDataDictionaryFactory _tempDataDictionaryFactory;
     private readonly IRazorTemplateEngine _templateEngine;
     private readonly IPDFGeneratorService _pDFGeneratorService;
+    private readonly IKelasRepository _kelasRepository;
 
     public EkstrakulikulerController(
         ISiswaRepository siswaRepository,
-        IKriteriaRepository kriteriaRepository,
         ITahunAjaranRepository tahunAjaranRepository,
         IUnitOfWork unitOfWork,
         IToastrNotificationService notificationService,
@@ -43,10 +42,10 @@ public class EkstrakulikulerController : Controller
         IFileService fileService,
         ITempDataDictionaryFactory tempDataDictionaryFactory,
         IRazorTemplateEngine templateEngine,
-        IPDFGeneratorService pDFGeneratorService)
+        IPDFGeneratorService pDFGeneratorService,
+        IKelasRepository kelasRepository)
     {
         _siswaRepository = siswaRepository;
-        _kriteriaRepository = kriteriaRepository;
         _tahunAjaranRepository = tahunAjaranRepository;
         _unitOfWork = unitOfWork;
         _notificationService = notificationService;
@@ -55,9 +54,14 @@ public class EkstrakulikulerController : Controller
         _tempDataDictionaryFactory = tempDataDictionaryFactory;
         _templateEngine = templateEngine;
         _pDFGeneratorService = pDFGeneratorService;
+        _kelasRepository = kelasRepository;
     }
 
-    public async Task<IActionResult> Index(Jurusan jurusan = Jurusan.TJKT, int? tahun = null, bool first = true)
+    public async Task<IActionResult> Index(
+        Jurusan jurusan = Jurusan.TJKT,
+        int? tahun = null,
+        int? idKelas = null,
+        bool first = true)
     {
         var tempDataDict = _tempDataDictionaryFactory.GetTempData(HttpContext);
 
@@ -65,12 +69,16 @@ public class EkstrakulikulerController : Controller
         {
             var jurusanTempData = tempDataDict.Peek(TempDataKeys.Jurusan);
             var tahunTempData = tempDataDict.Peek(TempDataKeys.Tahun);
+            var kelasTempData = tempDataDict.Peek(TempDataKeys.Kelas);
 
             if (jurusanTempData is not null)
                 jurusan = (Jurusan)jurusanTempData;
 
             if (tahunTempData is not null)
                 tahun = (int)tahunTempData;
+
+            if (kelasTempData is not null)
+                idKelas = (int)kelasTempData;
         }
         else
             tempDataDict[TempDataKeys.Jurusan] = jurusan;
@@ -81,17 +89,19 @@ public class EkstrakulikulerController : Controller
 
         tahunAjaran ??= await _tahunAjaranRepository.GetLatest();
 
-        if (tahunAjaran is null)
-            return View(new IndexVM { Jurusan = jurusan, DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList() });
+        var kelas = idKelas is null ? null : await _kelasRepository.Get(idKelas.Value);
 
-        if (!first) tempDataDict[TempDataKeys.Tahun] = tahunAjaran.Id;
+        if (!first && tahunAjaran is not null) tempDataDict[TempDataKeys.Tahun] = tahunAjaran.Id;
+        if (!first) tempDataDict[TempDataKeys.Kelas] = kelas?.Id;
 
         return View(new IndexVM
         {
-            Tahun = tahunAjaran.Id,
+            Tahun = tahunAjaran?.Id,
             TahunAjaran = tahunAjaran,
+            IdKelas = kelas?.Id,
+            Kelas = kelas,
             Jurusan = jurusan,
-            DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList()
+            DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun, kelas?.Id)).ToIndexEntryList()
         });
     }
 
@@ -100,7 +110,7 @@ public class EkstrakulikulerController : Controller
         foreach (var entry in vm.DaftarEntry)
         {
             var siswa = await _siswaRepository.Get(entry.IdSiswa);
-            if (siswa is null || entry.DaftarEkskul.Count == 0) continue;
+            if (siswa is null) continue;
 
             var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Ekstrakulikuler);
 
@@ -116,7 +126,10 @@ public class EkstrakulikulerController : Controller
                 _siswaKriteriaRepository.Add(siswaKriteria);
             }
 
-            siswaKriteria.Nilai = entry.DaftarEkskul.Select(x => (double)(int)x).Average() * entry.DaftarEkskul.Count;
+            if (entry.DaftarEkskul.Count == 0)
+                siswaKriteria.Nilai = 0;
+            else
+                siswaKriteria.Nilai = entry.DaftarEkskul.Select(x => (double)(int)x).Average() * entry.DaftarEkskul.Count;
 
             siswa.Ekstrakulikuler1 = entry.Ekstrakulikuler1;
             siswa.Ekstrakulikuler2 = entry.Ekstrakulikuler2;
@@ -129,7 +142,7 @@ public class EkstrakulikulerController : Controller
         else
             _notificationService.AddError("Simpan Gagal");
 
-        return RedirectToActionPermanent(nameof(Index), new { vm.Jurusan, vm.Tahun });
+        return RedirectToActionPermanent(nameof(Index), new { vm.Jurusan, vm.Tahun, vm.IdKelas });
     }
 
     [HttpPost]
@@ -182,7 +195,7 @@ public class EkstrakulikulerController : Controller
         var workSheetPart = (WorksheetPart)workBookPart.GetPartById(sheet.Id!);
         var sheetData = workSheetPart.Worksheet.Elements<SheetData>().First();
 
-        var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun);
+        var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun, vm.IdKelas);
 
         foreach (var row in sheetData.Elements<Row>())
         {
@@ -210,9 +223,6 @@ public class EkstrakulikulerController : Controller
             if (!string.IsNullOrWhiteSpace(ekstrakulikuler3String))
                 ekstrakulikuler3 = ekstrakulikuler3String.Trim().DehumanizeTo<PredikatEkstrakulikuler>(OnNoMatch.ReturnsNull);
 
-            if (ekstrakulikuler1 is null && ekstrakulikuler2 is null && ekstrakulikuler3 is null)
-                continue;
-
             var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Ekstrakulikuler);
             if (siswaKriteria is null)
             {
@@ -226,28 +236,33 @@ public class EkstrakulikulerController : Controller
                 _siswaKriteriaRepository.Add(siswaKriteria);
             }
 
-            var total = 0d;
-            var jumlah = 0;
-
-            if (ekstrakulikuler1 is not null)
+            if (ekstrakulikuler1 is null && ekstrakulikuler2 is null && ekstrakulikuler3 is null)
+                siswaKriteria.Nilai = 0;
+            else
             {
-                total += (int)ekstrakulikuler1;
-                jumlah++;
-            }
+                var total = 0d;
+                var jumlah = 0;
 
-            if (ekstrakulikuler2 is not null)
-            {
-                total += (int)ekstrakulikuler2;
-                jumlah++;
-            }
+                if (ekstrakulikuler1 is not null)
+                {
+                    total += (int)ekstrakulikuler1;
+                    jumlah++;
+                }
 
-            if (ekstrakulikuler3 is not null)
-            {
-                total += (int)ekstrakulikuler3;
-                jumlah++;
-            }
+                if (ekstrakulikuler2 is not null)
+                {
+                    total += (int)ekstrakulikuler2;
+                    jumlah++;
+                }
 
-            siswaKriteria.Nilai = total / jumlah * jumlah;
+                if (ekstrakulikuler3 is not null)
+                {
+                    total += (int)ekstrakulikuler3;
+                    jumlah++;
+                }
+
+                siswaKriteria.Nilai = total / jumlah * jumlah;
+            }
 
             siswa.Ekstrakulikuler1 = ekstrakulikuler1;
             siswa.Ekstrakulikuler2 = ekstrakulikuler2;
@@ -262,14 +277,18 @@ public class EkstrakulikulerController : Controller
 
         return RedirectPermanent(returnUrl);
     }
-    
-    public async Task<IActionResult> PDF(int tahun, Jurusan jurusan)
+
+    public async Task<IActionResult> PDF(int tahun, Jurusan jurusan, int? idKelas = null)
     {
+        var kelas = idKelas is null ? null : await _kelasRepository.Get(idKelas.Value);
+
         var indexVM = new IndexVM
         {
             Tahun = tahun,
             Jurusan = jurusan,
-            DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList()
+            Kelas = kelas,
+            IdKelas = idKelas,
+            DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun, idKelas)).ToIndexEntryList()
         };
 
         var html = await _templateEngine.RenderAsync("Areas/Dashboard/Views/Ekstrakulikuler/PDF.cshtml", indexVM);
@@ -284,13 +303,15 @@ public class EkstrakulikulerController : Controller
         return File(
             pdf,
             "application/pdf",
-            fileDownloadName: $"Ekstrakulikuler-{tahun}-{jurusan}.pdf"
+            fileDownloadName: $"Ekstrakulikuler-{tahun}-{jurusan}{(kelas is null ? "" : $"-{kelas.Nama}")}.pdf"
         );
     }
 
-    public async Task<IActionResult> Excel(int tahun, Jurusan jurusan)
+    public async Task<IActionResult> Excel(int tahun, Jurusan jurusan, int? idKelas = null)
     {
-        var daftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList();
+        var kelas = idKelas is null ? null : await _kelasRepository.Get(idKelas.Value);
+
+        var daftarEntry = (await _siswaRepository.GetAll(jurusan, tahun, idKelas)).ToIndexEntryList();
 
         using var memoryStream = new MemoryStream();
         using var spreadSheet = SpreadsheetDocument.Create(memoryStream, DocumentFormat.OpenXml.SpreadsheetDocumentType.Workbook);
@@ -396,7 +417,7 @@ public class EkstrakulikulerController : Controller
                 {
                     Min = 5,
                     Max = 5,
-                    Width = 24,
+                    Width = 15,
                     CustomWidth = true,
                 },
                 new Column
@@ -417,6 +438,13 @@ public class EkstrakulikulerController : Controller
                 {
                     Min = 8,
                     Max = 8,
+                    Width = 24,
+                    CustomWidth = true,
+                },
+                new Column
+                {
+                    Min = 9,
+                    Max = 9,
                     Width = 24,
                     CustomWidth = true,
                 }
@@ -455,29 +483,35 @@ public class EkstrakulikulerController : Controller
                 new Cell
                 {
                     CellReference = $"D{headerRow.RowIndex}",
-                    CellValue = new CellValue("Tahun Ajaran"),
+                    CellValue = new CellValue("Kelas"),
                     StyleIndex = 1,
                 },
                 new Cell
                 {
                     CellReference = $"E{headerRow.RowIndex}",
+                    CellValue = new CellValue("Tahun Ajaran"),
+                    StyleIndex = 1,
+                },
+                new Cell
+                {
+                    CellReference = $"F{headerRow.RowIndex}",
                     CellValue = new CellValue($"(C{(int)KriteriaEnum.Ekstrakulikuler}) {KriteriaEnum.Ekstrakulikuler.Humanize()}"),
                     StyleIndex = 2,
                 },
                 new Cell
                 {
-                    CellReference = $"F{headerRow.RowIndex}",
+                    CellReference = $"G{headerRow.RowIndex}",
                     CellValue = new CellValue("Predikat"),
                     StyleIndex = 2,
                 },
                 new Cell
                 {
-                    CellReference = $"G{headerRow.RowIndex}",
+                    CellReference = $"H{headerRow.RowIndex}",
                     StyleIndex = 2,
                 },
                 new Cell
                 {
-                    CellReference = $"H{headerRow.RowIndex}",
+                    CellReference = $"I{headerRow.RowIndex}",
                     StyleIndex = 2,
                 }
             ]
@@ -487,7 +521,7 @@ public class EkstrakulikulerController : Controller
         worksheetPart.Worksheet.InsertAfter(
             new MergeCells(
                 [
-                    new MergeCell { Reference = "F1:H1"}
+                    new MergeCell { Reference = "G1:I1"}
                 ]
             ),
             sheetData
@@ -521,30 +555,36 @@ public class EkstrakulikulerController : Controller
                 new Cell
                 {
                     CellReference = $"D{row.RowIndex}",
-                    CellValue = new CellValue(entry.Siswa.TahunAjaran.Id),
+                    CellValue = new CellValue(entry.Siswa.Kelas.Nama),
                     StyleIndex = 1,
                 },
                 new Cell
                 {
                     CellReference = $"E{row.RowIndex}",
+                    CellValue = new CellValue(entry.Siswa.TahunAjaran.Id),
+                    StyleIndex = 1,
+                },
+                new Cell
+                {
+                    CellReference = $"F{row.RowIndex}",
                     CellValue = new(entry.Ekstrakulikuler.ToString() ?? "-"),
                     StyleIndex = 2,
                 },
                 new Cell
                 {
-                    CellReference = $"F{row.RowIndex}",
+                    CellReference = $"G{row.RowIndex}",
                     CellValue = new(entry.Siswa.Ekstrakulikuler1?.Humanize() ?? "-"),
                     StyleIndex = 2,
                 },
                 new Cell
                 {
-                    CellReference = $"G{row.RowIndex}",
+                    CellReference = $"H{row.RowIndex}",
                     CellValue = new(entry.Siswa.Ekstrakulikuler2?.Humanize() ?? "-"),
                     StyleIndex = 2,
                 },
                 new Cell
                 {
-                    CellReference = $"H{row.RowIndex}",
+                    CellReference = $"I{row.RowIndex}",
                     CellValue = new(entry.Siswa.Ekstrakulikuler3?.Humanize() ?? "-"),
                     StyleIndex = 2,
                 }
@@ -558,6 +598,7 @@ public class EkstrakulikulerController : Controller
         return File(
             memoryStream.ToArray(),
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            fileDownloadName: $"Ekstrakulikuler-{tahun}-{jurusan}.xlsx");
+            fileDownloadName: $"Ekstrakulikuler-{tahun}-{jurusan}{(kelas is null ? "" : $"-{kelas.Nama}")}.xlsx"
+        );
     }
 }

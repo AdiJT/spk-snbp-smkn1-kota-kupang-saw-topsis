@@ -9,5 +9,8 @@ public class IndexVM
 
     public Jurusan? Jurusan { get; set; }
 
+    public int? IdKelas { get; set; }
+    public Kelas? Kelas { get; set; }
+
     public List<Siswa> DaftarSiswa { get; set; } = [];
 }

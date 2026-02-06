@@ -34,6 +34,7 @@ public class MataPelajaranController : Controller
     private readonly ITempDataDictionaryFactory _tempDataDictionaryFactory;
     private readonly IRazorTemplateEngine _templateEngine;
     private readonly IPDFGeneratorService _pDFGeneratorService;
+    private readonly IKelasRepository _kelasRepository;
 
     public MataPelajaranController(
         ISiswaRepository siswaRepository,
@@ -45,7 +46,8 @@ public class MataPelajaranController : Controller
         IFileService fileService,
         ITempDataDictionaryFactory tempDataDictionaryFactory,
         IRazorTemplateEngine templateEngine,
-        IPDFGeneratorService pDFGeneratorService)
+        IPDFGeneratorService pDFGeneratorService,
+        IKelasRepository kelasRepository)
     {
         _siswaRepository = siswaRepository;
         _kriteriaRepository = kriteriaRepository;
@@ -57,9 +59,14 @@ public class MataPelajaranController : Controller
         _tempDataDictionaryFactory = tempDataDictionaryFactory;
         _templateEngine = templateEngine;
         _pDFGeneratorService = pDFGeneratorService;
+        _kelasRepository = kelasRepository;
     }
 
-    public async Task<IActionResult> Index(Jurusan jurusan = Jurusan.TJKT, int? tahun = null, bool first = true)
+    public async Task<IActionResult> Index(
+        Jurusan jurusan = Jurusan.TJKT,
+        int? tahun = null,
+        int? idKelas = null,
+        bool first = true)
     {
         var tempDataDict = _tempDataDictionaryFactory.GetTempData(HttpContext);
 
@@ -67,12 +74,16 @@ public class MataPelajaranController : Controller
         {
             var jurusanTempData = tempDataDict.Peek(TempDataKeys.Jurusan);
             var tahunTempData = tempDataDict.Peek(TempDataKeys.Tahun);
+            var kelasTempData = tempDataDict.Peek(TempDataKeys.Kelas);
 
             if (jurusanTempData is not null)
                 jurusan = (Jurusan)jurusanTempData;
 
             if (tahunTempData is not null)
                 tahun = (int)tahunTempData;
+
+            if (kelasTempData is not null)
+                idKelas = (int)kelasTempData;
         }
         else
             tempDataDict[TempDataKeys.Jurusan] = jurusan;
@@ -83,17 +94,19 @@ public class MataPelajaranController : Controller
 
         tahunAjaran ??= await _tahunAjaranRepository.GetLatest();
 
-        if (tahunAjaran is null)
-            return View(new IndexVM { Jurusan = jurusan, DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList() });
+        var kelas = idKelas is null ? null : await _kelasRepository.Get(idKelas.Value);
 
-        if (!first) tempDataDict[TempDataKeys.Tahun] = tahunAjaran.Id;
+        if (!first && tahunAjaran is not null) tempDataDict[TempDataKeys.Tahun] = tahunAjaran.Id;
+        if (!first) tempDataDict[TempDataKeys.Kelas] = kelas?.Id;
 
         return View(new IndexVM
         {
-            Tahun = tahunAjaran.Id,
+            Tahun = tahunAjaran?.Id,
             TahunAjaran = tahunAjaran,
+            Kelas = kelas,
+            IdKelas = kelas?.Id,
             Jurusan = jurusan,
-            DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun)).ToIndexEntryList()
+            DaftarEntry = (await _siswaRepository.GetAll(jurusan, tahun, idKelas)).ToIndexEntryList()
         });
     }
 
@@ -143,7 +156,7 @@ public class MataPelajaranController : Controller
         else
             _notificationService.AddError("Simpan Gagal");
 
-        return RedirectToActionPermanent(nameof(Index), new { vm.Jurusan, vm.Tahun });
+        return RedirectToActionPermanent(nameof(Index), new { vm.Jurusan, vm.Tahun, vm.IdKelas });
     }
 
     [HttpPost]
@@ -151,7 +164,7 @@ public class MataPelajaranController : Controller
     {
         var returnUrl = vm.ReturnUrl ?? Url.ActionLink(nameof(Index))!;
 
-        if (!ModelState.IsValid)
+        if (!ModelState.IsValid || vm.IdKelas is null)
         {
             _notificationService.AddError("Data tidak valid", "Import");
             return RedirectPermanent(returnUrl);
@@ -161,6 +174,13 @@ public class MataPelajaranController : Controller
         if (tahunAjaran is null)
         {
             _notificationService.AddError("Tahun tidak ditemukan", "Import");
+            return RedirectPermanent(returnUrl);
+        }
+
+        var kelas = await _kelasRepository.Get(vm.IdKelas.Value);
+        if (kelas is null)
+        {
+            _notificationService.AddError("Kelas tidak ditemukan", "Import");
             return RedirectPermanent(returnUrl);
         }
 
@@ -196,7 +216,7 @@ public class MataPelajaranController : Controller
         var workSheetPart = (WorksheetPart)workBookPart.GetPartById(sheet.Id!);
         var sheetData = workSheetPart.Worksheet.Elements<SheetData>().First();
 
-        var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun);
+        var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun, vm.IdKelas);
 
         var mapelUmumCellRef = sheetData
             .Descendants<Cell>()
@@ -260,7 +280,8 @@ public class MataPelajaranController : Controller
                     NISN = nisn,
                     Nama = nama,
                     Jurusan = vm.Jurusan,
-                    TahunAjaran = tahunAjaran
+                    TahunAjaran = tahunAjaran,
+                    Kelas = kelas
                 };
 
                 _siswaRepository.Add(siswa);
@@ -327,9 +348,10 @@ public class MataPelajaranController : Controller
         return RedirectPermanent(returnUrl);
     }
 
-    public async Task<IActionResult> PDF(int tahun, Jurusan jurusan)
+    public async Task<IActionResult> PDF(int tahun, Jurusan jurusan, int? idKelas = null)
     {
-        var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun);
+        var kelas = idKelas is null ? null : await _kelasRepository.Get(idKelas.Value);
+        var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun, idKelas);
 
         var html = await _templateEngine.RenderAsync("Areas/Dashboard/Views/MataPelajaran/PDF.cshtml", daftarSiswa);
 
@@ -343,13 +365,14 @@ public class MataPelajaranController : Controller
         return File(
             pdf,
             "application/pdf",
-            fileDownloadName: $"Mata Pelajaran-{tahun}-{jurusan}.pdf"
+            fileDownloadName: $"Mata Pelajaran-{tahun}-{jurusan}{(kelas is null ? "" : $"-{kelas.Nama}")}.pdf"
         );
     }
 
-    public async Task<IActionResult> Excel(int tahun, Jurusan jurusan)
+    public async Task<IActionResult> Excel(int tahun, Jurusan jurusan, int? idKelas = null)
     {
-        var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun);
+        var kelas = idKelas is null ? null : await _kelasRepository.Get(idKelas.Value);
+        var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun, idKelas);
 
         using var memoryStream = new MemoryStream();
         using var spreadSheet = SpreadsheetDocument.Create(memoryStream, DocumentFormat.OpenXml.SpreadsheetDocumentType.Workbook);
@@ -455,13 +478,20 @@ public class MataPelajaranController : Controller
                 {
                     Min = 5,
                     Max = 5,
-                    Width = 24,
+                    Width = 15,
                     CustomWidth = true,
                 },
                 new Column
                 {
                     Min = 6,
                     Max = 6,
+                    Width = 24,
+                    CustomWidth = true,
+                },
+                new Column
+                {
+                    Min = 7,
+                    Max = 7,
                     Width = 24,
                     CustomWidth = true,
                 }
@@ -500,18 +530,24 @@ public class MataPelajaranController : Controller
                 new Cell
                 {
                     CellReference = $"D{headerRow.RowIndex}",
-                    CellValue = new CellValue("Tahun Ajaran"),
+                    CellValue = new CellValue("Kelas"),
                     StyleIndex = 1,
                 },
                 new Cell
                 {
                     CellReference = $"E{headerRow.RowIndex}",
+                    CellValue = new CellValue("Tahun Ajaran"),
+                    StyleIndex = 1,
+                },
+                new Cell
+                {
+                    CellReference = $"F{headerRow.RowIndex}",
                     CellValue = new CellValue($"(C{(int)KriteriaEnum.MPKejuruan}) {KriteriaEnum.MPKejuruan.Humanize()}"),
                     StyleIndex = 2,
                 },
                 new Cell
                 {
-                    CellReference = $"F{headerRow.RowIndex}",
+                    CellReference = $"G{headerRow.RowIndex}",
                     CellValue = new CellValue($"(C{(int)KriteriaEnum.MPUmum}) {KriteriaEnum.MPUmum.Humanize()}"),
                     StyleIndex = 2,
                 }
@@ -547,19 +583,25 @@ public class MataPelajaranController : Controller
                 new Cell
                 {
                     CellReference = $"D{row.RowIndex}",
-                    CellValue = new CellValue(siswa.TahunAjaran.Id),
+                    CellValue = new CellValue(siswa.Kelas.Nama),
                     StyleIndex = 1,
                 },
                 new Cell
                 {
                     CellReference = $"E{row.RowIndex}",
+                    CellValue = new CellValue(siswa.TahunAjaran.Id),
+                    StyleIndex = 1,
+                },
+                new Cell
+                {
+                    CellReference = $"F{row.RowIndex}",
                     CellValue = new(siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.MPKejuruan)?.Nilai.ToString()
                         ?? "-"),
                     StyleIndex = 2,
                 },
                 new Cell
                 {
-                    CellReference = $"F{row.RowIndex}",
+                    CellReference = $"G{row.RowIndex}",
                     CellValue = new(siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.MPUmum)?.Nilai.ToString()
                         ?? "-"),
                     StyleIndex = 2,
@@ -574,6 +616,7 @@ public class MataPelajaranController : Controller
         return File(
             memoryStream.ToArray(),
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            fileDownloadName: $"Mata Pelajaran-{tahun}-{jurusan}.xlsx");
+            fileDownloadName: $"Mata Pelajaran-{tahun}-{jurusan}{(kelas is null ? "" : $"-{kelas.Nama}")}.xlsx"
+        );
     }
 }
