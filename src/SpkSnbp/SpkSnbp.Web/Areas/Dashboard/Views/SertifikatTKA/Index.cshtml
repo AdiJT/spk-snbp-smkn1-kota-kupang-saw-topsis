@@ -131,11 +131,11 @@
                             <th>Jurusan</th>
                             <th>Kelas</th>
                             <th>Tahun Ajaran</th>
+                            <th>Skor (0-100)</th>
                             <th>
                                 <p>(C@((int)KriteriaEnum.SertTKA)) Sertifikat TKA</p>
                                 (Skor:0-44=1; 45-59=2; 60-74=3; 75-89=4; 90-100=5)
                             </th>
-                            <th>Skor (0-100)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -149,6 +149,12 @@
                                 <td>@entry.Siswa.Jurusan.Humanize()</td>
                                 <td>@entry.Siswa.Kelas.Nama</td>
                                 <td>@entry.Siswa.TahunAjaran.Id</td>
+                                <td>
+                                    <input asp-for="@Model.DaftarEntry[@i].Skor"
+                                           class="form-control skor-input"
+                                           readonly />
+                                    <span asp-validation-for="@Model.DaftarEntry[@i].Skor" class="text-danger"></span>
+                                </td>
                                 @if (entry.SertifikatTKA is not null)
                                 {
                                     <td>@entry.SertifikatTKA</td>
@@ -157,12 +163,6 @@
                                 {
                                     <td>-</td>
                                 }
-                                <td>
-                                    <input asp-for="@Model.DaftarEntry[@i].Skor"
-                                           class="form-control skor-input"
-                                           readonly />
-                                    <span asp-validation-for="@Model.DaftarEntry[@i].Skor" class="text-danger"></span>
-                                </td>
                             </tr>
                         }
                     </tbody>

@@ -133,11 +133,11 @@
                             <th>Jurusan</th>
                             <th>Kelas</th>
                             <th>Tahun Ajaran</th>
+                            <th width="25%">Predikat</th>
                             <th>
                                 <p>(C@((int)KriteriaEnum.Ekstrakulikuler)) Ekstrakulikuler</p>
                                 (Rata-Rata Predikat * Jumlah Ekstrakulikuler)
                             </th>
-                            <th width="25%">Predikat</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -150,15 +150,7 @@
                                 <td>@entry.Siswa.NISN</td>
                                 <td>@entry.Siswa.Jurusan.Humanize()</td>
                                 <td>@entry.Siswa.Kelas.Nama</td>
-                                <td>@entry.Siswa.TahunAjaran.Id</td>
-                                @if (entry.Ekstrakulikuler is not null)
-                                {
-                                    <td>@entry.Ekstrakulikuler</td>
-                                }
-                                else
-                                {
-                                    <td>-</td>
-                                }
+                                <td>@entry.Siswa.TahunAjaran.Id</td
                                 <td>
                                     <table class="table">
                                         <tbody>
@@ -207,6 +199,14 @@
                                         </tbody>
                                     </table>
                                 </td>
+                                 @if (entry.Ekstrakulikuler is not null)
+                                {
+                                    <td>@entry.Ekstrakulikuler</td>
+                                }
+                                else
+                                {
+                                    <td>-</td>
+                                }
                             </tr>
                         }
                     </tbody>
