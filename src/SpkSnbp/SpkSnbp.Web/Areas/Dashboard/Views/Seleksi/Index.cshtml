@@ -154,10 +154,19 @@
                                 }
                                 @foreach (var kriteria in daftarKriteria)
                                 {
-                                    var siswaKriteria = item.DaftarSiswaKriteria.FirstOrDefault(x => x.Kriteria == kriteria);
+                                    var siswaKriteria = item.DaftarSiswaKriteria
+                                    .FirstOrDefault(x => x.Kriteria == kriteria);
+
                                     if (siswaKriteria is not null)
                                     {
-                                        <td>@siswaKriteria.Nilai</td>
+                                        if (kriteria.Kode == "C1" || kriteria.Kode == "C2")
+                                        {
+                                            <td>@siswaKriteria.Nilai.ToString("F2")</td>
+                                        }
+                                        else
+                                        {
+                                            <td>@siswaKriteria.Nilai</td>
+                                        }
                                     }
                                     else
                                     {

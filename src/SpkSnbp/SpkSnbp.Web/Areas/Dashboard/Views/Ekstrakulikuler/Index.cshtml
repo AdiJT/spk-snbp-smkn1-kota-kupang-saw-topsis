@@ -5,7 +5,7 @@
 @inject IKelasRepository KelasRepository
 
 @{
-    ViewData["Title"] = "Ekstrakulikuler";
+    ViewData["Title"] = "Ekstrakurikuler";
     var daftarTahun = await TahunAjaranRepository.GetAll();
     var daftarKelas = await KelasRepository.GetAll();
 }
@@ -15,7 +15,7 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="#">Data</a></li>
-            <li class="breadcrumb-item"><a asp-action="Index"></a>Ekstrakulikuler</li>
+            <li class="breadcrumb-item"><a asp-action="Index"></a>Ekstrakurikuler</li>
         </ol>
     </nav>
 </div>
@@ -24,7 +24,7 @@
 <div class="card card-primary">
     <!-- Judul -->
     <div class="card-header">
-        <h4>Daftar Ekstrakulikuler</h4>
+        <h4>Daftar Ekstrakurikuler</h4>
     </div>
     <div class="padding-20">
 
@@ -118,10 +118,12 @@
                     <i class="fas fa-times"></i> Batal
                 </button>
 
-                <a asp-action="Reset" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" asp-route-idKelas="@Model.IdKelas" asp-route-returnUrl="@Context.Request.AbsoluteUri()" class="btn btn-icon icon-left btn-secondary"
-                   data-toggle="tooltip" title="Reset Jumlah">
+                <button type="button"
+                        id="btnReset"
+                        class="btn btn-icon icon-left btn-secondary"
+                        data-toggle="tooltip" title="Reset Predikat">
                     <i class="fas fa-undo"></i> Reset
-                </a>
+                </button>
             </div>
 
             <div class="table-responsive">
@@ -135,8 +137,8 @@
                             <th>Tahun Ajaran</th>
                             <th width="25%">Predikat</th>
                             <th>
-                                <p>(C@((int)KriteriaEnum.Ekstrakulikuler)) Ekstrakulikuler</p>
-                                (Rata-Rata Predikat * Jumlah Ekstrakulikuler)
+                                <p>(C@((int)KriteriaEnum.Ekstrakulikuler)) Ekstrakurikuler</p>
+                                (Rata-Rata Predikat * Jumlah Ekstrakurikuler)
                             </th>
                         </tr>
                     </thead>

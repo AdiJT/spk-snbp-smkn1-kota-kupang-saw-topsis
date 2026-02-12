@@ -118,10 +118,12 @@
                     <i class="fas fa-times"></i> Batal
                 </button>
 
-                <a asp-action="Reset" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" asp-route-idKelas="@Model.IdKelas" asp-route-returnUrl="@Context.Request.AbsoluteUri()" class="btn btn-icon icon-left btn-secondary"
-                   data-toggle="tooltip" title="Reset Jumlah">
+                <button type="button"
+                        id="btnReset"
+                        class="btn btn-icon icon-left btn-secondary"
+                        data-toggle="tooltip" title="Reset Jumlah">
                     <i class="fas fa-undo"></i> Reset
-                </a>
+                </button>
             </div>
 
             <div class="table-responsive">
@@ -176,46 +178,80 @@
         const actionButtons = document.getElementById("actionButtons");
         const inputs = document.querySelectorAll(".nilai-input");
 
-        // simpan nilai awal
-        let initialValues = [];
+        let initialRawValues = [];
 
-        btnEdit.addEventListener("click", function () {
-
-            // simpan nilai awal
-            initialValues = [];
+        function formatToTwoDecimal() {
             inputs.forEach(input => {
-                initialValues.push(input.value);
+                if (input.dataset.raw !== undefined) {
+                    input.value = parseFloat(input.dataset.raw).toFixed(2);
+                }
+                input.setAttribute("readonly", true);
+            });
+        }
+
+        function removeFormat() {
+            inputs.forEach(input => {
+                if (input.dataset.raw !== undefined) {
+                    input.value = input.dataset.raw;
+                }
                 input.removeAttribute("readonly");
             });
+        }
 
-            // tampilkan tombol
+        // SAAT HALAMAN LOAD
+        inputs.forEach(input => {
+            input.dataset.raw = input.value; // simpan nilai asli
+        });
+
+        formatToTwoDecimal(); // tampilkan 2 angka saat readonly
+
+        // EDIT
+        btnEdit.addEventListener("click", function () {
+
+            // simpan backup sebelum edit
+            initialRawValues = [];
+            inputs.forEach(input => {
+                initialRawValues.push(input.dataset.raw);
+            });
+
+            removeFormat();
+
             actionButtons.classList.remove("d-none");
             actionButtons.classList.add("d-flex");
 
-            // sembunyikan edit
             btnEdit.style.display = "none";
         });
 
-        btnReset.addEventListener("click", function () {
+        // RESET
+        btnReset.addEventListener("click", function (e) {
+            e.preventDefault();
+
             inputs.forEach(input => {
                 input.value = 0;
+                input.dataset.raw = 0;
             });
         });
 
+        // BATAL
         btnBatal.addEventListener("click", function () {
 
-            // kembalikan nilai awal
             inputs.forEach((input, index) => {
-                input.value = initialValues[index];
-                input.setAttribute("readonly", true);
+                input.dataset.raw = initialRawValues[index]; // kembalikan nilai awal
             });
 
-            // sembunyikan tombol simpan/batal/reset
+            formatToTwoDecimal();
+
             actionButtons.classList.add("d-none");
             actionButtons.classList.remove("d-flex");
 
-            // tampilkan edit
             btnEdit.style.display = "inline-block";
         });
+
+        inputs.forEach(input => {
+            input.addEventListener("input", function () {
+                input.dataset.raw = input.value;
+            });
+        });
     </script>
+
 }
