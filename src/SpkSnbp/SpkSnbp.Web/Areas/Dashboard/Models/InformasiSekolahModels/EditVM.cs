@@ -71,4 +71,12 @@ public class EditVM
     [Display(Name = "Kode Pos")]
     [Required(ErrorMessage = "{0} harus diisi")]
     public required string KodePos { get; set; }
+
+    [Display(Name = "Visi")]
+    [Required(ErrorMessage = "{0} harus diisi")]
+    public required string Visi { get; set; }
+
+    [Display(Name = "Misi")]
+    [Required(ErrorMessage = "{0} harus diisi")]
+    public required string Misi { get; set; }
 }

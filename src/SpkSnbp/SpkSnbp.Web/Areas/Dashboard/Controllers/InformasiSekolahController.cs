@@ -49,6 +49,8 @@ public class InformasiSekolahController : Controller
             KabupatenKota = informasiSekolah.KabupatenKota,
             Provinsi = informasiSekolah.Provinsi,
             KodePos = informasiSekolah.KodePos,
+            Visi = informasiSekolah.Visi,
+            Misi = informasiSekolah.Misi,
         });
     }
 
@@ -75,6 +77,8 @@ public class InformasiSekolahController : Controller
             KabupatenKota = informasiSekolah.KabupatenKota,
             Provinsi = informasiSekolah.Provinsi,
             KodePos = informasiSekolah.KodePos,
+            Visi = informasiSekolah.Visi,
+            Misi = informasiSekolah.Misi,
         });
     }
 
@@ -102,6 +106,8 @@ public class InformasiSekolahController : Controller
         informasiSekolah.KabupatenKota = vm.KabupatenKota;
         informasiSekolah.Provinsi = vm.Provinsi;
         informasiSekolah.KodePos = vm.KodePos;
+        informasiSekolah.Visi = vm.Visi;
+        informasiSekolah.Misi = vm.Misi;
 
         var result = await _unitOfWork.SaveChangesAsync();
         if (result.IsFailure)

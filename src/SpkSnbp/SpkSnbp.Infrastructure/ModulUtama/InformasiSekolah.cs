@@ -10,6 +10,8 @@ internal class InformasiSekolahConfiguration : IEntityTypeConfiguration<Informas
     public void Configure(EntityTypeBuilder<InformasiSekolah> builder)
     {
         builder.HasKey(x => x.Id);
+
+        builder.HasData(InformasiSekolah.Default);
     }
 }
 

@@ -1,4 +1,10 @@
-﻿<!DOCTYPE html>
+﻿@inject IInformasiSekolahRepository InformasiSekolahRepository
+
+@{
+    var informasiSekolah = await InformasiSekolahRepository.Get();
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -6,11 +12,11 @@
 
     @if (ViewData["Title"] is null)
     {
-        <title>Sistem Seleksi Siswa Eligible SNBP SMKN 1 Kota Kupang</title>
+        <title>Sistem Seleksi Siswa Eligible SNBP @informasiSekolah.NamaSekolah</title>
     }
     else
     {
-        <title>@ViewData["Title"] | Sistem Seleksi Siswa Eligible SNBP SMKN 1 Kota Kupang</title>
+        <title>@ViewData["Title"] | Sistem Seleksi Siswa Eligible SNBP @informasiSekolah.NamaSekolah</title>
     }
 
     <link rel="stylesheet" href="~/css/profil-site.css" asp-append-version="true" />
@@ -56,45 +62,6 @@
 
     <!-- ======================================= FOOTER ======================================= -->
     <footer>
-        <div class="footer-col">
-            <h3>Informasi Sekolah</h3>
-            <li>Berita & Pengumuman</li>
-            <li>Guru & Karyawan</li>
-            <li>Galeri</li>
-            <li>Statistik</li>
-        </div>
-        <div class="footer-col">
-            <h3>Fasilitas</h3>
-            <li>Asrama</li>
-            <li>Lab Komputer</li>
-            <li>Perpustakaan</li>
-            <li>Lapangan Futsal</li>
-        </div>
-        <div class="footer-col">
-            <h3>Tentang Kami</h3>
-            <li>Visi & Misi</li>
-            <li>Mars Sekolah</li>
-            <li>Kurikulum</li>
-            <li>Core Value</li>
-        </div>
-        <div class="footer-col">
-            <h3>Keterampilan</h3>
-            <li>Public Speaking</li>
-            <li>Team Work</li>
-            <li>Problem Solving</li>
-            <li>Dan Lainnya</li>
-        </div>
-        <div class="footer-col">
-            <h3>Mencari Informasi PPDB ?</h3>
-            <p>
-                Masukkan email Anda untuk menerima <br />informasi saat PPDB dibuka.
-            </p>
-            <div class="subscribe">
-                <input type="text" placeholder="Alamat Email Kamu" name="" id="" />
-                <a href="" class="yellow">KIRIM</a>
-            </div>
-        </div>
-
         <div class="copyright">
             <p>Copyright ©2026 All rights reserved | Made by AFA</p>
             <div class="pro-links">

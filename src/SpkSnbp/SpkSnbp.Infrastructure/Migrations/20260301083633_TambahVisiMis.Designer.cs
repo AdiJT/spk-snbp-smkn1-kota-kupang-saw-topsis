@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SpkSnbp.Infrastructure.Database;
@@ -11,9 +12,11 @@ using SpkSnbp.Infrastructure.Database;
 namespace SpkSnbp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260301083633_TambahVisiMis")]
+    partial class TambahVisiMis
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -213,31 +216,6 @@ namespace SpkSnbp.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("InformasiSekolah");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Akreditasi = "A",
-                            BentukPendidikan = "SMK",
-                            DesaKelurahan = "Oetete",
-                            Jalan = "JL. PROF. DR. W. Z. JOHANES",
-                            KabupatenKota = "Kota Kupang",
-                            KecamatanDistrik = "Kec. Oebobo",
-                            KepalaSekolah = "Mixon Rudolf Nicolas Abineno",
-                            KodePos = "85112",
-                            Misi = "<ol>\r\n                <li>Menumbuhkan semangat keunggulan dan komparatif secara intensif kepada seluruh warga sekolah. </li>\r\n                <li>Melaksanakan kegiatan belajar mengajar secara optimal yang berorientasi kepada pencapaian kompetensi berstandar nasional/internasional dengan tetap mempertimbangkan potensi yang dimiliki peserta didik. </li>\r\n                <li>Mengembangkan dan mengintensifkan hubungan sekolah dengan DUDI dan institusi lain yang telah memiliki reputasi nasional/internasional sebagai perwujudan dari <em>demand driven</em>.</li>\r\n                <li>Menerapkan pengelolaan manajemen SMK mengacu pada standar ISO 9001 2008 dengan melibatkan seluruh warga sekolah dan <em>pelanggan</em>. </li>\r\n            </ol>",
-                            NPSN = "50304998",
-                            NamaSekolah = "SMKN 1 Kota Kupang",
-                            Nilai = 92.0,
-                            NoHP = "081313474144",
-                            NoSKAkreditasi = "1857/BAN-SM/SK/2022",
-                            Provinsi = "Prov. Nusa Tenggara Timur",
-                            TMTMulaiSKAkreditasi = new DateOnly(2022, 11, 30),
-                            TMTSelesaiSKAkreditasi = new DateOnly(2027, 12, 31),
-                            TanggalSKAkreditasi = new DateOnly(2022, 11, 30),
-                            Visi = "<p>\r\n                ”Menjadi Lembaga Pendidikan dan Pelatihan Bisnis Manajemen, Pariwisata, dan Teknologi Informatika dan Komunikasi Berstandar Nasional dan Internasional serta Mampu Menghasilkan Tamatan yang Berdaya Saing di 	Era Global.”\r\n            </p>"
-                        });
                 });
 
             modelBuilder.Entity("SpkSnbp.Domain.ModulUtama.Kelas", b =>

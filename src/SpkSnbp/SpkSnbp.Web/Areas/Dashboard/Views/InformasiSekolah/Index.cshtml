@@ -52,6 +52,10 @@
                                 <a class="nav-link" id="visi-tab" data-toggle="tab" href="#ketiga" role="tab"
                                    aria-controls="visi" aria-selected="false">Alamat</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="visi-tab" data-toggle="tab" href="#keempat" role="tab"
+                                   aria-controls="visi" aria-selected="false">Visi dan Misi</a>
+                            </li>
                         </ul>
 
                         <div class="tab-content" id="myTabContent">
@@ -152,6 +156,25 @@
                                         <div class="form-group">
                                             <label asp-for="@Model.KodePos"></label>
                                             <input asp-for="@Model.KodePos" class="form-control" readonly />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="keempat" role="tabpanel" aria-labelledby="visi-tab">
+                                <div class="section-title mt-0">
+                                    Visi, Misi, & Mars
+                                </div>
+                                <div class="">
+                                    <div class="form-group">
+                                        <label asp-for="@Model.Visi"></label>
+                                        <div class="p-2" style="background-color:#e9ecef;border-color:#e4e6fc;border:1px solid #ced4da">
+                                            @Html.Raw(Model.Visi)
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label asp-for="@Model.Misi"></label>
+                                        <div class="p-2" style="background-color:#e9ecef;border-color:#e4e6fc;border:1px solid #ced4da">
+                                            @Html.Raw(Model.Misi)
                                         </div>
                                     </div>
                                 </div>

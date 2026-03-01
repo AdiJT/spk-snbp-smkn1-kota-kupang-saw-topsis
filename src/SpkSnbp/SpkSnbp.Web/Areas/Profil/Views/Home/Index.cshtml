@@ -1,6 +1,12 @@
-﻿<!-- ======================================= SECTION LANDING ======================================= -->
+﻿@inject IInformasiSekolahRepository InformasiSekolahRepository
+
+@{
+    var informasiSekolah = await InformasiSekolahRepository.Get();
+}
+
+<!-- ======================================= SECTION LANDING ======================================= -->
 <section id="home">
-    <h2>SMK NEGERI 1 KOTA KUPANG</h2>
+    <h2>@informasiSekolah.NamaSekolah.ToUpper()</h2>
     <p>
         Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
     </p>
@@ -54,21 +60,14 @@
             <hr class="judul-line" />
             <h2 class="judul">Visi</h2>
             <hr class="judul-line-tipis" />
-            <p>
-                ”Menjadi Lembaga Pendidikan dan Pelatihan Bisnis Manajemen, Pariwisata, dan Teknologi Informatika dan Komunikasi Berstandar Nasional dan Internasional serta Mampu Menghasilkan Tamatan yang Berdaya Saing di 	Era Global.”
-            </p>
+            @Html.Raw(informasiSekolah.Visi)
         </div>
 
         <div class="visimisi-box">
             <hr class="judul-line" />
             <h2 class="judul">Misi</h2>
             <hr class="judul-line-tipis" />
-            <ol>
-                <li>Menumbuhkan semangat keunggulan dan komparatif secara intensif kepada seluruh warga sekolah. </li>
-                <li>Melaksanakan kegiatan belajar mengajar secara optimal yang berorientasi kepada pencapaian kompetensi berstandar nasional/internasional dengan tetap mempertimbangkan potensi yang dimiliki peserta didik. </li>
-                <li>Mengembangkan dan mengintensifkan hubungan sekolah dengan DUDI dan institusi lain yang telah memiliki reputasi nasional/internasional sebagai perwujudan dari <em>demand driven</em>.</li>
-                <li>Menerapkan pengelolaan manajemen SMK mengacu pada standar ISO 9001 2008 dengan melibatkan seluruh warga sekolah dan <em>pelanggan</em>. </li>
-            </ol>
+            @Html.Raw(informasiSekolah.Misi)
         </div>
     </div>
 </section>
@@ -122,13 +121,13 @@
                 <div>
                     <i class="ri-home-8-line get"></i>
                     <p>
-                        Kelurahan Oetete, Kecamatan Oebobo, Kota Kupang, Nusa Tenggara Timur
+                        Kelurahan @informasiSekolah.DesaKelurahan, Kecamatan @informasiSekolah.KecamatanDistrik, Kota @informasiSekolah.KabupatenKota, @informasiSekolah.Provinsi
                     </p>
                 </div>
                 <h3>Telepon</h3>
                 <div>
                     <i class="ri-phone-fill get"></i>
-                    <p>+628123456789</p>
+                    <p>@informasiSekolah.NoHP</p>
                 </div>
                 <h3>Email</h3>
                 <div>
