@@ -107,9 +107,9 @@
                         <th rowspan="2">Rangking</th>
                         <th rowspan="2">Nilai Preferensi</th>
                         <th rowspan="2">NISN</th>
-                        <th rowspan="2">Nama</th>
-                        <th rowspan="2">Eligible</th>
+                        <th rowspan="2">Nama</th>                        
                         <th colspan="6">Kriteria</th>
+                        <th rowspan="2"><b>Eligible</b></th>
                     </tr>
                     <tr>
                         @foreach (var item in daftarKriteria)
@@ -143,15 +143,7 @@
                                     <td>-</td>
                                 }
                                 <td>@item.NISN</td>
-                                <td>@item.Nama</td>
-                                @if (item.Eligible is not null)
-                                {
-                                    <td>@item.Eligible?.Humanize()</td>
-                                }
-                                else
-                                {
-                                    <td>-</td>
-                                }
+                                <td>@item.Nama</td>                                
                                 @foreach (var kriteria in daftarKriteria)
                                 {
                                     var siswaKriteria = item.DaftarSiswaKriteria
@@ -172,6 +164,14 @@
                                     {
                                         <td>-</td>
                                     }
+                                }
+                                @if (item.Eligible is not null)
+                                {
+                                    <td><b>@item.Eligible?.Humanize()</b></td>
+                                }
+                                else
+                                {
+                                    <td>-</td>
                                 }
                             </tr>
                         }

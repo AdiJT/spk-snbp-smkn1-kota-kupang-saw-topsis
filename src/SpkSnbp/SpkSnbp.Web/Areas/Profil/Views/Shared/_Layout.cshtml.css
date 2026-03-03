@@ -241,11 +241,13 @@ nav .navigation ::deep ul li.has-submenu .submenu li a {
 
 /* ================================= FOOTER ================================= */
 footer {
-    padding: 5vw 8vw;
+    padding: 0.5vw 8vw;
     background-color: #101c32;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    /*justify-content: space-between;*/
+    justify-content: center;
+    /*align-items: flex-start;*/
+    align-items: center;
     flex-wrap: wrap;
 }
 
@@ -309,9 +311,10 @@ footer {
                     }
 
     footer .copyright {
-        margin-top: 20px;
+        margin-top: 0px;
         display: flex;
-        justify-content: space-between;
+        /*justify-content: space-between;*/
+        justify-content: center;
         align-items: center;
         width: 100%;
         flex-wrap: wrap;
