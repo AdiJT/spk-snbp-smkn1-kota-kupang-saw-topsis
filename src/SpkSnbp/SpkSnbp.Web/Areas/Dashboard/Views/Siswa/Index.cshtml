@@ -137,13 +137,20 @@
                             @foreach (var kriteria in daftarKriteria)
                             {
                                 var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.Kriteria == kriteria);
-                                if (siswaKriteria is null)
+                                if (siswaKriteria is not null)
                                 {
-                                    <td> - </td>
+                                    if (kriteria.Kode == "C1" || kriteria.Kode == "C2")
+                                    {
+                                        <td>@siswaKriteria.Nilai.ToString("F2")</td>
+                                    }
+                                    else
+                                    {
+                                        <td>@siswaKriteria.Nilai</td>
+                                    }
                                 }
                                 else
                                 {
-                                    <td>@siswaKriteria.Nilai</td>
+                                    <td>-</td>
                                 }
                             }
                             <td>
