@@ -69,15 +69,15 @@
                 </div>
             </form>
 
-            <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center">                               
                 @if (Model.Jurusan is not null && Model.Tahun is not null && Model.Kelas is not null)
                 {
-                    <button class="btn btn-tambah btn-icon icon-left btn-primary"
+                    <button class="ml-1 btn btn-tambah btn-icon icon-left btn-primary"
                             data-toggle="tooltip" title="Import Data">
                         <i class="fas fa-file-import"></i> Import
                     </button>
                     <div class="form-tambah">
-                        <partial name="_FormImportPartial" model="@(new ImportVM { Tahun = Model.Tahun.Value, Jurusan = Model.Jurusan.Value, IdKelas = Model.Kelas.Id, ReturnUrl = Context.Request.AbsoluteUri() })" />
+                        <partial name="_FormImportPartial_Mapel" model="@(new ImportVM { Tahun = Model.Tahun.Value, Jurusan = Model.Jurusan.Value, IdKelas = Model.Kelas.Id, ReturnUrl = Context.Request.AbsoluteUri() })" />
                     </div>
                 }
 
