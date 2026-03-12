@@ -698,6 +698,6 @@ public class SiswaController : Controller
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             fileDownloadName: $"Siswa{(tahun is null ? "" : $"-{tahun}")}" +
             $"{(jurusan is null ? "" : $"-{jurusan.Value.Humanize()}")}" +
-            $"{(kelas is null ? "" : $"-{kelas.Nama}")}.pdf");
+            $"{(kelas is null ? "" : $"-{kelas.Nama}")}.xlsx");
     }
 }
