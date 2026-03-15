@@ -30,71 +30,120 @@
     </div>
     <div class="padding-20">
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <form asp-action="Index" method="get" class="d-flex align-items-center">
-                <input name="first" id="first" value="False" readonly hidden />
-                <div class="d-flex align-items-center mr-3" style="gap: 8px;">
-                    <label asp-for="@Model.Tahun" class="mb-0" style="font-weight: 600; white-space: nowrap;">Tahun Ajaran:</label>
-                    <select asp-for="@Model.Tahun" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
-                        @if (Model.Tahun is null)
-                        {
-                            <option value="@null">-- Tidak ada Tahun Ajaran --</option>
-                        }
-                        @foreach (var item in daftarTahun)
-                        {
-                            <option value="@item.Id">@item.Id</option>
-                        }
-                    </select>
-                </div>
+        <div class="row mb-3">
 
-                <div class="d-flex align-items-center" style="gap: 8px;">
-                    <label asp-for="@Model.Jurusan" class="mb-0" style="font-weight: 600; white-space: nowrap;">Jurusan:</label>
-                    <select asp-for="@Model.Jurusan" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
-                        @foreach (var item in Enum.GetValues<Jurusan>())
-                        {
-                            <option value="@item">@item.Humanize()</option>
-                        }
-                    </select>
-                </div>
+            <!-- FILTER -->
+            <div class="col-12 col-lg">
+                <form asp-action="Index" method="get"
+                      class="d-flex flex-column flex-lg-row"
+                      style="gap:15px;">
 
-                <div class="d-flex align-items-center" style="gap: 8px;">
-                    <label asp-for="@Model.IdKelas" class="mb-0" style="font-weight: 600; white-space: nowrap;">Kelas:</label>
-                    <select asp-for="@Model.IdKelas" class="submit-on-change form-control form-control-sm w-auto" style="min-width:150px;">
-                        <option value="@null">-- Semua --</option>
-                        @foreach (var item in daftarKelas)
-                        {
-                            <option value="@item.Id">@item.Nama</option>
-                        }
-                    </select>
-                </div>
-            </form>
+                    <input name="first" id="first" value="False" readonly hidden />
 
-            <div class="d-flex align-items-center">
-                @if (Model.Tahun is not null && Model.DaftarSiswa.Count != 0)
-                {
-                    <form asp-action="Index" asp-route-jurusan="@Model.Jurusan" asp-route-tahun="@Model.Tahun" asp-route-idKelas="@Model.IdKelas" asp-route-returnUrl="@Context.Request.AbsoluteUri()" method="post">
-                        <button class="btn btn-icon icon-left btn-primary"
-                                data-toggle="tooltip" title="Lakukan Seleksi" type="submit">
-                            <i class="fas fa-check-double"></i> Seleksi
-                        </button>
-                    </form>
-
-                    <div class="ml-1 mb-0">
-                        <a asp-action="PDF" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" asp-route-idKelas="@Model.IdKelas" class="btn btn-icon icon left btn-danger mr-1">
-                            <i class="fas fa-file-pdf"></i> PDF
-                        </a>
+                    <!-- Tahun -->
+                    <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center" style="gap:8px;">
+                        <label asp-for="@Model.Tahun" class="mb-0 font-weight-bold">Tahun Ajaran:</label>
+                        <select asp-for="@Model.Tahun"
+                                class="submit-on-change form-control form-control-sm w-100 w-lg-auto"
+                                style="min-width:150px;">
+                            @if (Model.Tahun is null)
+                            {
+                                <option value="@null">-- Tidak ada Tahun Ajaran --</option>
+                            }
+                            @foreach (var item in daftarTahun)
+                            {
+                                <option value="@item.Id">@item.Id</option>
+                            }
+                        </select>
                     </div>
 
-                    <div class="mb-0">
-                        <a asp-action="Excel" asp-route-tahun="@Model.Tahun" asp-route-jurusan="@Model.Jurusan" asp-route-idKelas="@Model.IdKelas" class="btn btn-icon icon left btn-success mr-1">
-                            <i class="fas fa-file-excel"></i> Excel
-                        </a>
+                    <!-- Jurusan -->
+                    <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center" style="gap:8px;">
+                        <label asp-for="@Model.Jurusan" class="mb-0 font-weight-bold">Jurusan:</label>
+                        <select asp-for="@Model.Jurusan"
+                                class="submit-on-change form-control form-control-sm w-100 w-lg-auto"
+                                style="min-width:150px;">
+                            @foreach (var item in Enum.GetValues<Jurusan>())
+                            {
+                                <option value="@item">@item.Humanize()</option>
+                            }
+                        </select>
                     </div>
-                }
+
+                    <!-- Kelas -->
+                    <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center" style="gap:8px;">
+                        <label asp-for="@Model.IdKelas" class="mb-0 font-weight-bold">Kelas:</label>
+                        <select asp-for="@Model.IdKelas"
+                                class="submit-on-change form-control form-control-sm w-100 w-lg-auto"
+                                style="min-width:150px;">
+                            <option value="@null">-- Semua --</option>
+                            @foreach (var item in daftarKelas)
+                            {
+                                <option value="@item.Id">@item.Nama</option>
+                            }
+                        </select>
+                    </div>
+
+                </form>
             </div>
+
+
+            <!-- BUTTON AREA -->
+            <div class="col-12 col-lg-auto mt-3 mt-lg-0">
+
+                <div class="row gx-2">
+
+                    @if (Model.Tahun is not null && Model.DaftarSiswa.Count != 0)
+                    {
+
+                        <!-- SELEKSI -->
+                        <div class="col-12 col-lg-auto mb-2">
+                            <form asp-action="Index"
+                                  asp-route-jurusan="@Model.Jurusan"
+                                  asp-route-tahun="@Model.Tahun"
+                                  asp-route-idKelas="@Model.IdKelas"
+                                  asp-route-returnUrl="@Context.Request.AbsoluteUri()"
+                                  method="post">
+
+                                <button class="btn btn-icon icon-left btn-primary w-100 w-lg-auto"
+                                        type="submit">
+                                    <i class="fas fa-check-double"></i> Seleksi
+                                </button>
+
+                            </form>
+                        </div>
+
+                        <!-- PDF -->
+                        <div class="col-6 col-lg-auto pr-1">
+                            <a asp-action="PDF"
+                               asp-route-tahun="@Model.Tahun"
+                               asp-route-jurusan="@Model.Jurusan"
+                               asp-route-idKelas="@Model.IdKelas"
+                               class="btn btn-icon icon-left btn-danger w-100">
+                                <i class="fas fa-file-pdf"></i> PDF
+                            </a>
+                        </div>
+
+                        <!-- EXCEL -->
+                        <div class="col-6 col-lg-auto pl-1">
+                            <a asp-action="Excel"
+                               asp-route-tahun="@Model.Tahun"
+                               asp-route-jurusan="@Model.Jurusan"
+                               asp-route-idKelas="@Model.IdKelas"
+                               class="btn btn-icon icon-left btn-success w-100">
+                                <i class="fas fa-file-excel"></i> Excel
+                            </a>
+                        </div>
+
+                    }
+
+                </div>
+
+            </div>
+
         </div>
 
-        <div class="d-flex justify-content-between mb-3 mr-3">
+        <div class="d-flex justify-content-between mb-3">
             <div class="mb-0 card card-body rounded" style="background-color: #d9edf7; font-weight: 400; padding: 15px; color: #31708f;">
                 <p class="mb-0">Seleksi hanya dapat dilakukan jika setiap data siswa memiliki nilai Preferensi! Jalankan perhitungan di halaman <a asp-action="Index" asp-controller="Perhitungan">Proses Hitung</a> untuk mendapatkan nilai preferensi.</p>
             </div>

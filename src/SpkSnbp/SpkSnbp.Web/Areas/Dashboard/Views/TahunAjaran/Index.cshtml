@@ -23,28 +23,34 @@
     </div>
     <div class="padding-20">
 
-        <div class="d-flex justify-content-start ml-auto mb-3">
-            <div class="mb-0">
-                <button class="btn btn-tambah btn-icon icon-left btn-primary mr-1"
-                    data-toggle="tooltip" title="Tambah Data Tahun Ajaran">
+        <div class="row mb-3 align-items-center gx-md-0">
+
+            <!-- Tambah Data -->
+            <div class="col-12 col-md-auto mb-2 mb-md-0">
+                <button class="btn btn-tambah btn-icon icon-left btn-primary w-100 w-md-auto"
+                        data-toggle="tooltip" title="Tambah Data Tahun Ajaran">
                     <i class="fas fa-plus"></i> Tambah Data
                 </button>
+
                 <div class="form-tambah">
-                    <partial name="_FormTambahPartial" model="@(new TambahVM())"/>
+                    <partial name="_FormTambahPartial" model="@(new TambahVM())" />
                 </div>
             </div>
 
-            <div class="mb-0">
-                <a asp-action="PDF" class="btn btn-icon icon left btn-danger mr-1">
+            <!-- PDF -->
+            <div class="col-6 col-md-auto ml-auto pr-1">
+                <a asp-action="PDF" class="btn btn-icon icon-left btn-danger w-100">
                     <i class="fas fa-file-pdf"></i> PDF
                 </a>
             </div>
 
-            <div class="mb-0">
-                <a asp-action="Excel" class="btn btn-icon icon left btn-success mr-1">
+            <!-- Excel -->
+            <div class="col-6 col-md-auto pl-1">
+                <a asp-action="Excel" class="btn btn-icon icon-left btn-success w-100">
                     <i class="fas fa-file-excel"></i> Excel
                 </a>
             </div>
+
         </div>
 
         <!-- Tabel -->
