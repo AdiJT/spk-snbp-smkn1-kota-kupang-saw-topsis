@@ -128,17 +128,6 @@
                                                 <span class="text-danger form-text" asp-validation-for="@Model.KonfirmasiPassword"></span>
                                             </div>
 
-                                            <div class="form-group floating-addon">
-                                                <label asp-for="@Model.Role">Role</label>
-                                                <div class="input-group">
-                                                    <select asp-for="@Model.Role" type="text" class="form-control" autofocus>
-                                                        <option value="@UserRoles.KepalaSekolah">@UserRoles.KepalaSekolah</option>
-                                                        <option value="@UserRoles.WaliKelas">@UserRoles.WaliKelas</option>
-                                                    </select>
-                                                </div>
-                                                <span class="text-danger form-text" asp-validation-for="@Model.Role"></span>
-                                            </div>
-
                                             <div class="form-group text-center">
                                                 <button type="submit" class="btn btn-lg btn-primary w-100">
                                                     Daftar

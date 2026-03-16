@@ -22,8 +22,4 @@ public class DaftarVM
     [Required(ErrorMessage = "{0} harus diisi")]
     [Compare(nameof(Password), ErrorMessage = "{0} harus sama dengan {1}")]
     public string KonfirmasiPassword { get; set; } = string.Empty;
-
-    [Display(Name = "Role")]
-    [Required(ErrorMessage = "{0} harus diisi")]
-    public string Role { get; set; } = string.Empty;
 }

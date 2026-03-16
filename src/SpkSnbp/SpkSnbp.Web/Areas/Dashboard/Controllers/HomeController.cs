@@ -98,16 +98,10 @@ public class HomeController : Controller
             return View(vm);
         }
 
-        if (vm.Role != UserRoles.KepalaSekolah && vm.Role != UserRoles.WaliKelas)
-        {
-            ModelState.AddModelError(nameof(vm.Role), "Tidak valid");
-            return View(vm);
-        }
-
         var user = new User
         {
             UserName = vm.UserName,
-            Role = vm.Role,
+            Role = UserRoles.WaliKelas,
             PasswordHash = _passwordHasher.HashPassword(null, vm.Password)
         };
 
