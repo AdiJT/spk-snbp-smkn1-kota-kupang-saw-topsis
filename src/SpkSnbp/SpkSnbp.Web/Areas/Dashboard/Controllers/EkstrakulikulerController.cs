@@ -212,20 +212,23 @@ public class EkstrakulikulerController : Controller
         }
 
         using var memoryStream = new MemoryStream(file.Value);
-        using var spreadSheet = SpreadsheetDocument.Open(memoryStream, isEditable: false);
+        using var spreadSheet = SpreadsheetDocument.Open(memoryStream, false);
 
         var workBookPart = spreadSheet.WorkbookPart!;
         var sharedStrings = workBookPart
             .SharedStringTablePart?
             .SharedStringTable
             .Elements<SharedStringItem>()
-            .Select(s => s.InnerText).ToList() ?? [];
+            .Select(s => s.InnerText)
+            .ToList() ?? new List<string>();
 
-        var sheet = workBookPart.Workbook.Sheets!.Elements<Sheet>().First()!;
+        var sheet = workBookPart.Workbook.Sheets!.Elements<Sheet>().First();
         var workSheetPart = (WorksheetPart)workBookPart.GetPartById(sheet.Id!);
         var sheetData = workSheetPart.Worksheet.Elements<SheetData>().First();
 
         var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun, vm.IdKelas);
+
+        int jumlahDiproses = 0;
 
         foreach (var row in sheetData.Elements<Row>())
         {
@@ -235,75 +238,120 @@ public class EkstrakulikulerController : Controller
             var nama = HelperFunctions.GetCellValues(cells[1], sharedStrings);
             if (string.IsNullOrWhiteSpace(nama)) continue;
 
-            var siswa = daftarSiswa.FirstOrDefault(x => x.Nama.ToLower() == nama.ToLower());
+            var siswa = daftarSiswa
+                .FirstOrDefault(x => x.Nama.ToLower() == nama.ToLower());
+
             if (siswa is null) continue;
 
-            var ekstrakulikuler1String = HelperFunctions.GetCellValues(cells[5], sharedStrings);
+            // ================= PARSE EKSTRA 1 =================
             PredikatEkstrakulikuler? ekstrakulikuler1 = null;
-            if (!string.IsNullOrWhiteSpace(ekstrakulikuler1String))
-                ekstrakulikuler1 = ekstrakulikuler1String.Trim().DehumanizeTo<PredikatEkstrakulikuler>(OnNoMatch.ReturnsNull);
+            var val1 = HelperFunctions.GetCellValues(cells[5], sharedStrings);
+            if (!string.IsNullOrWhiteSpace(val1))
+            {
+                ekstrakulikuler1 = val1.Trim()
+                    .Transform(To.SentenceCase)
+                    .DehumanizeTo<PredikatEkstrakulikuler>(OnNoMatch.ReturnsNull);
+            }
 
-            var ekstrakulikuler2String = HelperFunctions.GetCellValues(cells[6], sharedStrings);
+            // ================= PARSE EKSTRA 2 =================
             PredikatEkstrakulikuler? ekstrakulikuler2 = null;
-            if (!string.IsNullOrWhiteSpace(ekstrakulikuler2String))
-                ekstrakulikuler2 = ekstrakulikuler2String.Trim().Transform(To.SentenceCase).DehumanizeTo<PredikatEkstrakulikuler>(OnNoMatch.ReturnsNull);
+            var val2 = HelperFunctions.GetCellValues(cells[6], sharedStrings);
+            if (!string.IsNullOrWhiteSpace(val2))
+            {
+                ekstrakulikuler2 = val2.Trim()
+                    .Transform(To.SentenceCase)
+                    .DehumanizeTo<PredikatEkstrakulikuler>(OnNoMatch.ReturnsNull);
+            }
 
-            var ekstrakulikuler3String = HelperFunctions.GetCellValues(cells[7], sharedStrings);
+            // ================= PARSE EKSTRA 3 =================
             PredikatEkstrakulikuler? ekstrakulikuler3 = null;
-            if (!string.IsNullOrWhiteSpace(ekstrakulikuler3String))
-                ekstrakulikuler3 = ekstrakulikuler3String.Trim().DehumanizeTo<PredikatEkstrakulikuler>(OnNoMatch.ReturnsNull);
+            var val3 = HelperFunctions.GetCellValues(cells[7], sharedStrings);
+            if (!string.IsNullOrWhiteSpace(val3))
+            {
+                ekstrakulikuler3 = val3.Trim()
+                    .Transform(To.SentenceCase)
+                    .DehumanizeTo<PredikatEkstrakulikuler>(OnNoMatch.ReturnsNull);
+            }
 
-            var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Ekstrakulikuler);
+            // ================= HITUNG =================
+            double total = 0;
+            int jumlah = 0;
+
+            if (ekstrakulikuler1 is not null)
+            {
+                total += (int)ekstrakulikuler1;
+                jumlah++;
+            }
+
+            if (ekstrakulikuler2 is not null)
+            {
+                total += (int)ekstrakulikuler2;
+                jumlah++;
+            }
+
+            if (ekstrakulikuler3 is not null)
+            {
+                total += (int)ekstrakulikuler3;
+                jumlah++;
+            }
+
+            var siswaKriteria = siswa.DaftarSiswaKriteria
+                .FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Ekstrakulikuler);
+
+            double nilaiBaru;
+
+            if (jumlah == 0)
+            {
+                nilaiBaru = 0;
+            }
+            else
+            {
+                nilaiBaru = total / jumlah * jumlah; 
+            }
+
+            // ================= CREATE =================
             if (siswaKriteria is null)
             {
                 siswaKriteria = new SiswaKriteria
                 {
                     Siswa = siswa,
                     IdKriteria = (int)KriteriaEnum.Ekstrakulikuler,
-                    Nilai = default
+                    Nilai = nilaiBaru
                 };
 
                 _siswaKriteriaRepository.Add(siswaKriteria);
+                jumlahDiproses++;
             }
-
-            if (ekstrakulikuler1 is null && ekstrakulikuler2 is null && ekstrakulikuler3 is null)
-                siswaKriteria.Nilai = 0;
-            else
+            // ================= UPDATE =================
+            else if (siswaKriteria.Nilai != nilaiBaru)
             {
-                var total = 0d;
-                var jumlah = 0;
-
-                if (ekstrakulikuler1 is not null)
-                {
-                    total += (int)ekstrakulikuler1;
-                    jumlah++;
-                }
-
-                if (ekstrakulikuler2 is not null)
-                {
-                    total += (int)ekstrakulikuler2;
-                    jumlah++;
-                }
-
-                if (ekstrakulikuler3 is not null)
-                {
-                    total += (int)ekstrakulikuler3;
-                    jumlah++;
-                }
-
-                siswaKriteria.Nilai = total / jumlah * jumlah;
+                siswaKriteria.Nilai = nilaiBaru;
+                jumlahDiproses++;
             }
 
+            // ================= SIMPAN =================
             siswa.Ekstrakulikuler1 = ekstrakulikuler1;
             siswa.Ekstrakulikuler2 = ekstrakulikuler2;
             siswa.Ekstrakulikuler3 = ekstrakulikuler3;
         }
 
         var result = await _unitOfWork.SaveChangesAsync();
+
         if (result.IsSuccess)
-            _notificationService.AddSuccess("Import Berhasil", "Import");
+        {
+            if (jumlahDiproses == 0)
+            {
+                _notificationService.AddWarning("Import berhasil, tetapi tidak ada perubahan data", "Import");
+            }
+            else
+            {
+                _notificationService.AddSuccess($"Import berhasil. {jumlahDiproses} data diproses", "Import");
+            }
+        }
         else
+        {
             _notificationService.AddError("Import Gagal", "Import");
+        }
 
         return RedirectPermanent(returnUrl);
     }

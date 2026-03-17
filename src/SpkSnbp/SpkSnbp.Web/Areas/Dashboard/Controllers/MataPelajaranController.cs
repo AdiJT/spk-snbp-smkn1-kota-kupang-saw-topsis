@@ -248,6 +248,9 @@ public class MataPelajaranController : Controller
 
         var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun, vm.IdKelas);
 
+        int jumlahSiswaBaru = 0;
+        int jumlahNilaiDiupdate = 0;
+
         var mapelUmumCellRef = sheetData
             .Descendants<Cell>()
             .FirstOrDefault(x => HelperFunctions.GetCellValues(x, sharedStrings).Trim().ToLower() == "mapel umum")?
@@ -260,13 +263,7 @@ public class MataPelajaranController : Controller
         }
 
         var match = Regex.Match(mapelUmumCellRef, @"(?<kolom>[A-Z]*)[1-2]*");
-        if (!match.Success || !match.Groups.TryGetValue("kolom", out var kolomGroup))
-        {
-            _notificationService.AddError("Tidak ada kolom Mapel Umum", "Import");
-            return RedirectPermanent(returnUrl);
-        }
-
-        mapelUmumCellRef = kolomGroup.Value;
+        mapelUmumCellRef = match.Groups["kolom"].Value;
 
         var mapelKejuruanCellRef = sheetData
             .Descendants<Cell>()
@@ -275,18 +272,12 @@ public class MataPelajaranController : Controller
 
         if (mapelKejuruanCellRef is null)
         {
-            _notificationService.AddError("Tidak ada kolom Mapel kejuruan", "Import");
+            _notificationService.AddError("Tidak ada kolom Mapel Kejuruan", "Import");
             return RedirectPermanent(returnUrl);
         }
 
         match = Regex.Match(mapelKejuruanCellRef, @"(?<kolom>[A-Z]*)[1-2]*");
-        if (!match.Success || !match.Groups.TryGetValue("kolom", out kolomGroup))
-        {
-            _notificationService.AddError("Tidak ada kolom Mapel Umum", "Import");
-            return RedirectPermanent(returnUrl);
-        }
-
-        mapelKejuruanCellRef = kolomGroup.Value;
+        mapelKejuruanCellRef = match.Groups["kolom"].Value;
 
         foreach (var row in sheetData.Elements<Row>().Skip(7))
         {
@@ -297,6 +288,8 @@ public class MataPelajaranController : Controller
             if (string.IsNullOrWhiteSpace(nisn)) continue;
 
             var siswa = daftarSiswa.FirstOrDefault(x => x.NISN == nisn);
+
+            // ================= TAMBAH SISWA =================
             if (siswa is null)
             {
                 var namaCell = row.Elements<Cell>().FirstOrDefault(x => x.CellReference!.Value!.StartsWith("B"));
@@ -316,27 +309,15 @@ public class MataPelajaranController : Controller
 
                 _siswaRepository.Add(siswa);
                 daftarSiswa.Add(siswa);
+                jumlahSiswaBaru++;
             }
 
+            // ================= MAPEL UMUM =================
             var mapelUmumCell = row.Elements<Cell>().FirstOrDefault(x => x.CellReference!.Value!.StartsWith(mapelUmumCellRef));
             if (mapelUmumCell is null) continue;
 
             var mapelUmumString = HelperFunctions.GetCellValues(mapelUmumCell, sharedStrings);
-            if (string.IsNullOrWhiteSpace(mapelUmumString) ||
-                !double.TryParse(mapelUmumString, CultureInfo.InvariantCulture, out var mapelUmum) ||
-                mapelUmum < 0 ||
-                mapelUmum > 100)
-                continue;
-
-            var mapelKejuruanCell = row.Elements<Cell>().FirstOrDefault(x => x.CellReference!.Value!.StartsWith(mapelKejuruanCellRef));
-            if (mapelKejuruanCell is null) continue;
-
-            var mapelKejuruanString = HelperFunctions.GetCellValues(mapelKejuruanCell, sharedStrings);
-            if (string.IsNullOrWhiteSpace(mapelKejuruanString) ||
-                !double.TryParse(mapelKejuruanString, CultureInfo.InvariantCulture, out var mapelKejuruan) ||
-                mapelKejuruan < 0 ||
-                mapelKejuruan > 100)
-                continue;
+            if (!double.TryParse(mapelUmumString, CultureInfo.InvariantCulture, out var mapelUmum)) continue;
 
             var siswaKriteriaMPUmum = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.MPUmum);
             if (siswaKriteriaMPUmum is null)
@@ -345,13 +326,23 @@ public class MataPelajaranController : Controller
                 {
                     Siswa = siswa,
                     IdKriteria = (int)KriteriaEnum.MPUmum,
-                    Nilai = default
+                    Nilai = mapelUmum
                 };
 
                 _siswaKriteriaRepository.Add(siswaKriteriaMPUmum);
             }
+            else if (siswaKriteriaMPUmum.Nilai != mapelUmum)
+            {
+                siswaKriteriaMPUmum.Nilai = mapelUmum;
+                jumlahNilaiDiupdate++;
+            }
 
-            siswaKriteriaMPUmum.Nilai = mapelUmum;
+            // ================= MAPEL KEJURUAN =================
+            var mapelKejuruanCell = row.Elements<Cell>().FirstOrDefault(x => x.CellReference!.Value!.StartsWith(mapelKejuruanCellRef));
+            if (mapelKejuruanCell is null) continue;
+
+            var mapelKejuruanString = HelperFunctions.GetCellValues(mapelKejuruanCell, sharedStrings);
+            if (!double.TryParse(mapelKejuruanString, CultureInfo.InvariantCulture, out var mapelKejuruan)) continue;
 
             var siswaKriteriaMPKejuruan = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.MPKejuruan);
             if (siswaKriteriaMPKejuruan is null)
@@ -360,20 +351,37 @@ public class MataPelajaranController : Controller
                 {
                     Siswa = siswa,
                     IdKriteria = (int)KriteriaEnum.MPKejuruan,
-                    Nilai = default
+                    Nilai = mapelKejuruan
                 };
 
                 _siswaKriteriaRepository.Add(siswaKriteriaMPKejuruan);
             }
-
-            siswaKriteriaMPKejuruan.Nilai = mapelKejuruan;
+            else if (siswaKriteriaMPKejuruan.Nilai != mapelKejuruan)
+            {
+                siswaKriteriaMPKejuruan.Nilai = mapelKejuruan;
+                jumlahNilaiDiupdate++;
+            }
         }
 
         var result = await _unitOfWork.SaveChangesAsync();
+
         if (result.IsSuccess)
-            _notificationService.AddSuccess("Import Berhasil", "Import");
+        {
+            if (jumlahSiswaBaru == 0 && jumlahNilaiDiupdate == 0)
+            {
+                _notificationService.AddWarning("Import berhasil, tetapi tidak ada perubahan data", "Import");
+            }
+            else
+            {
+                _notificationService.AddSuccess(
+                    $"Import berhasil. {jumlahSiswaBaru} siswa baru, {jumlahNilaiDiupdate} nilai diperbarui",
+                    "Import");
+            }
+        }
         else
+        {
             _notificationService.AddError("Import Gagal", "Import");
+        }
 
         return RedirectPermanent(returnUrl);
     }

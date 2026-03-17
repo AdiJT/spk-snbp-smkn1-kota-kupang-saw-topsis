@@ -273,7 +273,8 @@ public class SiswaController : Controller
             .SharedStringTablePart?
             .SharedStringTable
             .Elements<SharedStringItem>()
-            .Select(s => s.InnerText).ToList() ?? [];
+            .Select(s => s.InnerText)
+            .ToList() ?? [];
 
         var sheet = workBookPart.Workbook.Sheets!.Elements<Sheet>().First()!;
         var workSheetPart = (WorksheetPart)workBookPart.GetPartById(sheet.Id!);
@@ -321,19 +322,27 @@ public class SiswaController : Controller
 
         namaCellRef = kolomGroup.Value;
 
+        int jumlahImport = 0;
+
         foreach (var row in sheetData.Elements<Row>().Skip(7))
         {
-            var nisnCell = row.Elements<Cell>().FirstOrDefault(x => x.CellReference!.Value!.StartsWith(nisnCellRef));
+            var nisnCell = row.Elements<Cell>()
+                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith(nisnCellRef));
+
             if (nisnCell is null) continue;
 
             var nisn = HelperFunctions.GetCellValues(nisnCell, sharedStrings);
             if (string.IsNullOrWhiteSpace(nisn)) continue;
 
-            var namaCell = row.Elements<Cell>().FirstOrDefault(x => x.CellReference!.Value!.StartsWith(namaCellRef));
+            var namaCell = row.Elements<Cell>()
+                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith(namaCellRef));
+
             if (namaCell is null) continue;
 
             var nama = HelperFunctions.GetCellValues(namaCell, sharedStrings);
-            if (string.IsNullOrWhiteSpace(nama) || await _siswaRepository.IsExist(nisn)) continue;
+
+            if (string.IsNullOrWhiteSpace(nama) || await _siswaRepository.IsExist(nisn))
+                continue;
 
             var siswa = new Siswa
             {
@@ -346,13 +355,26 @@ public class SiswaController : Controller
 
             _siswaRepository.Add(siswa);
             daftarSiswa.Add(siswa);
+            jumlahImport++;
         }
 
         var result = await _unitOfWork.SaveChangesAsync();
+
         if (result.IsSuccess)
-            _notificationService.AddSuccess("Import Berhasil", "Import");
+        {
+            if (jumlahImport == 0)
+            {
+                _notificationService.AddWarning("Import berhasil, tetapi tidak ada data baru yang ditambahkan", "Import");
+            }
+            else
+            {
+                _notificationService.AddSuccess($"Import berhasil. {jumlahImport} data berhasil ditambahkan", "Import");
+            }
+        }
         else
+        {
             _notificationService.AddError("Import Gagal", "Import");
+        }
 
         return RedirectPermanent(returnUrl);
     }

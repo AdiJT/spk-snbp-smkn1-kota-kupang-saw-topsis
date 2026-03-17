@@ -206,13 +206,16 @@ public class SertifikatLSPController : Controller
             .SharedStringTablePart?
             .SharedStringTable
             .Elements<SharedStringItem>()
-            .Select(s => s.InnerText).ToList() ?? [];
+            .Select(s => s.InnerText)
+            .ToList() ?? new List<string>();
 
-        var sheet = workBookPart.Workbook.Sheets!.Elements<Sheet>().First()!;
+        var sheet = workBookPart.Workbook.Sheets!.Elements<Sheet>().First();
         var workSheetPart = (WorksheetPart)workBookPart.GetPartById(sheet.Id!);
         var sheetData = workSheetPart.Worksheet.Elements<SheetData>().First();
 
         var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun, vm.IdKelas);
+
+        int jumlahDiproses = 0;
 
         foreach (var row in sheetData.Elements<Row>())
         {
@@ -224,38 +227,70 @@ public class SertifikatLSPController : Controller
 
             var sertifikatLSP = HelperFunctions.GetCellValues(cells[3], sharedStrings);
             if (string.IsNullOrWhiteSpace(sertifikatLSP)) continue;
-            sertifikatLSP = sertifikatLSP.ToLower();
-            if (sertifikatLSP != "bk" && sertifikatLSP != "k") continue;
 
-            var siswa = daftarSiswa.FirstOrDefault(x => x.Nama.ToLower() == nama.ToLower());
+            sertifikatLSP = sertifikatLSP.Trim().ToLower();
+
+            int nilaiBaru;
+
+            if (sertifikatLSP == "bk")
+            {
+                nilaiBaru = 1;
+            }
+            else if (sertifikatLSP == "k")
+            {
+                nilaiBaru = 5;
+            }
+            else
+            {
+                continue;
+            }
+
+            var siswa = daftarSiswa
+                .FirstOrDefault(x => x.Nama.ToLower() == nama.ToLower());
+
             if (siswa is null) continue;
 
-            var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.SertLSP);
+            var siswaKriteria = siswa.DaftarSiswaKriteria
+                .FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.SertLSP);
+
+            // ================= CREATE =================
             if (siswaKriteria is null)
             {
                 siswaKriteria = new SiswaKriteria
                 {
                     Siswa = siswa,
                     IdKriteria = (int)KriteriaEnum.SertLSP,
-                    Nilai = default
+                    Nilai = nilaiBaru
                 };
 
                 _siswaKriteriaRepository.Add(siswaKriteria);
+                jumlahDiproses++;
             }
-
-            siswaKriteria.Nilai = sertifikatLSP switch
+            // ================= UPDATE =================
+            else if (siswaKriteria.Nilai != nilaiBaru)
             {
-                "bk" => 1,
-                "k" => 5,
-                _ => throw new NotImplementedException()
-            };
+                siswaKriteria.Nilai = nilaiBaru;
+                jumlahDiproses++;
+            }
         }
 
         var result = await _unitOfWork.SaveChangesAsync();
+
         if (result.IsSuccess)
-            _notificationService.AddSuccess("Import Berhasil", "Import");
+        {
+            if (jumlahDiproses == 0)
+            {
+                _notificationService.AddWarning("Import berhasil, tetapi tidak ada perubahan data", "Import");
+            }
+            else
+            {
+                _notificationService.AddSuccess($"Import berhasil. {jumlahDiproses} data diproses", "Import");
+            }
+        }
         else
+        {
             _notificationService.AddError("Import Gagal", "Import");
+        }
 
         return RedirectPermanent(returnUrl);
     }

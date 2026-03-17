@@ -212,20 +212,23 @@ public class SertifikatTKAController : Controller
         }
 
         using var memoryStream = new MemoryStream(file.Value);
-        using var spreadSheet = SpreadsheetDocument.Open(memoryStream, isEditable: false);
+        using var spreadSheet = SpreadsheetDocument.Open(memoryStream, false);
 
         var workBookPart = spreadSheet.WorkbookPart!;
         var sharedStrings = workBookPart
             .SharedStringTablePart?
             .SharedStringTable
             .Elements<SharedStringItem>()
-            .Select(s => s.InnerText).ToList() ?? [];
+            .Select(s => s.InnerText)
+            .ToList() ?? new List<string>();
 
-        var sheet = workBookPart.Workbook.Sheets!.Elements<Sheet>().First()!;
+        var sheet = workBookPart.Workbook.Sheets!.Elements<Sheet>().First();
         var workSheetPart = (WorksheetPart)workBookPart.GetPartById(sheet.Id!);
         var sheetData = workSheetPart.Worksheet.Elements<SheetData>().First();
 
         var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun, vm.IdKelas);
+
+        int jumlahDiproses = 0;
 
         foreach (var row in sheetData.Elements<Row>())
         {
@@ -236,46 +239,69 @@ public class SertifikatTKAController : Controller
             if (string.IsNullOrWhiteSpace(nama)) continue;
 
             var skorString = HelperFunctions.GetCellValues(cells[2], sharedStrings);
-            if (string.IsNullOrWhiteSpace(skorString) || 
+            if (string.IsNullOrWhiteSpace(skorString) ||
                 !int.TryParse(skorString, out var skor) ||
-                skor < 0 ||
-                skor > 100) 
+                skor < 0 || skor > 100)
                 continue;
 
-            var siswa = daftarSiswa.FirstOrDefault(x => x.Nama.ToLower() == nama.ToLower());
+            var siswa = daftarSiswa
+                .FirstOrDefault(x => x.Nama.ToLower() == nama.ToLower());
+
             if (siswa is null) continue;
 
-            var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.SertTKA);
+            var nilaiBaru = skor switch
+            {
+                >= 90 and <= 100 => 5,
+                >= 75 and <= 89 => 4,
+                >= 60 and <= 74 => 3,
+                >= 45 and <= 59 => 2,
+                _ => 1
+            };
+
+            var siswaKriteria = siswa.DaftarSiswaKriteria
+                .FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.SertTKA);
+
+            // ================= CREATE =================
             if (siswaKriteria is null)
             {
                 siswaKriteria = new SiswaKriteria
                 {
                     Siswa = siswa,
                     IdKriteria = (int)KriteriaEnum.SertTKA,
-                    Nilai = default
+                    Nilai = nilaiBaru
                 };
 
                 _siswaKriteriaRepository.Add(siswaKriteria);
+                jumlahDiproses++;
+            }
+            // ================= UPDATE =================
+            else if (siswaKriteria.Nilai != nilaiBaru)
+            {
+                siswaKriteria.Nilai = nilaiBaru;
+                jumlahDiproses++;
             }
 
-            siswaKriteria.Nilai = skor switch
-            {
-                >= 90 and <= 100 => 5,
-                >= 75 and <= 89 => 4,
-                >= 60 and <= 74 => 3,
-                >= 45 and <= 59 => 2,
-                >= 0 and <= 44 => 1,
-                _ => 0
-            };
-
+            // update skor asli
             siswa.SkorTKA = skor;
         }
 
         var result = await _unitOfWork.SaveChangesAsync();
+
         if (result.IsSuccess)
-            _notificationService.AddSuccess("Import Berhasil", "Import");
+        {
+            if (jumlahDiproses == 0)
+            {
+                _notificationService.AddWarning("Import berhasil, tetapi tidak ada perubahan data", "Import");
+            }
+            else
+            {
+                _notificationService.AddSuccess($"Import berhasil. {jumlahDiproses} data diproses", "Import");
+            }
+        }
         else
+        {
             _notificationService.AddError("Import Gagal", "Import");
+        }
 
         return RedirectPermanent(returnUrl);
     }

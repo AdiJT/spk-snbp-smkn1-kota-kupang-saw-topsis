@@ -107,13 +107,20 @@ public class SeleksiController : Controller
             return RedirectPermanent(returnUrl);
         }
 
-        var result = await _topsisSAWService.SeleksiEligible(tahun, jurusan);
+        if (idKelas is null)
+        {
+            _toastrNotificationService.AddError("Silakan pilih kelas terlebih dahulu", "Seleksi");
+            return RedirectPermanent(returnUrl);
+        }
+
+        var result = await _topsisSAWService.SeleksiEligible(tahun, jurusan, idKelas);
+
         if (result.IsSuccess)
             _toastrNotificationService.AddSuccess("Seleksi Berhasil");
         else
             _toastrNotificationService.AddError(result.Error.Message, "Seleksi");
 
-        return RedirectPermanent(returnUrl);
+        return RedirectToActionPermanent(nameof(Index), new { jurusan, tahun, idKelas });
     }
 
     public async Task<IActionResult> PDF(int tahun, Jurusan jurusan, int? idKelas = null)

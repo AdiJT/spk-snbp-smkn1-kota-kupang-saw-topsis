@@ -28,12 +28,13 @@ public class TopsisSAWService : ITopsisSAWService
         _hasilPerhitunganRepository = hasilPerhitunganRepository;
     }
 
-    public async Task<Result<HasilPerhitungan>> Perhitungan(int tahun, Jurusan jurusan)
+    public async Task<Result<HasilPerhitungan>> Perhitungan(int tahun, Jurusan jurusan, int? idKelas)
     {
         var tahunAjaran = await _tahunAjaranRepository.Get(tahun);
         if (tahunAjaran is null) return new Error("Perhitungan.TahunTidakditemukan", "Tahun tidak ditemukan");
+        if (idKelas is null) return new Error("Perhitungan.KelasKosong", "Silakan pilih kelas terlebih dahulu");
 
-        var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun);
+        var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun, idKelas);
         if (daftarSiswa.Count == 0)
             return new Error("Perhitungan.SiswaTidakAda", "Tidak ada data siswa");
         daftarSiswa = daftarSiswa.OrderBy(x => x.NISN).ToList();
@@ -196,27 +197,38 @@ public class TopsisSAWService : ITopsisSAWService
         return hasilPerhitungan;
     }
 
-    public async Task<Result> SeleksiEligible(int tahun, Jurusan jurusan)
+    public async Task<Result> SeleksiEligible(int tahun, Jurusan jurusan, int? idKelas)
     {
         var tahunAjaran = await _tahunAjaranRepository.Get(tahun);
-        if (tahunAjaran is null) return new Error("SeleksiEligible.TahunTidakditemukan", "Tahun tidak ditemukan");
+        if (tahunAjaran is null)
+            return new Error("SeleksiEligible.TahunTidakditemukan", "Tahun tidak ditemukan");
 
-        var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun);
-        daftarSiswa = [.. daftarSiswa.Where(x => x.NilaiTopsis != null).OrderByDescending(x => x.NilaiTopsis)];
+        if (idKelas is null)
+            return new Error("SeleksiEligible.KelasKosong", "Silakan pilih kelas terlebih dahulu");
+
+        var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun, idKelas);
+
+        daftarSiswa = daftarSiswa
+            .Where(x => x.NilaiTopsis != null)
+            .OrderByDescending(x => x.NilaiTopsis)
+            .ToList();
 
         if (daftarSiswa.Count == 0)
             return new Error("SeleksiEligible.SiswaTidakAda", "Tidak ada siswa yang memiliki nilai preferensi");
 
-        var jumlahEligible = daftarSiswa.Count / (double)Enum.GetValues<Jurusan>().Length * PERSEN_ELIGIBLE;
+        // ================= PERHITUNGAN =================
+        var jumlahEligible = (int)Math.Ceiling(daftarSiswa.Count * PERSEN_ELIGIBLE);
 
         if (jumlahEligible > daftarSiswa.Count)
-            return new Error("SeleksiEligible.JumlahEligibleTidakValid", "Jumlah Eligible tidak valid");
+            jumlahEligible = daftarSiswa.Count;
 
+        // ================= RESET =================
+        foreach (var siswa in daftarSiswa)
+            siswa.Eligible = Eligible.Tidak;
+
+        // ================= SET ELIGIBLE =================
         for (int i = 0; i < jumlahEligible; i++)
             daftarSiswa[i].Eligible = Eligible.Ya;
-
-        for (int i = (int)jumlahEligible; i < daftarSiswa.Count; i++)
-            daftarSiswa[i].Eligible = Eligible.Tidak;
 
         return await _unitOfWork.SaveChangesAsync();
     }

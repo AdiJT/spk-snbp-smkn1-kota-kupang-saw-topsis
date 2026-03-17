@@ -5,6 +5,6 @@ namespace SpkSnbp.Web.Services.TopsisSAW;
 
 public interface ITopsisSAWService
 {
-    Task<Result<HasilPerhitungan>> Perhitungan(int tahun, Jurusan jurusan);
-    Task<Result> SeleksiEligible(int tahun, Jurusan jurusan);
+    Task<Result<HasilPerhitungan>> Perhitungan(int tahun, Jurusan jurusan, int? idKelas);
+    Task<Result> SeleksiEligible(int tahun, Jurusan jurusan, int? idKelas);
 }

@@ -217,20 +217,23 @@ public class AbsensiController : Controller
         }
 
         using var memoryStream = new MemoryStream(file.Value);
-        using var spreadSheet = SpreadsheetDocument.Open(memoryStream, isEditable: false);
+        using var spreadSheet = SpreadsheetDocument.Open(memoryStream, false);
 
         var workBookPart = spreadSheet.WorkbookPart!;
         var sharedStrings = workBookPart
             .SharedStringTablePart?
             .SharedStringTable
             .Elements<SharedStringItem>()
-            .Select(s => s.InnerText).ToList() ?? [];
+            .Select(s => s.InnerText)
+            .ToList() ?? new List<string>();
 
-        var sheet = workBookPart.Workbook.Sheets!.Elements<Sheet>().First()!;
+        var sheet = workBookPart.Workbook.Sheets!.Elements<Sheet>().First();
         var workSheetPart = (WorksheetPart)workBookPart.GetPartById(sheet.Id!);
         var sheetData = workSheetPart.Worksheet.Elements<SheetData>().First();
 
         var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun, vm.IdKelas);
+
+        int jumlahDiproses = 0;
 
         foreach (var row in sheetData.Elements<Row>())
         {
@@ -241,26 +244,17 @@ public class AbsensiController : Controller
             if (string.IsNullOrWhiteSpace(nama)) continue;
 
             var absenString = HelperFunctions.GetCellValues(cells[1], sharedStrings);
-            if (string.IsNullOrEmpty(absenString) || !int.TryParse(absenString, out var absen) || absen < 0 || absen > 45)
+            if (string.IsNullOrWhiteSpace(absenString) ||
+                !int.TryParse(absenString, out var absen) ||
+                absen < 0 || absen > 45)
                 continue;
 
-            var siswa = daftarSiswa.FirstOrDefault(x => x.Nama.ToLower() == nama.ToLower());
+            var siswa = daftarSiswa
+                .FirstOrDefault(x => x.Nama.ToLower() == nama.ToLower());
+
             if (siswa is null) continue;
 
-            var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Absensi);
-            if (siswaKriteria is null)
-            {
-                siswaKriteria = new SiswaKriteria
-                {
-                    Siswa = siswa,
-                    IdKriteria = (int)KriteriaEnum.Absensi,
-                    Nilai = default
-                };
-
-                _siswaKriteriaRepository.Add(siswaKriteria);
-            }
-
-            siswaKriteria.Nilai = absen switch
+            var nilaiBaru = absen switch
             {
                 >= 0 and <= 9 => 5,
                 >= 10 and <= 18 => 4,
@@ -270,14 +264,50 @@ public class AbsensiController : Controller
                 _ => 0
             };
 
+            var siswaKriteria = siswa.DaftarSiswaKriteria
+                .FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Absensi);
+
+            // ================= CREATE =================
+            if (siswaKriteria is null)
+            {
+                siswaKriteria = new SiswaKriteria
+                {
+                    Siswa = siswa,
+                    IdKriteria = (int)KriteriaEnum.Absensi,
+                    Nilai = nilaiBaru
+                };
+
+                _siswaKriteriaRepository.Add(siswaKriteria);
+                jumlahDiproses++;
+            }
+            // ================= UPDATE =================
+            else if (siswaKriteria.Nilai != nilaiBaru)
+            {
+                siswaKriteria.Nilai = nilaiBaru;
+                jumlahDiproses++;
+            }
+
+            // ================= SIMPAN DATA ASLI =================
             siswa.JumlahAbsen = absen;
         }
 
         var result = await _unitOfWork.SaveChangesAsync();
+
         if (result.IsSuccess)
-            _notificationService.AddSuccess("Import Berhasil", "Import");
+        {
+            if (jumlahDiproses == 0)
+            {
+                _notificationService.AddWarning("Import berhasil, tetapi tidak ada perubahan data", "Import");
+            }
+            else
+            {
+                _notificationService.AddSuccess($"Import berhasil. {jumlahDiproses} data diproses", "Import");
+            }
+        }
         else
+        {
             _notificationService.AddError("Import Gagal", "Import");
+        }
 
         return RedirectPermanent(returnUrl);
     }

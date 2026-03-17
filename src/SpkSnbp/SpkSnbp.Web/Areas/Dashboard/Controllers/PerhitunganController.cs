@@ -108,7 +108,8 @@ public class PerhitunganController : Controller
             return RedirectToAction(nameof(Index), new { jurusan });
         }
 
-        var result = await _topsisSAWService.Perhitungan(tahun, jurusan);
+        var result = await _topsisSAWService.Perhitungan(tahun, jurusan, idKelas);
+
         if (result.IsSuccess)
             _notificationService.AddSuccess("Perhitungan Sukses");
         else
