@@ -28,21 +28,40 @@ public class TopsisSAWService : ITopsisSAWService
         _hasilPerhitunganRepository = hasilPerhitunganRepository;
     }
 
-    public async Task<Result<HasilPerhitungan>> Perhitungan(int tahun, Jurusan jurusan, int? idKelas)
+    public async Task<Result<HasilPerhitungan>> Perhitungan(int tahun, Jurusan jurusan)
     {
         var tahunAjaran = await _tahunAjaranRepository.Get(tahun);
-        if (tahunAjaran is null) return new Error("Perhitungan.TahunTidakditemukan", "Tahun tidak ditemukan");
-        if (idKelas is null) return new Error("Perhitungan.KelasKosong", "Silakan pilih kelas terlebih dahulu");
+        if (tahunAjaran is null)
+            return new Error("Perhitungan.TahunTidakditemukan", "Tahun tidak ditemukan");
 
-        var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun, idKelas);
+        var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun, null);
         if (daftarSiswa.Count == 0)
             return new Error("Perhitungan.SiswaTidakAda", "Tidak ada data siswa");
+
         daftarSiswa = daftarSiswa.OrderBy(x => x.NISN).ToList();
 
         var daftarKriteria = await _kriteriaRepository.GetAll();
         if (daftarKriteria.Count == 0)
             return new Error("Perhitungan.KriteriaTidakAda", "Tidak ada data kriteria");
+
         daftarKriteria = daftarKriteria.OrderBy(x => x.Id).ToList();
+
+        // ================= VALIDASI DATA LENGKAP =================
+        foreach (var siswa in daftarSiswa)
+        {
+            foreach (var kriteria in daftarKriteria)
+            {
+                var siswaKriteria = siswa.DaftarSiswaKriteria
+                    .FirstOrDefault(x => x.Kriteria == kriteria);
+
+                if (siswaKriteria is null)
+                {
+                    return new Error(
+                        "Perhitungan.DataTidakLengkap",
+                        $"Siswa {siswa.Nama} ({siswa.NISN}) belum memiliki data {kriteria.Nama}");
+                }
+            }
+        }
 
         var matriks = new double[daftarSiswa.Count, daftarKriteria.Count];
         var maxKriteria = new double[daftarKriteria.Count];
@@ -56,6 +75,7 @@ public class TopsisSAWService : ITopsisSAWService
 
         try
         {
+            // ================= ISI MATRIKS =================
             for (int j = 0; j < daftarKriteria.Count; j++)
             {
                 maxKriteria[j] = double.MinValue;
@@ -65,12 +85,12 @@ public class TopsisSAWService : ITopsisSAWService
             for (int i = 0; i < daftarSiswa.Count; i++)
             {
                 var siswa = daftarSiswa[i];
+
                 for (int j = 0; j < daftarKriteria.Count; j++)
                 {
                     var kriteria = daftarKriteria[j];
-                    var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.Kriteria == kriteria);
-                    if (siswaKriteria is null)
-                        return new Error("Perhitungan.DataTidakLengkap", $"Siswa {siswa.Nama} ({siswa.NISN}) tidak memiliki data kriteria {kriteria.Nama}");
+                    var siswaKriteria = siswa.DaftarSiswaKriteria
+                        .First(x => x.Kriteria == kriteria);
 
                     matriks[i, j] = siswaKriteria.Nilai;
 
@@ -82,12 +102,13 @@ public class TopsisSAWService : ITopsisSAWService
                 }
             }
 
+            // ================= NORMALISASI =================
             for (int i = 0; i < daftarSiswa.Count; i++)
             {
-                var siswa = daftarSiswa[i];
                 for (int j = 0; j < daftarKriteria.Count; j++)
                 {
                     var kriteria = daftarKriteria[j];
+
                     if (kriteria.Jenis == JenisKriteria.Benefit)
                         matriksTernormalisasi[i, j] = matriks[i, j] / maxKriteria[j];
                     else
@@ -95,70 +116,69 @@ public class TopsisSAWService : ITopsisSAWService
                 }
             }
 
+            // ================= SOLUSI IDEAL =================
             for (int j = 0; j < daftarKriteria.Count; j++)
             {
                 var kriteria = daftarKriteria[j];
 
                 if (kriteria.Jenis == JenisKriteria.Benefit)
                 {
-                    solusiIdealPositif[j] = int.MinValue;
-                    solusiIdealNegatif[j] = int.MaxValue;
+                    solusiIdealPositif[j] = double.MinValue;
+                    solusiIdealNegatif[j] = double.MaxValue;
                 }
                 else
                 {
-                    solusiIdealPositif[j] = int.MaxValue;
-                    solusiIdealNegatif[j] = int.MinValue;
+                    solusiIdealPositif[j] = double.MaxValue;
+                    solusiIdealNegatif[j] = double.MinValue;
                 }
             }
 
             for (int i = 0; i < daftarSiswa.Count; i++)
             {
-                var siswa = daftarSiswa[i];
                 for (int j = 0; j < daftarKriteria.Count; j++)
                 {
                     var kriteria = daftarKriteria[j];
-                    matriksTernormalisasiTerbobot[i, j] = matriksTernormalisasi[i, j] * kriteria.Bobot;
+
+                    matriksTernormalisasiTerbobot[i, j] =
+                        matriksTernormalisasi[i, j] * kriteria.Bobot;
 
                     if (kriteria.Jenis == JenisKriteria.Benefit)
                     {
-                        if (matriksTernormalisasiTerbobot[i, j] > solusiIdealPositif[j])
-                            solusiIdealPositif[j] = matriksTernormalisasiTerbobot[i, j];
-
-                        if (matriksTernormalisasiTerbobot[i, j] < solusiIdealNegatif[j])
-                            solusiIdealNegatif[j] = matriksTernormalisasiTerbobot[i, j];
+                        solusiIdealPositif[j] = Math.Max(solusiIdealPositif[j], matriksTernormalisasiTerbobot[i, j]);
+                        solusiIdealNegatif[j] = Math.Min(solusiIdealNegatif[j], matriksTernormalisasiTerbobot[i, j]);
                     }
                     else
                     {
-                        if (matriksTernormalisasiTerbobot[i, j] < solusiIdealPositif[j])
-                            solusiIdealPositif[j] = matriksTernormalisasiTerbobot[i, j];
-
-                        if (matriksTernormalisasiTerbobot[i, j] > solusiIdealNegatif[j])
-                            solusiIdealNegatif[j] = matriksTernormalisasiTerbobot[i, j];
+                        solusiIdealPositif[j] = Math.Min(solusiIdealPositif[j], matriksTernormalisasiTerbobot[i, j]);
+                        solusiIdealNegatif[j] = Math.Max(solusiIdealNegatif[j], matriksTernormalisasiTerbobot[i, j]);
                     }
                 }
             }
 
+            // ================= JARAK =================
             for (int i = 0; i < daftarSiswa.Count; i++)
             {
-                var siswa = daftarSiswa[i];
-                var totalSelisihKuadratPositif = 0d;
-                var totalSelisihKuadratNegatif = 0d;
+                double positif = 0;
+                double negatif = 0;
 
                 for (int j = 0; j < daftarKriteria.Count; j++)
                 {
-                    var kriteria = daftarKriteria[j];
-                    totalSelisihKuadratPositif += Math.Pow(solusiIdealPositif[j] - matriksTernormalisasiTerbobot[i, j], 2);
-                    totalSelisihKuadratNegatif += Math.Pow(matriksTernormalisasiTerbobot[i, j] - solusiIdealNegatif[j], 2);
+                    positif += Math.Pow(solusiIdealPositif[j] - matriksTernormalisasiTerbobot[i, j], 2);
+                    negatif += Math.Pow(matriksTernormalisasiTerbobot[i, j] - solusiIdealNegatif[j], 2);
                 }
 
-                jarakSolusiIdealPositif[i] = Math.Sqrt(totalSelisihKuadratPositif);
-                jarakSolusiIdealNegatif[i] = Math.Sqrt(totalSelisihKuadratNegatif);
+                jarakSolusiIdealPositif[i] = Math.Sqrt(positif);
+                jarakSolusiIdealNegatif[i] = Math.Sqrt(negatif);
             }
 
+            // ================= NILAI AKHIR =================
             for (int i = 0; i < daftarSiswa.Count; i++)
             {
                 var siswa = daftarSiswa[i];
-                siswa.NilaiTopsis = jarakSolusiIdealNegatif[i] / (jarakSolusiIdealNegatif[i] + jarakSolusiIdealPositif[i]);
+
+                siswa.NilaiTopsis =
+                    jarakSolusiIdealNegatif[i] /
+                    (jarakSolusiIdealNegatif[i] + jarakSolusiIdealPositif[i]);
 
                 _siswaRepository.Update(siswa);
             }
@@ -197,16 +217,13 @@ public class TopsisSAWService : ITopsisSAWService
         return hasilPerhitungan;
     }
 
-    public async Task<Result> SeleksiEligible(int tahun, Jurusan jurusan, int? idKelas)
+    public async Task<Result> SeleksiEligible(int tahun, Jurusan jurusan)
     {
         var tahunAjaran = await _tahunAjaranRepository.Get(tahun);
         if (tahunAjaran is null)
             return new Error("SeleksiEligible.TahunTidakditemukan", "Tahun tidak ditemukan");
 
-        if (idKelas is null)
-            return new Error("SeleksiEligible.KelasKosong", "Silakan pilih kelas terlebih dahulu");
-
-        var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun, idKelas);
+        var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun, null);
 
         daftarSiswa = daftarSiswa
             .Where(x => x.NilaiTopsis != null)
@@ -214,19 +231,21 @@ public class TopsisSAWService : ITopsisSAWService
             .ToList();
 
         if (daftarSiswa.Count == 0)
-            return new Error("SeleksiEligible.SiswaTidakAda", "Tidak ada siswa yang memiliki nilai preferensi");
+            return new Error(
+                "SeleksiEligible.SiswaTidakAda",
+                "Tidak ada siswa yang memiliki nilai preferensi. Silakan lakukan perhitungan terlebih dahulu");
 
-        // ================= PERHITUNGAN =================
+        // ================= HITUNG KUOTA =================
         var jumlahEligible = (int)Math.Ceiling(daftarSiswa.Count * PERSEN_ELIGIBLE);
 
         if (jumlahEligible > daftarSiswa.Count)
             jumlahEligible = daftarSiswa.Count;
 
-        // ================= RESET =================
+        // ================= RESET SEMUA =================
         foreach (var siswa in daftarSiswa)
             siswa.Eligible = Eligible.Tidak;
 
-        // ================= SET ELIGIBLE =================
+        // ================= SET YANG LOLOS =================
         for (int i = 0; i < jumlahEligible; i++)
             daftarSiswa[i].Eligible = Eligible.Ya;
 
