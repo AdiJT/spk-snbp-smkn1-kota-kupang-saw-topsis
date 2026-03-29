@@ -229,25 +229,75 @@ public class SertifikatTKAController : Controller
         var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun, vm.IdKelas);
 
         int jumlahDiproses = 0;
+        int jumlahDitemukan = 0;
+        int jumlahTidakDitemukan = 0;
 
-        foreach (var row in sheetData.Elements<Row>())
+        // ================= VALIDASI KOLOM C = NISN =================
+        var headerRows = sheetData.Elements<Row>()
+            .Where(r => r.RowIndex >= 6 && r.RowIndex <= 7);
+
+        bool nisnValid = false;
+
+        foreach (var row in headerRows)
         {
-            var cells = row.Elements<Cell>().ToList();
-            if (cells.Count < 3) continue;
+            var cellC = row.Elements<Cell>()
+                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith("C"));
 
-            var nama = HelperFunctions.GetCellValues(cells[1], sharedStrings);
-            if (string.IsNullOrWhiteSpace(nama)) continue;
+            if (cellC is null) continue;
 
-            var skorString = HelperFunctions.GetCellValues(cells[2], sharedStrings);
+            var value = HelperFunctions.GetCellValues(cellC, sharedStrings)
+                .Trim().ToLower();
+
+            if (value.Contains("nisn"))
+            {
+                nisnValid = true;
+                break;
+            }
+        }
+
+        if (!nisnValid)
+        {
+            _notificationService.AddError("Format salah: Kolom C harus berisi NISN", "Import");
+            return RedirectPermanent(returnUrl);
+        }
+
+        // ================= LOOP DATA =================
+        foreach (var row in sheetData.Elements<Row>().Where(r => r.RowIndex > 7))
+        {
+            // ===== NISN (C) =====
+            var nisnCell = row.Elements<Cell>()
+                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith("C"));
+
+            if (nisnCell is null) continue;
+
+            var nisn = HelperFunctions.GetCellValues(nisnCell, sharedStrings);
+            if (string.IsNullOrWhiteSpace(nisn)) continue;
+
+            if (!nisn.All(char.IsDigit)) continue;
+
+            // ===== SKOR TKA (E) =====
+            var skorCell = row.Elements<Cell>()
+                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith("E"));
+
+            if (skorCell is null) continue;
+
+            var skorString = HelperFunctions.GetCellValues(skorCell, sharedStrings);
+
             if (string.IsNullOrWhiteSpace(skorString) ||
                 !int.TryParse(skorString, out var skor) ||
                 skor < 0 || skor > 100)
                 continue;
 
-            var siswa = daftarSiswa
-                .FirstOrDefault(x => x.Nama.ToLower() == nama.ToLower());
+            // ===== CARI SISWA =====
+            var siswa = daftarSiswa.FirstOrDefault(x => x.NISN == nisn);
 
-            if (siswa is null) continue;
+            if (siswa is null)
+            {
+                jumlahTidakDitemukan++;
+                continue;
+            }
+
+            jumlahDitemukan++;
 
             var nilaiBaru = skor switch
             {
@@ -261,41 +311,55 @@ public class SertifikatTKAController : Controller
             var siswaKriteria = siswa.DaftarSiswaKriteria
                 .FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.SertTKA);
 
-            // ================= CREATE =================
+            // ===== CREATE =====
             if (siswaKriteria is null)
             {
-                siswaKriteria = new SiswaKriteria
+                _siswaKriteriaRepository.Add(new SiswaKriteria
                 {
                     Siswa = siswa,
                     IdKriteria = (int)KriteriaEnum.SertTKA,
                     Nilai = nilaiBaru
-                };
+                });
 
-                _siswaKriteriaRepository.Add(siswaKriteria);
                 jumlahDiproses++;
             }
-            // ================= UPDATE =================
+            // ===== UPDATE =====
             else if (siswaKriteria.Nilai != nilaiBaru)
             {
                 siswaKriteria.Nilai = nilaiBaru;
                 jumlahDiproses++;
             }
 
-            // update skor asli
+            // ===== UPDATE SKOR ASLI =====
             siswa.SkorTKA = skor;
+        }
+
+        // ================= VALIDASI FINAL =================
+        if (jumlahDitemukan == 0)
+        {
+            _notificationService.AddError(
+                "NISN siswa tidak ditemukan, silakan tambah siswa di Data Siswa",
+                "Import");
+
+            return RedirectPermanent(returnUrl);
         }
 
         var result = await _unitOfWork.SaveChangesAsync();
 
+        // ================= TOASTR =================
         if (result.IsSuccess)
         {
             if (jumlahDiproses == 0)
             {
-                _notificationService.AddWarning("Import berhasil, tetapi tidak ada perubahan data", "Import");
+                _notificationService.AddWarning(
+                    "Import berhasil, tetapi tidak ada perubahan data",
+                    "Import");
             }
             else
             {
-                _notificationService.AddSuccess($"Import berhasil. {jumlahDiproses} data diproses", "Import");
+                _notificationService.AddSuccess(
+                    $"Import berhasil. {jumlahDiproses} data diperbarui",
+                    "Import");
             }
         }
         else

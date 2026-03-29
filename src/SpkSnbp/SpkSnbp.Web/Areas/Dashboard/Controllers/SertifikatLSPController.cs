@@ -199,7 +199,7 @@ public class SertifikatLSPController : Controller
         }
 
         using var memoryStream = new MemoryStream(file.Value);
-        using var spreadSheet = SpreadsheetDocument.Open(memoryStream, isEditable: false);
+        using var spreadSheet = SpreadsheetDocument.Open(memoryStream, false);
 
         var workBookPart = spreadSheet.WorkbookPart!;
         var sharedStrings = workBookPart
@@ -216,16 +216,59 @@ public class SertifikatLSPController : Controller
         var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun, vm.IdKelas);
 
         int jumlahDiproses = 0;
+        int jumlahDitemukan = 0;
+        int jumlahTidakDitemukan = 0;
 
-        foreach (var row in sheetData.Elements<Row>())
+        // ================= VALIDASI KOLOM C = NISN =================
+        var headerRows = sheetData.Elements<Row>()
+            .Where(r => r.RowIndex >= 6 && r.RowIndex <= 7);
+
+        bool nisnValid = false;
+
+        foreach (var row in headerRows)
         {
-            var cells = row.Elements<Cell>().ToList();
-            if (cells.Count < 4) continue;
+            var cellC = row.Elements<Cell>()
+                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith("C"));
 
-            var nama = HelperFunctions.GetCellValues(cells[1], sharedStrings);
-            if (string.IsNullOrWhiteSpace(nama)) continue;
+            if (cellC is null) continue;
 
-            var sertifikatLSP = HelperFunctions.GetCellValues(cells[3], sharedStrings);
+            var value = HelperFunctions.GetCellValues(cellC, sharedStrings)
+                .Trim().ToLower();
+
+            if (value.Contains("nisn"))
+            {
+                nisnValid = true;
+                break;
+            }
+        }
+
+        if (!nisnValid)
+        {
+            _notificationService.AddError("Format salah: Kolom C harus berisi NISN", "Import");
+            return RedirectPermanent(returnUrl);
+        }
+
+        // ================= LOOP DATA =================
+        foreach (var row in sheetData.Elements<Row>().Where(r => r.RowIndex > 7))
+        {
+            // ===== NISN (C) =====
+            var nisnCell = row.Elements<Cell>()
+                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith("C"));
+
+            if (nisnCell is null) continue;
+
+            var nisn = HelperFunctions.GetCellValues(nisnCell, sharedStrings);
+            if (string.IsNullOrWhiteSpace(nisn)) continue;
+
+            if (!nisn.All(char.IsDigit)) continue;
+
+            // ===== LSP (F) =====
+            var lspCell = row.Elements<Cell>()
+                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith("F"));
+
+            if (lspCell is null) continue;
+
+            var sertifikatLSP = HelperFunctions.GetCellValues(lspCell, sharedStrings);
             if (string.IsNullOrWhiteSpace(sertifikatLSP)) continue;
 
             sertifikatLSP = sertifikatLSP.Trim().ToLower();
@@ -233,43 +276,39 @@ public class SertifikatLSPController : Controller
             int nilaiBaru;
 
             if (sertifikatLSP == "bk")
-            {
                 nilaiBaru = 1;
-            }
             else if (sertifikatLSP == "k")
-            {
                 nilaiBaru = 5;
-            }
             else
+                continue;
+
+            // ===== CARI SISWA =====
+            var siswa = daftarSiswa.FirstOrDefault(x => x.NISN == nisn);
+
+            if (siswa is null)
             {
+                jumlahTidakDitemukan++;
                 continue;
             }
 
-            //var siswa = daftarSiswa
-            //    .FirstOrDefault(x => x.Nama.ToLower() == nama.ToLower());
-
-            var siswa = daftarSiswa
-                .FirstOrDefault(x => x.Nama.Trim().ToLower() == nama.Trim().ToLower());
-
-            if (siswa is null) continue;
+            jumlahDitemukan++;
 
             var siswaKriteria = siswa.DaftarSiswaKriteria
                 .FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.SertLSP);
 
-            // ================= CREATE =================
+            // ===== CREATE =====
             if (siswaKriteria is null)
             {
-                siswaKriteria = new SiswaKriteria
+                _siswaKriteriaRepository.Add(new SiswaKriteria
                 {
                     Siswa = siswa,
                     IdKriteria = (int)KriteriaEnum.SertLSP,
                     Nilai = nilaiBaru
-                };
+                });
 
-                _siswaKriteriaRepository.Add(siswaKriteria);
                 jumlahDiproses++;
             }
-            // ================= UPDATE =================
+            // ===== UPDATE =====
             else if (siswaKriteria.Nilai != nilaiBaru)
             {
                 siswaKriteria.Nilai = nilaiBaru;
@@ -277,17 +316,32 @@ public class SertifikatLSPController : Controller
             }
         }
 
+        // ================= VALIDASI FINAL =================
+        if (jumlahDitemukan == 0)
+        {
+            _notificationService.AddError(
+                "NISN siswa tidak ditemukan, silakan tambah siswa di Data Siswa",
+                "Import");
+
+            return RedirectPermanent(returnUrl);
+        }
+
         var result = await _unitOfWork.SaveChangesAsync();
 
+        // ================= TOASTR =================
         if (result.IsSuccess)
         {
             if (jumlahDiproses == 0)
             {
-                _notificationService.AddWarning("Import berhasil, tetapi tidak ada perubahan data", "Import");
+                _notificationService.AddWarning(
+                    "Import berhasil, tetapi tidak ada perubahan data",
+                    "Import");
             }
             else
             {
-                _notificationService.AddSuccess($"Import berhasil. {jumlahDiproses} data diproses", "Import");
+                _notificationService.AddSuccess(
+                    $"Import berhasil. {jumlahDiproses} data diperbarui",
+                    "Import");
             }
         }
         else
