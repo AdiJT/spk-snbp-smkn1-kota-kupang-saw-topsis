@@ -245,8 +245,11 @@ public class SertifikatLSPController : Controller
                 continue;
             }
 
+            //var siswa = daftarSiswa
+            //    .FirstOrDefault(x => x.Nama.ToLower() == nama.ToLower());
+
             var siswa = daftarSiswa
-                .FirstOrDefault(x => x.Nama.ToLower() == nama.ToLower());
+                .FirstOrDefault(x => x.Nama.Trim().ToLower() == nama.Trim().ToLower());
 
             if (siswa is null) continue;
 
