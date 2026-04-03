@@ -267,7 +267,6 @@ public class AbsensiController : Controller
             var siswaKriteria = siswa.DaftarSiswaKriteria
                 .FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Absensi);
 
-            // ================= CREATE =================
             if (siswaKriteria is null)
             {
                 siswaKriteria = new SiswaKriteria
@@ -280,14 +279,12 @@ public class AbsensiController : Controller
                 _siswaKriteriaRepository.Add(siswaKriteria);
                 jumlahDiproses++;
             }
-            // ================= UPDATE =================
             else if (siswaKriteria.Nilai != nilaiBaru)
             {
                 siswaKriteria.Nilai = nilaiBaru;
                 jumlahDiproses++;
             }
 
-            // ================= SIMPAN DATA ASLI =================
             siswa.JumlahAbsen = absen;
         }
 

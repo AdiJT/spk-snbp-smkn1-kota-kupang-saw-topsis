@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Bibliography;
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Humanizer;
 using Microsoft.AspNetCore.Authorization;
@@ -23,6 +22,8 @@ namespace SpkSnbp.Web.Areas.Dashboard.Controllers;
 [Area(AreaNames.Dashboard)]
 public class SiswaController : Controller
 {
+    private const string FormatId = "f7d4fe27-5714-4bb5-b24d-62277d9efd9e";
+
     private readonly ISiswaRepository _siswaRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IToastrNotificationService _notificationService;
@@ -33,6 +34,8 @@ public class SiswaController : Controller
     private readonly IPDFGeneratorService _pDFGeneratorService;
     private readonly IKriteriaRepository _kriteriaRepository;
     private readonly IKelasRepository _kelasRepository;
+    private readonly IWebHostEnvironment _webHostEnvironment;
+    private readonly IInformasiSekolahRepository _informasiSekolahRepository;
 
     public SiswaController(
         ISiswaRepository siswaRepository,
@@ -44,7 +47,9 @@ public class SiswaController : Controller
         IRazorTemplateEngine templateEngine,
         IPDFGeneratorService pDFGeneratorService,
         IKriteriaRepository kriteriaRepository,
-        IKelasRepository kelasRepository)
+        IKelasRepository kelasRepository,
+        IWebHostEnvironment webHostEnvironment,
+        IInformasiSekolahRepository informasiSekolahRepository)
     {
         _siswaRepository = siswaRepository;
         _unitOfWork = unitOfWork;
@@ -56,6 +61,8 @@ public class SiswaController : Controller
         _pDFGeneratorService = pDFGeneratorService;
         _kriteriaRepository = kriteriaRepository;
         _kelasRepository = kelasRepository;
+        _webHostEnvironment = webHostEnvironment;
+        _informasiSekolahRepository = informasiSekolahRepository;
     }
 
     public async Task<IActionResult> Index(Jurusan? jurusan = null, int? tahun = null, int? idKelas = null, bool first = true)
@@ -227,23 +234,9 @@ public class SiswaController : Controller
     {
         var returnUrl = vm.ReturnUrl ?? Url.ActionLink(nameof(Index))!;
 
-        if (!ModelState.IsValid || vm.IdKelas is null)
+        if (!ModelState.IsValid)
         {
             _notificationService.AddError("Data tidak valid", "Import");
-            return RedirectPermanent(returnUrl);
-        }
-
-        var tahunAjaran = await _tahunAjaranRepository.Get(vm.Tahun);
-        if (tahunAjaran is null)
-        {
-            _notificationService.AddError("Tahun tidak ditemukan", "Import");
-            return RedirectPermanent(returnUrl);
-        }
-
-        var kelas = await _kelasRepository.Get(vm.IdKelas.Value);
-        if (kelas is null)
-        {
-            _notificationService.AddError("Kelas tidak ditemukan", "Import");
             return RedirectPermanent(returnUrl);
         }
 
@@ -282,73 +275,47 @@ public class SiswaController : Controller
 
         var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun);
 
-        var nisnCellRef = sheetData
-            .Descendants<Cell>()
-            .FirstOrDefault(x => HelperFunctions.GetCellValues(x, sharedStrings).Trim().ToLower() == "nisn")?
-            .CellReference?.Value;
-
-        if (nisnCellRef is null)
+        var formatIdCell = sheetData.Descendants<Cell>().FirstOrDefault(x => x.CellReference == "C1");
+        if (formatIdCell is null || HelperFunctions.GetCellValues(formatIdCell, sharedStrings) != FormatId)
         {
-            _notificationService.AddError("Tidak ada kolom NISN", "Import");
+            _notificationService.AddError("Format import salah!");
             return RedirectPermanent(returnUrl);
         }
-
-        var match = Regex.Match(nisnCellRef, @"(?<kolom>[A-Z]*)[1-2]*");
-        if (!match.Success || !match.Groups.TryGetValue("kolom", out var kolomGroup))
-        {
-            _notificationService.AddError("Tidak ada kolom NISN", "Import");
-            return RedirectPermanent(returnUrl);
-        }
-
-        nisnCellRef = kolomGroup.Value;
-
-        var namaCellRef = sheetData
-            .Descendants<Cell>()
-            .FirstOrDefault(x => HelperFunctions.GetCellValues(x, sharedStrings).ToLower().Contains("nama"))?
-            .CellReference?.Value;
-
-        if (namaCellRef is null)
-        {
-            _notificationService.AddError("Tidak ada kolom Nama", "Import");
-            return RedirectPermanent(returnUrl);
-        }
-
-        match = Regex.Match(namaCellRef, @"(?<kolom>[A-Z]*)[1-2]*");
-        if (!match.Success || !match.Groups.TryGetValue("kolom", out kolomGroup))
-        {
-            _notificationService.AddError("Tidak ada kolom Nama", "Import");
-            return RedirectPermanent(returnUrl);
-        }
-
-        namaCellRef = kolomGroup.Value;
 
         int jumlahImport = 0;
 
         foreach (var row in sheetData.Elements<Row>().Skip(7))
         {
-            var nisnCell = row.Elements<Cell>()
-                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith(nisnCellRef));
+            var cells = row.Elements<Cell>().ToList();
 
-            if (nisnCell is null) continue;
+            var nama = HelperFunctions.GetCellValues(cells[1], sharedStrings);
+            if (string.IsNullOrWhiteSpace(nama)) continue;
 
-            var nisn = HelperFunctions.GetCellValues(nisnCell, sharedStrings);
-            if (string.IsNullOrWhiteSpace(nisn)) continue;
+            var nisn = HelperFunctions.GetCellValues(cells[2], sharedStrings);
+            if (string.IsNullOrWhiteSpace(nisn) || await _siswaRepository.IsExist(nisn)) continue;
 
-            var namaCell = row.Elements<Cell>()
-                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith(namaCellRef));
-
-            if (namaCell is null) continue;
-
-            var nama = HelperFunctions.GetCellValues(namaCell, sharedStrings);
-
-            if (string.IsNullOrWhiteSpace(nama) || await _siswaRepository.IsExist(nisn))
+            var tahunStr = HelperFunctions.GetCellValues(cells[4], sharedStrings);
+            if (string.IsNullOrWhiteSpace(tahunStr) || !int.TryParse(tahunStr, out var tahun))
                 continue;
+
+            var tahunAjaran = await _tahunAjaranRepository.Get(tahun);
+            if (tahunAjaran is null) continue;
+
+            var jurusanStr = HelperFunctions.GetCellValues(cells[5], sharedStrings);
+            if (string.IsNullOrWhiteSpace(jurusanStr) || !Enum.TryParse<Jurusan>(jurusanStr, out var jurusan))
+                continue;
+
+            var kelasStr = HelperFunctions.GetCellValues(cells[6], sharedStrings);
+            if (string.IsNullOrEmpty(kelasStr)) continue;
+
+            var kelas = await _kelasRepository.Get(kelasStr);
+            if (kelas is null) continue;
 
             var siswa = new Siswa
             {
                 NISN = nisn,
                 Nama = nama,
-                Jurusan = vm.Jurusan,
+                Jurusan = jurusan,
                 TahunAjaran = tahunAjaran,
                 Kelas = kelas
             };
@@ -360,21 +327,10 @@ public class SiswaController : Controller
 
         var result = await _unitOfWork.SaveChangesAsync();
 
-        if (result.IsSuccess)
-        {
-            if (jumlahImport == 0)
-            {
-                _notificationService.AddWarning("Import berhasil, tetapi tidak ada data baru yang ditambahkan", "Import");
-            }
-            else
-            {
-                _notificationService.AddSuccess($"Import berhasil. {jumlahImport} data berhasil ditambahkan", "Import");
-            }
-        }
-        else
-        {
-            _notificationService.AddError("Import Gagal", "Import");
-        }
+        if (result.IsSuccess) 
+            if (jumlahImport == 0) _notificationService.AddWarning("Import berhasil, tetapi tidak ada data baru yang ditambahkan", "Import");
+            else _notificationService.AddSuccess($"Import berhasil. {jumlahImport} data berhasil ditambahkan", "Import");
+        else _notificationService.AddError("Import Gagal", "Import");
 
         return RedirectPermanent(returnUrl);
     }
@@ -661,7 +617,7 @@ public class SiswaController : Controller
                         .Select(x => new MergeCell { Reference = $"{(char)('A' + x)}1:{(char)('A' + x)}2"}),
                     new MergeCell { Reference = $"F1:{(char)('F' + daftarKriteria.Count - 1)}1" }
                 ]
-            ), 
+            ),
             sheetData
         );
 
@@ -721,5 +677,71 @@ public class SiswaController : Controller
             fileDownloadName: $"Siswa{(tahun is null ? "" : $"-{tahun}")}" +
             $"{(jurusan is null ? "" : $"-{jurusan.Value.Humanize()}")}" +
             $"{(kelas is null ? "" : $"-{kelas.Nama}")}.xlsx");
+    }
+
+    public async Task<IActionResult> DownloadFormat(int? tahun, Jurusan? jurusan, int? idKelas)
+    {
+        var tahunAjaran = tahun is null ? null : await _tahunAjaranRepository.Get(tahun.Value);
+        if (tahun is not null && tahunAjaran is null)
+        {
+            _notificationService.AddError($"Tahun {tahun} tidak ditemukan", "Download Format");
+            return RedirectToAction(nameof(Index), new { tahun, jurusan, idKelas });
+        }
+
+        var kelas = idKelas is not null ? await _kelasRepository.Get(idKelas.Value) : null;
+        if (idKelas is not null && kelas is null)
+        {
+            _notificationService.AddError($"Kelas dengan Id {idKelas} tidak ditemukan", "Download Format");
+        }
+
+        var informasiSekolah = await _informasiSekolahRepository.Get();
+
+        var fileBytes = System.IO.File.ReadAllBytes(
+            Path.Combine(_webHostEnvironment.WebRootPath, "file/Template_Data_Siswa.xlsx"));
+
+        using var memoryStream = new MemoryStream();
+        memoryStream.Write(fileBytes, 0, fileBytes.Length);
+
+        using var spreadSheet = SpreadsheetDocument.Open(
+            memoryStream,
+            isEditable: true);
+
+        var workBookPart = spreadSheet.WorkbookPart!;
+
+        var sheet = workBookPart.Workbook.Sheets!.Elements<Sheet>().First();
+        var workSheetPart = (WorksheetPart)workBookPart.GetPartById(sheet.Id!);
+        var sheetData = workSheetPart.Worksheet.Elements<SheetData>().First();
+
+        // Isi informasi sekolah
+        var sekolahCell = sheetData.Descendants<Cell>().FirstOrDefault(x => x.CellReference == "D2");
+        if (sekolahCell is null)
+        {
+            _notificationService.AddError("Format bermasalah!");
+            return RedirectToAction(nameof(Index), new { tahun, jurusan, idKelas });
+        }
+        sekolahCell.CellValue = new CellValue(informasiSekolah.NamaSekolah);
+
+        foreach(var row in sheetData.Descendants<Row>().Skip(6))
+        {
+            var cells = row.Elements<Cell>().ToList();
+
+            if (tahunAjaran is not null)
+                cells[4].CellValue = new CellValue($"{tahunAjaran.Id}");
+
+            if (jurusan is not null)
+                cells[5].CellValue = new CellValue($"{jurusan.Value.Humanize()}");
+
+            if (kelas is not null)
+                cells[6].CellValue = new CellValue($"{kelas.Nama}");
+        }
+
+        workSheetPart.Worksheet.Save();
+        workBookPart.Workbook.Save();
+        spreadSheet.Save();
+
+        return File(
+            memoryStream.ToArray(),
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            fileDownloadName: "Template_Data_Siswa.xlsx");
     }
 }

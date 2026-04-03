@@ -61,6 +61,11 @@ internal class KelasRepository : IKelasRepository
         .Include(x => x.DaftarSiswa)
         .FirstOrDefaultAsync(x => x.Id == id);
 
+    public async Task<Kelas?> Get(string nama) => await _appDbContext
+        .Kelas
+        .Include(x => x.DaftarSiswa)
+        .FirstOrDefaultAsync(x => x.Nama == nama);
+
     public async Task<List<Kelas>> GetAll() => await _appDbContext
         .Kelas
         .Include(x => x.DaftarSiswa)

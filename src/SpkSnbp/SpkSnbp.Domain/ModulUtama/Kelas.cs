@@ -12,6 +12,7 @@ public class Kelas : Entity<int>
 public interface IKelasRepository
 {
     Task<Kelas?> Get(int id);
+    Task<Kelas?> Get(string nama);
     Task<Kelas?> GetFirst();
     Task<List<Kelas>> GetAll();
     Task<bool> IsExist(string nama, int? id = null);
