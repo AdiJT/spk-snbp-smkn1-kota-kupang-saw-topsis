@@ -95,7 +95,7 @@ public class SeleksiController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Index(Jurusan jurusan, int tahun, int? idKelas = null, string? returnUrl = null)
+    public async Task<IActionResult> Index(Jurusan jurusan, int tahun, string? returnUrl = null)
     {
         returnUrl ??= Url.ActionLink(nameof(Index))!;
 
@@ -107,20 +107,14 @@ public class SeleksiController : Controller
             return RedirectPermanent(returnUrl);
         }
 
-        if (idKelas is null)
-        {
-            _toastrNotificationService.AddError("Silakan pilih kelas terlebih dahulu", "Seleksi");
-            return RedirectPermanent(returnUrl);
-        }
-
-        var result = await _topsisSAWService.SeleksiEligible(tahun, jurusan, idKelas);
+        var result = await _topsisSAWService.SeleksiEligible(tahun, jurusan);
 
         if (result.IsSuccess)
             _toastrNotificationService.AddSuccess("Seleksi Berhasil");
         else
             _toastrNotificationService.AddError(result.Error.Message, "Seleksi");
 
-        return RedirectToActionPermanent(nameof(Index), new { jurusan, tahun, idKelas });
+        return RedirectToActionPermanent(nameof(Index), new { jurusan, tahun });
     }
 
     public async Task<IActionResult> PDF(int tahun, Jurusan jurusan, int? idKelas = null)

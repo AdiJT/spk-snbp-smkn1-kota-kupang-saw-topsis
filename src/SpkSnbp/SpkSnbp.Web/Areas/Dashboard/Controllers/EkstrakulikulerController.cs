@@ -229,51 +229,82 @@ public class EkstrakulikulerController : Controller
         var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun, vm.IdKelas);
 
         int jumlahDiproses = 0;
+        int jumlahDitemukan = 0;
+        int jumlahTidakDitemukan = 0;
 
-        foreach (var row in sheetData.Elements<Row>())
+        // ================= VALIDASI KOLOM C = NISN =================
+        var headerRows = sheetData.Elements<Row>()
+            .Where(r => r.RowIndex >= 6 && r.RowIndex <= 7);
+
+        bool nisnValid = false;
+
+        foreach (var row in headerRows)
         {
-            var cells = row.Elements<Cell>().ToList();
-            if (cells.Count < 8) continue;
+            var cellC = row.Elements<Cell>()
+                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith("C"));
 
-            var nama = HelperFunctions.GetCellValues(cells[1], sharedStrings);
-            if (string.IsNullOrWhiteSpace(nama)) continue;
+            if (cellC is null) continue;
 
-            var siswa = daftarSiswa
-                .FirstOrDefault(x => x.Nama.ToLower() == nama.ToLower());
+            var value = HelperFunctions.GetCellValues(cellC, sharedStrings)
+                .Trim().ToLower();
 
-            if (siswa is null) continue;
-
-            // ================= PARSE EKSTRA 1 =================
-            PredikatEkstrakulikuler? ekstrakulikuler1 = null;
-            var val1 = HelperFunctions.GetCellValues(cells[5], sharedStrings);
-            if (!string.IsNullOrWhiteSpace(val1))
+            if (value.Contains("nisn"))
             {
-                ekstrakulikuler1 = val1.Trim()
-                    .Transform(To.SentenceCase)
-                    .DehumanizeTo<PredikatEkstrakulikuler>(OnNoMatch.ReturnsNull);
+                nisnValid = true;
+                break;
+            }
+        }
+
+        if (!nisnValid)
+        {
+            _notificationService.AddError("Format salah: Kolom C harus berisi NISN", "Import");
+            return RedirectPermanent(returnUrl);
+        }
+
+        // ================= LOOP DATA =================
+        foreach (var row in sheetData.Elements<Row>().Where(r => r.RowIndex > 7))
+        {
+            // ===== NISN (C) =====
+            var nisnCell = row.Elements<Cell>()
+                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith("C"));
+
+            if (nisnCell is null) continue;
+
+            var nisn = HelperFunctions.GetCellValues(nisnCell, sharedStrings);
+            if (string.IsNullOrWhiteSpace(nisn)) continue;
+
+            if (!nisn.All(char.IsDigit)) continue;
+
+            // ===== CARI SISWA =====
+            var siswa = daftarSiswa.FirstOrDefault(x => x.NISN == nisn);
+
+            if (siswa is null)
+            {
+                jumlahTidakDitemukan++;
+                continue;
             }
 
-            // ================= PARSE EKSTRA 2 =================
-            PredikatEkstrakulikuler? ekstrakulikuler2 = null;
-            var val2 = HelperFunctions.GetCellValues(cells[6], sharedStrings);
-            if (!string.IsNullOrWhiteSpace(val2))
-            {
-                ekstrakulikuler2 = val2.Trim()
-                    .Transform(To.SentenceCase)
-                    .DehumanizeTo<PredikatEkstrakulikuler>(OnNoMatch.ReturnsNull);
-            }
+            jumlahDitemukan++;
 
-            // ================= PARSE EKSTRA 3 =================
-            PredikatEkstrakulikuler? ekstrakulikuler3 = null;
-            var val3 = HelperFunctions.GetCellValues(cells[7], sharedStrings);
-            if (!string.IsNullOrWhiteSpace(val3))
-            {
-                ekstrakulikuler3 = val3.Trim()
-                    .Transform(To.SentenceCase)
-                    .DehumanizeTo<PredikatEkstrakulikuler>(OnNoMatch.ReturnsNull);
-            }
+            // ===== EKSTRA 1 (H) =====
+            var cellF = row.Elements<Cell>()
+                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith("H"));
 
-            // ================= HITUNG =================
+            var ekstrakulikuler1 = ParseEkstra(cellF, sharedStrings);
+
+            // ===== EKSTRA 2 (I) =====
+            var cellG = row.Elements<Cell>()
+                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith("I"));
+
+            var ekstrakulikuler2 = ParseEkstra(cellG, sharedStrings);
+
+            // ===== EKSTRA 3 (J) =====
+            var cellH = row.Elements<Cell>()
+                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith("J"));
+
+            var ekstrakulikuler3 = ParseEkstra(cellH, sharedStrings);
+
+            // ===== HITUNG =====
             double total = 0;
             int jumlah = 0;
 
@@ -295,57 +326,62 @@ public class EkstrakulikulerController : Controller
                 jumlah++;
             }
 
+            double nilaiBaru = jumlah == 0 ? 0 : total;
+
             var siswaKriteria = siswa.DaftarSiswaKriteria
                 .FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Ekstrakulikuler);
 
-            double nilaiBaru;
-
-            if (jumlah == 0)
-            {
-                nilaiBaru = 0;
-            }
-            else
-            {
-                nilaiBaru = total / jumlah * jumlah; 
-            }
-
-            // ================= CREATE =================
+            // ===== CREATE =====
             if (siswaKriteria is null)
             {
-                siswaKriteria = new SiswaKriteria
+                _siswaKriteriaRepository.Add(new SiswaKriteria
                 {
                     Siswa = siswa,
                     IdKriteria = (int)KriteriaEnum.Ekstrakulikuler,
                     Nilai = nilaiBaru
-                };
+                });
 
-                _siswaKriteriaRepository.Add(siswaKriteria);
                 jumlahDiproses++;
             }
-            // ================= UPDATE =================
+            // ===== UPDATE =====
             else if (siswaKriteria.Nilai != nilaiBaru)
             {
                 siswaKriteria.Nilai = nilaiBaru;
                 jumlahDiproses++;
             }
 
-            // ================= SIMPAN =================
+            // ===== SIMPAN KE SISWA =====
             siswa.Ekstrakulikuler1 = ekstrakulikuler1;
             siswa.Ekstrakulikuler2 = ekstrakulikuler2;
             siswa.Ekstrakulikuler3 = ekstrakulikuler3;
         }
 
+        // ================= VALIDASI FINAL =================
+        if (jumlahDitemukan == 0)
+        {
+            _notificationService.AddError(
+                "NISN siswa tidak ditemukan, silakan tambah siswa di Data Siswa",
+                "Import");
+
+            return RedirectPermanent(returnUrl);
+        }
+
         var result = await _unitOfWork.SaveChangesAsync();
 
+        // ================= TOASTR =================
         if (result.IsSuccess)
         {
             if (jumlahDiproses == 0)
             {
-                _notificationService.AddWarning("Import berhasil, tetapi tidak ada perubahan data", "Import");
+                _notificationService.AddWarning(
+                    "Import berhasil, tetapi tidak ada perubahan data",
+                    "Import");
             }
             else
             {
-                _notificationService.AddSuccess($"Import berhasil. {jumlahDiproses} data diproses", "Import");
+                _notificationService.AddSuccess(
+                    $"Import berhasil. {jumlahDiproses} data diperbarui",
+                    "Import");
             }
         }
         else
@@ -354,6 +390,19 @@ public class EkstrakulikulerController : Controller
         }
 
         return RedirectPermanent(returnUrl);
+    }
+
+    private PredikatEkstrakulikuler? ParseEkstra(Cell? cell, List<string> sharedStrings)
+    {
+        if (cell is null) return null;
+
+        var value = HelperFunctions.GetCellValues(cell, sharedStrings);
+
+        if (string.IsNullOrWhiteSpace(value)) return null;
+
+        return value.Trim()
+            .Transform(To.SentenceCase)
+            .DehumanizeTo<PredikatEkstrakulikuler>(OnNoMatch.ReturnsNull);
     }
 
     public async Task<IActionResult> PDF(int tahun, Jurusan jurusan, int? idKelas = null)

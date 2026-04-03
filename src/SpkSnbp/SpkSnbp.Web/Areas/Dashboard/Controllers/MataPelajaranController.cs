@@ -233,7 +233,7 @@ public class MataPelajaranController : Controller
         }
 
         using var memoryStream = new MemoryStream(file.Value);
-        using var spreadSheet = SpreadsheetDocument.Open(memoryStream, isEditable: false);
+        using var spreadSheet = SpreadsheetDocument.Open(memoryStream, false);
 
         var workBookPart = spreadSheet.WorkbookPart!;
         var sharedStrings = workBookPart
@@ -242,139 +242,167 @@ public class MataPelajaranController : Controller
             .Elements<SharedStringItem>()
             .Select(s => s.InnerText).ToList() ?? [];
 
-        var sheet = workBookPart.Workbook.Sheets!.Elements<Sheet>().First()!;
+        var sheet = workBookPart.Workbook.Sheets!.Elements<Sheet>().First();
         var workSheetPart = (WorksheetPart)workBookPart.GetPartById(sheet.Id!);
         var sheetData = workSheetPart.Worksheet.Elements<SheetData>().First();
 
         var daftarSiswa = await _siswaRepository.GetAll(vm.Jurusan, vm.Tahun, vm.IdKelas);
 
-        int jumlahSiswaBaru = 0;
         int jumlahNilaiDiupdate = 0;
+        int jumlahSiswaDitemukan = 0;
+        int jumlahSiswaTidakDitemukan = 0;
 
-        var mapelUmumCellRef = sheetData
-            .Descendants<Cell>()
-            .FirstOrDefault(x => HelperFunctions.GetCellValues(x, sharedStrings).Trim().ToLower() == "mapel umum")?
-            .CellReference?.Value;
+        // ================= VALIDASI KOLOM C = NISN =================
+        var headerRows = sheetData.Elements<Row>()
+            .Where(r => r.RowIndex >= 4 && r.RowIndex <= 7);
 
-        if (mapelUmumCellRef is null)
+        bool nisnValid = false;
+
+        foreach (var row in headerRows)
         {
-            _notificationService.AddError("Tidak ada kolom Mapel Umum", "Import");
+            var cellC = row.Elements<Cell>()
+                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith("C"));
+
+            if (cellC is null) continue;
+
+            var value = Normalize(HelperFunctions.GetCellValues(cellC, sharedStrings));
+
+            if (value.Contains("nisn"))
+            {
+                nisnValid = true;
+                break;
+            }
+        }
+
+        if (!nisnValid)
+        {
+            _notificationService.AddError("Format salah: Kolom C harus berisi NISN", "Import");
             return RedirectPermanent(returnUrl);
         }
 
-        var match = Regex.Match(mapelUmumCellRef, @"(?<kolom>[A-Z]*)[1-2]*");
-        mapelUmumCellRef = match.Groups["kolom"].Value;
+        // ================= AMBIL KOLOM MAPEL =================
+        var mapelUmumCol = FindColumnByHeader(sheetData, sharedStrings, "mapel umum", 4, 7);
+        var mapelKejuruanCol = FindColumnByHeader(sheetData, sharedStrings, "mapel kejuruan", 4, 7);
 
-        var mapelKejuruanCellRef = sheetData
-            .Descendants<Cell>()
-            .FirstOrDefault(x => HelperFunctions.GetCellValues(x, sharedStrings).ToLower() == "mapel kejuruan")?
-            .CellReference?.Value;
-
-        if (mapelKejuruanCellRef is null)
+        if (mapelUmumCol is null || mapelKejuruanCol is null)
         {
-            _notificationService.AddError("Tidak ada kolom Mapel Kejuruan", "Import");
+            _notificationService.AddError("Kolom Mapel tidak ditemukan", "Import");
             return RedirectPermanent(returnUrl);
         }
 
-        match = Regex.Match(mapelKejuruanCellRef, @"(?<kolom>[A-Z]*)[1-2]*");
-        mapelKejuruanCellRef = match.Groups["kolom"].Value;
-
-        foreach (var row in sheetData.Elements<Row>().Skip(7))
+        // ================= LOOP DATA =================
+        foreach (var row in sheetData.Elements<Row>().Where(r => r.RowIndex > 7))
         {
-            var nisnCell = row.Elements<Cell>().FirstOrDefault(x => x.CellReference!.Value!.StartsWith("C"));
+            var nisnCell = row.Elements<Cell>()
+                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith("C"));
+
             if (nisnCell is null) continue;
 
             var nisn = HelperFunctions.GetCellValues(nisnCell, sharedStrings);
             if (string.IsNullOrWhiteSpace(nisn)) continue;
 
+            if (!nisn.All(char.IsDigit)) continue;
+
             var siswa = daftarSiswa.FirstOrDefault(x => x.NISN == nisn);
 
-            // ================= TAMBAH SISWA =================
             if (siswa is null)
             {
-                var namaCell = row.Elements<Cell>().FirstOrDefault(x => x.CellReference!.Value!.StartsWith("B"));
-                if (namaCell is null) continue;
+                jumlahSiswaTidakDitemukan++;
+                continue;
+            }
 
-                var nama = HelperFunctions.GetCellValues(namaCell, sharedStrings);
-                if (string.IsNullOrWhiteSpace(nama) || await _siswaRepository.IsExist(nisn)) continue;
+            jumlahSiswaDitemukan++;
 
-                siswa = new Siswa
+            // ===== MAPEL UMUM =====
+            var mapelUmumCell = row.Elements<Cell>()
+                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith(mapelUmumCol));
+
+            if (mapelUmumCell != null)
+            {
+                var value = HelperFunctions.GetCellValues(mapelUmumCell, sharedStrings);
+
+                if (double.TryParse(value, CultureInfo.InvariantCulture, out var nilai))
                 {
-                    NISN = nisn,
-                    Nama = nama,
-                    Jurusan = vm.Jurusan,
-                    TahunAjaran = tahunAjaran,
-                    Kelas = kelas
-                };
+                    var data = siswa.DaftarSiswaKriteria
+                        .FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.MPUmum);
 
-                _siswaRepository.Add(siswa);
-                daftarSiswa.Add(siswa);
-                jumlahSiswaBaru++;
+                    if (data is null)
+                    {
+                        _siswaKriteriaRepository.Add(new SiswaKriteria
+                        {
+                            Siswa = siswa,
+                            IdKriteria = (int)KriteriaEnum.MPUmum,
+                            Nilai = nilai
+                        });
+
+                        jumlahNilaiDiupdate++;
+                    }
+                    else if (data.Nilai != nilai)
+                    {
+                        data.Nilai = nilai;
+                        jumlahNilaiDiupdate++;
+                    }
+                }
             }
 
-            // ================= MAPEL UMUM =================
-            var mapelUmumCell = row.Elements<Cell>().FirstOrDefault(x => x.CellReference!.Value!.StartsWith(mapelUmumCellRef));
-            if (mapelUmumCell is null) continue;
+            // ===== MAPEL KEJURUAN =====
+            var mapelKejuruanCell = row.Elements<Cell>()
+                .FirstOrDefault(x => x.CellReference!.Value!.StartsWith(mapelKejuruanCol));
 
-            var mapelUmumString = HelperFunctions.GetCellValues(mapelUmumCell, sharedStrings);
-            if (!double.TryParse(mapelUmumString, CultureInfo.InvariantCulture, out var mapelUmum)) continue;
-
-            var siswaKriteriaMPUmum = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.MPUmum);
-            if (siswaKriteriaMPUmum is null)
+            if (mapelKejuruanCell != null)
             {
-                siswaKriteriaMPUmum = new SiswaKriteria
+                var value = HelperFunctions.GetCellValues(mapelKejuruanCell, sharedStrings);
+
+                if (double.TryParse(value, CultureInfo.InvariantCulture, out var nilai))
                 {
-                    Siswa = siswa,
-                    IdKriteria = (int)KriteriaEnum.MPUmum,
-                    Nilai = mapelUmum
-                };
+                    var data = siswa.DaftarSiswaKriteria
+                        .FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.MPKejuruan);
 
-                _siswaKriteriaRepository.Add(siswaKriteriaMPUmum);
+                    if (data is null)
+                    {
+                        _siswaKriteriaRepository.Add(new SiswaKriteria
+                        {
+                            Siswa = siswa,
+                            IdKriteria = (int)KriteriaEnum.MPKejuruan,
+                            Nilai = nilai
+                        });
+
+                        jumlahNilaiDiupdate++;
+                    }
+                    else if (data.Nilai != nilai)
+                    {
+                        data.Nilai = nilai;
+                        jumlahNilaiDiupdate++;
+                    }
+                }
             }
-            else if (siswaKriteriaMPUmum.Nilai != mapelUmum)
-            {
-                siswaKriteriaMPUmum.Nilai = mapelUmum;
-                jumlahNilaiDiupdate++;
-            }
+        }
 
-            // ================= MAPEL KEJURUAN =================
-            var mapelKejuruanCell = row.Elements<Cell>().FirstOrDefault(x => x.CellReference!.Value!.StartsWith(mapelKejuruanCellRef));
-            if (mapelKejuruanCell is null) continue;
+        // ================= VALIDASI FINAL =================
+        if (jumlahSiswaDitemukan == 0)
+        {
+            _notificationService.AddError(
+                "NISN siswa tidak ditemukan, silakan tambah siswa di Data Siswa",
+                "Import");
 
-            var mapelKejuruanString = HelperFunctions.GetCellValues(mapelKejuruanCell, sharedStrings);
-            if (!double.TryParse(mapelKejuruanString, CultureInfo.InvariantCulture, out var mapelKejuruan)) continue;
-
-            var siswaKriteriaMPKejuruan = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.MPKejuruan);
-            if (siswaKriteriaMPKejuruan is null)
-            {
-                siswaKriteriaMPKejuruan = new SiswaKriteria
-                {
-                    Siswa = siswa,
-                    IdKriteria = (int)KriteriaEnum.MPKejuruan,
-                    Nilai = mapelKejuruan
-                };
-
-                _siswaKriteriaRepository.Add(siswaKriteriaMPKejuruan);
-            }
-            else if (siswaKriteriaMPKejuruan.Nilai != mapelKejuruan)
-            {
-                siswaKriteriaMPKejuruan.Nilai = mapelKejuruan;
-                jumlahNilaiDiupdate++;
-            }
+            return RedirectPermanent(returnUrl);
         }
 
         var result = await _unitOfWork.SaveChangesAsync();
 
+        // ================= TOASTR =================
         if (result.IsSuccess)
         {
-            if (jumlahSiswaBaru == 0 && jumlahNilaiDiupdate == 0)
+            if (jumlahNilaiDiupdate == 0)
             {
-                _notificationService.AddWarning("Import berhasil, tetapi tidak ada perubahan data", "Import");
+                _notificationService.AddWarning(
+                    "Import berhasil, tetapi tidak ada perubahan nilai",
+                    "Import");
             }
             else
             {
                 _notificationService.AddSuccess(
-                    $"Import berhasil. {jumlahSiswaBaru} siswa baru, {jumlahNilaiDiupdate} nilai diperbarui",
+                    $"Import berhasil. {jumlahNilaiDiupdate} data diperbarui",
                     "Import");
             }
         }
@@ -384,6 +412,38 @@ public class MataPelajaranController : Controller
         }
 
         return RedirectPermanent(returnUrl);
+    }
+
+    // ============= HELPER ============
+    public static string Normalize(string text)
+    {
+        return Regex.Replace((text ?? "").ToLower(), @"[^a-z0-9]", "");
+    }
+
+    private string? FindColumnByHeader(
+    SheetData sheetData,
+    List<string> sharedStrings,
+    string keyword,
+    int startRow,
+    int endRow)
+    {
+        var normalizedKeyword = Normalize(keyword);
+
+        foreach (var row in sheetData.Elements<Row>()
+                                    .Where(r => r.RowIndex >= startRow && r.RowIndex <= endRow))
+        {
+            foreach (var cell in row.Elements<Cell>())
+            {
+                var value = Normalize(HelperFunctions.GetCellValues(cell, sharedStrings));
+
+                if (value.Contains(normalizedKeyword))
+                {
+                    return Regex.Match(cell.CellReference!.Value!, @"[A-Z]+").Value;
+                }
+            }
+        }
+
+        return null;
     }
 
     public async Task<IActionResult> PDF(int tahun, Jurusan jurusan, int? idKelas = null)

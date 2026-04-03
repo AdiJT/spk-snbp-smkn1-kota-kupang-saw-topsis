@@ -99,7 +99,7 @@ public class PerhitunganController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Hitung(Jurusan jurusan, int tahun, int? idKelas = null)
+    public async Task<IActionResult> Hitung(Jurusan jurusan, int tahun)
     {
         var tahunAjaran = await _tahunAjaranRepository.Get(tahun);
         if (tahunAjaran is null)
@@ -108,14 +108,14 @@ public class PerhitunganController : Controller
             return RedirectToAction(nameof(Index), new { jurusan });
         }
 
-        var result = await _topsisSAWService.Perhitungan(tahun, jurusan, idKelas);
+        var result = await _topsisSAWService.Perhitungan(tahun, jurusan);
 
         if (result.IsSuccess)
             _notificationService.AddSuccess("Perhitungan Sukses");
         else
             _notificationService.AddError(result.Error.Message, "Perhitungan Gagal");
 
-        return RedirectToActionPermanent(nameof(Index), new { jurusan, tahun, idKelas });
+        return RedirectToActionPermanent(nameof(Index), new { jurusan, tahun });
     }
 
     public async Task<IActionResult> PDF(int tahun, Jurusan jurusan, int? idKelas = null)
