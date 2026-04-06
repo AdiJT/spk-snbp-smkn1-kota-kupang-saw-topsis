@@ -8,7 +8,7 @@
 @{
     ViewData["Title"] = "Siswa";
     var daftarTahun = await TahunAjaranRepository.GetAll();
-    var daftarKriteria = await KriteriaRepository.GetAll();
+    var daftarKriteria = await KriteriaRepository.GetAllActive();
     var daftarKelas = await KelasRepository.GetAll();
 }
 

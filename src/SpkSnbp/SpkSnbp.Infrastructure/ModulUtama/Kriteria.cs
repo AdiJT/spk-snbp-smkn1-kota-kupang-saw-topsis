@@ -23,42 +23,54 @@ internal class KriteriaConfiguration : IEntityTypeConfiguration<Kriteria>
                 Id = (int)KriteriaEnum.MPKejuruan,
                 Nama = "Mata Pelajaran Kejuruan",
                 Bobot = 5,
-                Jenis = JenisKriteria.Benefit
+                Jenis = JenisKriteria.Benefit,
+                IsDefault = true,
+                Active = true
             },
             new Kriteria
             {
                 Id = (int)KriteriaEnum.MPUmum,
                 Nama = "Mata Pelajaran Umum",
                 Bobot = 4,
-                Jenis = JenisKriteria.Benefit
+                Jenis = JenisKriteria.Benefit,
+                IsDefault = true,
+                Active = true
             },
             new Kriteria
             {
                 Id = (int)KriteriaEnum.SertLSP,
                 Nama = "Sertifikat LSP",
                 Bobot = 4,
-                Jenis = JenisKriteria.Benefit
+                Jenis = JenisKriteria.Benefit,
+                IsDefault = true,
+                Active = true
             },
             new Kriteria
             {
                 Id = (int)KriteriaEnum.SertTKA,
                 Nama = "Sertifikat TKA",
                 Bobot = 3,
-                Jenis = JenisKriteria.Benefit
+                Jenis = JenisKriteria.Benefit,
+                IsDefault = true,
+                Active = true
             },
             new Kriteria
             {
                 Id = (int)KriteriaEnum.Ekstrakulikuler,
                 Nama = "Ekstrakurikuler",
                 Bobot = 2,
-                Jenis = JenisKriteria.Benefit
+                Jenis = JenisKriteria.Benefit,
+                IsDefault = true,
+                Active = true
             },
             new Kriteria
             {
                 Id = (int)KriteriaEnum.Absensi,
                 Nama = "Absensi",
                 Bobot = 1,
-                Jenis = JenisKriteria.Cost
+                Jenis = JenisKriteria.Cost,
+                IsDefault = true,
+                Active = true
             }
         );
     }
@@ -73,6 +85,10 @@ internal class KriteriaRepository : IKriteriaRepository
         _appDbContext = appDbContext;
     }
 
+    public void Add(Kriteria kriteria) => _appDbContext.Kriteria.Add(kriteria);
+
+    public void Delete(Kriteria kriteria) => _appDbContext.Kriteria.Remove(kriteria);
+
     public async Task<Kriteria?> Get(int id) => await _appDbContext
         .Kriteria
         .FirstOrDefaultAsync(x => x.Id == id);
@@ -81,6 +97,16 @@ internal class KriteriaRepository : IKriteriaRepository
         .Kriteria
         .OrderBy(x => x.Id)
         .ToListAsync();
+
+    public async Task<List<Kriteria>> GetAllActive() => await _appDbContext
+        .Kriteria
+        .Where(x => x.Active)
+        .OrderBy(x => x.Id)
+        .ToListAsync();
+
+    public async Task<bool> IsExist(string nama, int? id = default) => await _appDbContext
+        .Kriteria
+        .AnyAsync(x => x.Id != id && x.Nama.ToLower() == nama.ToLower());
 
     public void Update(Kriteria kriteria) => _appDbContext.Kriteria.Update(kriteria);
 }

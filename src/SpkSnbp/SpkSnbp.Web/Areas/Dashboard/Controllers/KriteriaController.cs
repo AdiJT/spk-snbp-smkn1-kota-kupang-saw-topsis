@@ -7,6 +7,7 @@ using Razor.Templating.Core;
 using SpkSnbp.Domain.Auth;
 using SpkSnbp.Domain.Contracts;
 using SpkSnbp.Domain.ModulUtama;
+using SpkSnbp.Domain.Shared;
 using SpkSnbp.Web.Areas.Dashboard.Models.KriteriaModels;
 using SpkSnbp.Web.Services.PDFGenerator;
 using SpkSnbp.Web.Services.Toastr;
@@ -40,6 +41,42 @@ public class KriteriaController : Controller
     public async Task<IActionResult> Index() => View(await _kriteriaRepository.GetAll());
 
     [HttpPost]
+    public async Task<IActionResult> Tambah(TambahVM vm)
+    {
+        var returnUrl = vm.ReturnUrl ?? Url.ActionLink(nameof(Index))!;
+
+        if (!ModelState.IsValid)
+        {
+            _notificationService.AddError("Data tidak valid", "Tambah");
+            return RedirectPermanent(returnUrl);
+        }
+
+        if (await _kriteriaRepository.IsExist(vm.Nama))
+        {
+            _notificationService.AddError($"Nama sudah digunakan!", "Tambah");
+            return RedirectPermanent(returnUrl);
+        }
+
+        var kriteria = new Kriteria
+        {
+            Nama = vm.Nama,
+            Jenis = vm.Jenis,
+            Bobot = vm.Bobot,
+            IsDefault = false,
+            Active = true,
+        };
+
+        _kriteriaRepository.Add(kriteria);
+        var result = await _unitOfWork.SaveChangesAsync();
+        if (result.IsSuccess)
+            _notificationService.AddSuccess("Simpan Berhasil", "Tambah");
+        else
+            _notificationService.AddError("Simpan Gagal", "Tambah");
+
+        return RedirectPermanent(returnUrl);
+    }
+
+    [HttpPost]
     public async Task<IActionResult> Edit(EditVM vm)
     {
         var returnUrl = vm.ReturnUrl ?? Url.ActionLink(nameof(Index))!;
@@ -57,6 +94,12 @@ public class KriteriaController : Controller
             return RedirectPermanent(returnUrl);
         }
 
+        if (await _kriteriaRepository.IsExist(vm.Nama, vm.Id))
+        {
+            _notificationService.AddError($"Nama sudah digunakan!", "Edit");
+            return RedirectPermanent(returnUrl);
+        }
+
         kriteria.Bobot = vm.Bobot;
         kriteria.Jenis = vm.Jenis;
 
@@ -69,9 +112,60 @@ public class KriteriaController : Controller
         return RedirectPermanent(returnUrl);
     }
 
+    [HttpPost]
+    public async Task<IActionResult> Hapus(int id, string? returnUrl = default)
+    {
+        returnUrl ??= Url.ActionLink(nameof(Index))!;
+
+        var kriteria = await _kriteriaRepository.Get(id);
+        if (kriteria is null)
+        {
+            _notificationService.AddError("Kriteria tidak ditemukan", "Hapus");
+            return RedirectPermanent(returnUrl);
+        }
+
+        if (kriteria.IsDefault)
+        {
+            _notificationService.AddError("Kriteria Default tidak dapat dihapus!");
+            return RedirectPermanent(returnUrl);
+        }
+
+        _kriteriaRepository.Delete(kriteria);
+        var result = await _unitOfWork.SaveChangesAsync();
+        if (result.IsSuccess)
+            _notificationService.AddSuccess("Simpan Berhasil", "Hapus");
+        else
+            _notificationService.AddError("Simpan Gagal", "Hapus");
+
+        return RedirectPermanent(returnUrl);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> SwitchActive(int id, string? returnUrl = default)
+    {
+         returnUrl ??= Url.ActionLink(nameof(Index))!;
+
+        var kriteria = await _kriteriaRepository.Get(id);
+        if (kriteria is null)
+        {
+            _notificationService.AddError("Kriteria tidak ditemukan");
+            return RedirectPermanent(returnUrl);
+        }
+
+        kriteria.Active = !kriteria.Active;
+
+        var result = await _unitOfWork.SaveChangesAsync();
+        if (result.IsSuccess)
+            _notificationService.AddSuccess("Berhasil");
+        else
+            _notificationService.AddError("Gagal");
+
+        return RedirectPermanent(returnUrl);
+    }
+
     public async Task<IActionResult> PDF()
     {
-        var daftarKriteria = await _kriteriaRepository.GetAll();
+        var daftarKriteria = await _kriteriaRepository.GetAllActive();
 
         var html = await _templateEngine.RenderAsync("Areas/Dashboard/Views/Kriteria/PDF.cshtml", daftarKriteria);
 
@@ -87,7 +181,7 @@ public class KriteriaController : Controller
 
     public async Task<IActionResult> Excel()
     {
-        var daftarKriteria = await _kriteriaRepository.GetAll();
+        var daftarKriteria = await _kriteriaRepository.GetAllActive();
 
         using var memoryStream = new MemoryStream();
         using var spreadSheet = SpreadsheetDocument.Create(memoryStream, DocumentFormat.OpenXml.SpreadsheetDocumentType.Workbook);

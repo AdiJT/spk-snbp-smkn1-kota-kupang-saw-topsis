@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SpkSnbp.Infrastructure.Database;
@@ -11,9 +12,11 @@ using SpkSnbp.Infrastructure.Database;
 namespace SpkSnbp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260405091439_TambahKriteria")]
+    partial class TambahKriteria
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -292,9 +295,6 @@ namespace SpkSnbp.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("Active")
-                        .HasColumnType("boolean");
-
                     b.Property<int>("Bobot")
                         .HasColumnType("integer");
 
@@ -316,7 +316,6 @@ namespace SpkSnbp.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            Active = true,
                             Bobot = 5,
                             IsDefault = true,
                             Jenis = 0,
@@ -325,7 +324,6 @@ namespace SpkSnbp.Infrastructure.Migrations
                         new
                         {
                             Id = 2,
-                            Active = true,
                             Bobot = 4,
                             IsDefault = true,
                             Jenis = 0,
@@ -334,7 +332,6 @@ namespace SpkSnbp.Infrastructure.Migrations
                         new
                         {
                             Id = 3,
-                            Active = true,
                             Bobot = 4,
                             IsDefault = true,
                             Jenis = 0,
@@ -343,7 +340,6 @@ namespace SpkSnbp.Infrastructure.Migrations
                         new
                         {
                             Id = 4,
-                            Active = true,
                             Bobot = 3,
                             IsDefault = true,
                             Jenis = 0,
@@ -352,7 +348,6 @@ namespace SpkSnbp.Infrastructure.Migrations
                         new
                         {
                             Id = 5,
-                            Active = true,
                             Bobot = 2,
                             IsDefault = true,
                             Jenis = 0,
@@ -361,7 +356,6 @@ namespace SpkSnbp.Infrastructure.Migrations
                         new
                         {
                             Id = 6,
-                            Active = true,
                             Bobot = 1,
                             IsDefault = true,
                             Jenis = 1,

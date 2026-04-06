@@ -3,22 +3,20 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SpkSnbp.Web.Areas.Dashboard.Models.KriteriaModels;
 
-public class EditVM
+public class TambahVM
 {
-    public required int Id { get; set; }
-
     [Display(Name = "Nama")]
     [Required(ErrorMessage = "{0} harus diisi")]
-    public required string Nama { get; set; }
+    public string Nama { get; set; } = string.Empty;
 
     [Display(Name = "Bobot")]
     [Required(ErrorMessage = "{0} harus diisi")]
     [Range(1, int.MaxValue, ErrorMessage = "{0} harus lebih besar dari {1}")]
-    public required int Bobot { get; set; }
+    public int Bobot { get; set; }
 
     [Display(Name = "Jenis")]
     [Required(ErrorMessage = "{0} harus diisi")]
-    public required JenisKriteria Jenis { get; set; }
+    public JenisKriteria Jenis { get; set; }
 
     public string? ReturnUrl { get; set; }
 }

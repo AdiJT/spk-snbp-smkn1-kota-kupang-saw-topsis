@@ -8,6 +8,8 @@ public class Kriteria : Entity<int>
     public required string Nama { get; set; }
     public required int Bobot { get; set; }
     public required JenisKriteria Jenis { get; set; }
+    public required bool IsDefault { get; set; }
+    public required bool Active { get; set; }
 
     public string Kode => $"C{Id}";
 
@@ -19,7 +21,11 @@ public interface IKriteriaRepository
 {
     Task<Kriteria?> Get(int id);
     Task<List<Kriteria>> GetAll();
+    Task<List<Kriteria>> GetAllActive();
+    Task<bool> IsExist(string nama, int? id = default);
 
+    void Add(Kriteria kriteria);
+    void Delete(Kriteria kriteria);
     void Update(Kriteria kriteria);
 }
 

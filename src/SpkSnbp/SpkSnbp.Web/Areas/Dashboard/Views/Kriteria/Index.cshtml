@@ -38,6 +38,12 @@
                 </a>
             </div>
 
+            <button class="btn-tambah btn btn-primary btn-action">
+                Tambah
+            </button>
+            <div class="form-tambah">
+                <partial name="_FormTambahPartial" model="@(new TambahVM { ReturnUrl = Context.Request.AbsoluteUri() })" />
+            </div>
         </div>
         <!-- Tabel -->
         <div class="table-responsive">
@@ -47,6 +53,7 @@
                         <th>Kode</th>
                         <th>Nama</th>
                         <th>Bobot</th>
+                        <th>Aktif</th>
                         <th>Jenis</th>
                         <th style="min-width: 130px">Aksi</th>
                     </tr>
@@ -58,6 +65,22 @@
                             <td>@kriteria.Kode</td>
                             <td>@kriteria.Nama</td>
                             <td>@kriteria.Bobot</td>
+                            <td>
+                                <form asp-action="SwitchActive" asp-route-id="@kriteria.Id" asp-route-returnUrl="@Context.Request.AbsoluteUri()" style="display:inline" method="post">
+                                    @if (kriteria.Active)
+                                    {
+                                        <button type="submit" class="btn btn-success btn-action">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="btn btn-danger btn-action">
+                                            X
+                                        </button>
+                                    }
+                                </form>
+                            </td>
                             <td>@kriteria.Jenis.Humanize()</td>
                             <td>
                                 <button class="btn-edit btn btn-primary btn-action">
@@ -65,10 +88,18 @@
                                 </button>
                                 <div class="form-edit">
                                     @{
-                                        var modelEdit = new EditVM { Id = kriteria.Id, Bobot = kriteria.Bobot, Jenis = kriteria.Jenis };
+                                        var modelEdit = new EditVM { Id = kriteria.Id, Nama = kriteria.Nama, Bobot = kriteria.Bobot, Jenis = kriteria.Jenis, ReturnUrl = Context.Request.AbsoluteUri() };
                                     }
-                                    <partial name="_FormEditPartial" model="@modelEdit"/>
+                                    <partial name="_FormEditPartial" model="@modelEdit" />
                                 </div>
+                                @if (!kriteria.IsDefault)
+                                {
+                                    <form asp-action="Hapus" asp-route-id="@kriteria.Id" asp-route-returnUrl="@Context.Request.AbsoluteUri()" style="display:inline" method="post">
+                                        <button type="button" class="btn btn-danger btn-action swal-confirm">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                }
                             </td>
                         </tr>
                     }

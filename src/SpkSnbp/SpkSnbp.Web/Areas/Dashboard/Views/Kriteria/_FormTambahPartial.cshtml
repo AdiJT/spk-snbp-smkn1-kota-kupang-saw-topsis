@@ -1,10 +1,10 @@
 ﻿@using SpkSnbp.Web.Areas.Dashboard.Models.KriteriaModels
 
-@model EditVM
+@model TambahVM
 
-<form asp-action="Edit" asp-controller="Kriteria" asp-route-id="@Model.Id" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+<form asp-action="Tambah" asp-controller="Kriteria" asp-route-returnUrl="@Model.ReturnUrl" method="post">
     <div class="modal-header">
-        <h5 class="modal-title" id="modalTambahTitle">Edit Kriteria</h5>
+        <h5 class="modal-title" id="modalTambahTitle">Tambah Kriteria</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
