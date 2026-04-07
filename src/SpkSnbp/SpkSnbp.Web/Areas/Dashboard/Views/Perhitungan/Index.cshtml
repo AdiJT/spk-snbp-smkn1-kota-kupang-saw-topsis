@@ -165,8 +165,7 @@
                     Perhitungan hanya dapat dilakukan jika setiap data kriteria siswa lengkap!
                     @if (await SignInManager.IsInRole(UserRoles.Admin) == false)
                     {
-                        @("Hubungi Admin untuk melengkapi data kriteria siswa")
-                        ;
+                        @("Hubungi Admin untuk melengkapi data kriteria siswa");
                     }
                 </p>
             </div>
@@ -206,24 +205,22 @@
                                 <td>@item.NISN</td>
                                 @if (item.NilaiTopsis is not null)
                                 {
-                                    @* <td>@rank</td> *@
                                     <td>@item.NilaiTopsis?.ToString("F3")</td>
                                     rank++;
                                 }
                                 else
                                 {
-                                    @* <td>-</td> *@
                                     <td>-</td>
                                 }
                                 @foreach (var kriteria in daftarKriteria)
                                 {
-                                    var siswaKriteria = item.DaftarSiswaKriteria
-                                    .FirstOrDefault(x => x.Kriteria == kriteria);
+                                    var siswaKriteria = item.DaftarSiswaKriteria.FirstOrDefault(x => x.Kriteria == kriteria);
 
                                     if (siswaKriteria is not null)
                                     {
                                         if (kriteria.Kode == "C1" || kriteria.Kode == "C2")
                                         {
+                                            <td>@siswaKriteria.Nilai.ToString("F2")</td>
                                         }
                                         else if (kriteria.IsDefault)
                                         {
