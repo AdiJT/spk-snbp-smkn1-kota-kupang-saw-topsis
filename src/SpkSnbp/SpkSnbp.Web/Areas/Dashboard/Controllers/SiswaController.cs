@@ -657,6 +657,7 @@ public class SiswaController : Controller
         if (idKelas is not null && kelas is null)
         {
             _notificationService.AddError($"Kelas dengan Id {idKelas} tidak ditemukan", "Download Format");
+            return RedirectToAction(nameof(Index), new { tahun, jurusan, idKelas });
         }
 
         var informasiSekolah = await _informasiSekolahRepository.Get();
