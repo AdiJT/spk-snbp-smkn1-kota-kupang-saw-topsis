@@ -115,7 +115,6 @@ public class KelasController : Controller
         return RedirectToActionPermanent(nameof(Index));
     }
 
-
     public async Task<IActionResult> PDF()
     {
         var daftarKelas = await _kelasRepository.GetAll();

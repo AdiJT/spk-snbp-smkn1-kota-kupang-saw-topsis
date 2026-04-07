@@ -36,6 +36,7 @@ public class SiswaController : Controller
     private readonly IKelasRepository _kelasRepository;
     private readonly IWebHostEnvironment _webHostEnvironment;
     private readonly IInformasiSekolahRepository _informasiSekolahRepository;
+    private readonly IHasilPerhitunganRepository _hasilPerhitunganRepository;
 
     public SiswaController(
         ISiswaRepository siswaRepository,
@@ -49,7 +50,8 @@ public class SiswaController : Controller
         IKriteriaRepository kriteriaRepository,
         IKelasRepository kelasRepository,
         IWebHostEnvironment webHostEnvironment,
-        IInformasiSekolahRepository informasiSekolahRepository)
+        IInformasiSekolahRepository informasiSekolahRepository,
+        IHasilPerhitunganRepository hasilPerhitunganRepository)
     {
         _siswaRepository = siswaRepository;
         _unitOfWork = unitOfWork;
@@ -63,6 +65,7 @@ public class SiswaController : Controller
         _kelasRepository = kelasRepository;
         _webHostEnvironment = webHostEnvironment;
         _informasiSekolahRepository = informasiSekolahRepository;
+        _hasilPerhitunganRepository = hasilPerhitunganRepository;
     }
 
     public async Task<IActionResult> Index(Jurusan? jurusan = null, int? tahun = null, int? idKelas = null, bool first = true)
@@ -147,7 +150,10 @@ public class SiswaController : Controller
         _siswaRepository.Add(siswa);
         var result = await _unitOfWork.SaveChangesAsync();
         if (result.IsSuccess)
+        {
             _notificationService.AddSuccess("Simpan Berhasil", "Tambah");
+            await _hasilPerhitunganRepository.DeleteAll();
+        }
         else
             _notificationService.AddError("Simpan Gagal", "Tambah");
 
@@ -222,7 +228,10 @@ public class SiswaController : Controller
         _siswaRepository.Delete(siswa);
         var result = await _unitOfWork.SaveChangesAsync();
         if (result.IsSuccess)
+        {
             _notificationService.AddSuccess("Simpan Berhasil", "Hapus");
+            await _hasilPerhitunganRepository.DeleteAll();
+        }
         else
             _notificationService.AddError("Simpan Gagal", "Hapus");
 
@@ -327,9 +336,13 @@ public class SiswaController : Controller
 
         var result = await _unitOfWork.SaveChangesAsync();
 
-        if (result.IsSuccess) 
+        if (result.IsSuccess)
             if (jumlahImport == 0) _notificationService.AddWarning("Import berhasil, tetapi tidak ada data baru yang ditambahkan", "Import");
-            else _notificationService.AddSuccess($"Import berhasil. {jumlahImport} data berhasil ditambahkan", "Import");
+            else
+            { 
+                _notificationService.AddSuccess($"Import berhasil. {jumlahImport} data berhasil ditambahkan", "Import");
+                await _hasilPerhitunganRepository.DeleteAll();
+            }
         else _notificationService.AddError("Import Gagal", "Import");
 
         return RedirectPermanent(returnUrl);

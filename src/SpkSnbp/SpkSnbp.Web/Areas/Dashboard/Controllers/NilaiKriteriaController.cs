@@ -38,6 +38,7 @@ public class NilaiKriteriaController : Controller
     private readonly IKelasRepository _kelasRepository;
     private readonly IInformasiSekolahRepository _informasiSekolahRepository;
     private readonly IWebHostEnvironment _webHostEnvironment;
+    private readonly IHasilPerhitunganRepository _hasilPerhitunganRepository;
 
     public NilaiKriteriaController(
         ISiswaRepository siswaRepository,
@@ -52,7 +53,8 @@ public class NilaiKriteriaController : Controller
         IPDFGeneratorService pDFGeneratorService,
         IKelasRepository kelasRepository,
         IInformasiSekolahRepository informasiSekolahRepository,
-        IWebHostEnvironment webHostEnvironment)
+        IWebHostEnvironment webHostEnvironment,
+        IHasilPerhitunganRepository hasilPerhitunganRepository)
     {
         _siswaRepository = siswaRepository;
         _kriteriaRepository = kriteriaRepository;
@@ -67,6 +69,7 @@ public class NilaiKriteriaController : Controller
         _kelasRepository = kelasRepository;
         _informasiSekolahRepository = informasiSekolahRepository;
         _webHostEnvironment = webHostEnvironment;
+        _hasilPerhitunganRepository = hasilPerhitunganRepository;
     }
 
     public async Task<IActionResult> Index(
@@ -167,7 +170,10 @@ public class NilaiKriteriaController : Controller
 
         var result = await _unitOfWork.SaveChangesAsync();
         if (result.IsSuccess)
+        {
             _notificationService.AddSuccess("Simpan Berhasil");
+            await _hasilPerhitunganRepository.DeleteAll();
+        }
         else
             _notificationService.AddError("Simpan Gagal");
 
@@ -203,7 +209,10 @@ public class NilaiKriteriaController : Controller
 
         var result = await _unitOfWork.SaveChangesAsync();
         if (result.IsSuccess)
+        {
             _notificationService.AddSuccess("Reset Berhasil!");
+            await _hasilPerhitunganRepository.DeleteAll();
+        }
         else
             _notificationService.AddError("Reset Gagal!");
 
@@ -460,9 +469,12 @@ public class NilaiKriteriaController : Controller
                     "Import berhasil, tetapi tidak ada perubahan data",
                     "Import");
             else
+            {
                 _notificationService.AddSuccess(
                     $"Import berhasil. {jumlahDiproses} data diperbarui",
                     "Import");
+                await _hasilPerhitunganRepository.DeleteAll();
+            }
         else _notificationService.AddError("Import Gagal", "Import");
 
         return RedirectPermanent(returnUrl);

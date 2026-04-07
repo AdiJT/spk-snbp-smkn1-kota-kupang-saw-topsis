@@ -25,4 +25,5 @@ public interface IHasilPerhitunganRepository
     Task<HasilPerhitungan?> Get(int tahun, Jurusan jurusan);
     void Add(HasilPerhitungan hasilPerhitungan);
     void Delete(HasilPerhitungan hasilPerhitungan);
+    Task DeleteAll();
 }

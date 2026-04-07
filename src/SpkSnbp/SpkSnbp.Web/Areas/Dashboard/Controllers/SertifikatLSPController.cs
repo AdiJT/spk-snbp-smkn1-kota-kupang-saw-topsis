@@ -33,6 +33,7 @@ public class SertifikatLSPController : Controller
     private readonly IRazorTemplateEngine _templateEngine;
     private readonly IPDFGeneratorService _pDFGeneratorService;
     private readonly IKelasRepository _kelasRepository;
+    private readonly IHasilPerhitunganRepository _hasilPerhitunganRepository;
 
     public SertifikatLSPController(
         ISiswaRepository siswaRepository,
@@ -45,7 +46,8 @@ public class SertifikatLSPController : Controller
         ITempDataDictionaryFactory tempDataDictionaryFactory,
         IRazorTemplateEngine templateEngine,
         IPDFGeneratorService pDFGeneratorService,
-        IKelasRepository kelasRepository)
+        IKelasRepository kelasRepository,
+        IHasilPerhitunganRepository hasilPerhitunganRepository)
     {
         _siswaRepository = siswaRepository;
         _kriteriaRepository = kriteriaRepository;
@@ -58,6 +60,7 @@ public class SertifikatLSPController : Controller
         _templateEngine = templateEngine;
         _pDFGeneratorService = pDFGeneratorService;
         _kelasRepository = kelasRepository;
+        _hasilPerhitunganRepository = hasilPerhitunganRepository;
     }
 
     public async Task<IActionResult> Index(Jurusan jurusan = Jurusan.TJKT, int? tahun = null, int? idKelas = null, bool first = true)
@@ -129,7 +132,10 @@ public class SertifikatLSPController : Controller
 
         var result = await _unitOfWork.SaveChangesAsync();
         if (result.IsSuccess)
+        {
             _notificationService.AddSuccess("Simpan Berhasil");
+            await _hasilPerhitunganRepository.DeleteAll();
+        }
         else
             _notificationService.AddError("Simpan Gagal");
 
@@ -155,7 +161,10 @@ public class SertifikatLSPController : Controller
 
         var result = await _unitOfWork.SaveChangesAsync();
         if (result.IsSuccess)
+        {
             _notificationService.AddSuccess("Reset Berhasil!");
+            await _hasilPerhitunganRepository.DeleteAll();
+        }
         else
             _notificationService.AddSuccess("Reset Gagal!");
 
@@ -342,6 +351,8 @@ public class SertifikatLSPController : Controller
                 _notificationService.AddSuccess(
                     $"Import berhasil. {jumlahDiproses} data diperbarui",
                     "Import");
+
+                await _hasilPerhitunganRepository.DeleteAll();
             }
         }
         else

@@ -32,6 +32,7 @@ public class EkstrakulikulerController : Controller
     private readonly IRazorTemplateEngine _templateEngine;
     private readonly IPDFGeneratorService _pDFGeneratorService;
     private readonly IKelasRepository _kelasRepository;
+    private readonly IHasilPerhitunganRepository _hasilPerhitunganRepository;
 
     public EkstrakulikulerController(
         ISiswaRepository siswaRepository,
@@ -43,7 +44,8 @@ public class EkstrakulikulerController : Controller
         ITempDataDictionaryFactory tempDataDictionaryFactory,
         IRazorTemplateEngine templateEngine,
         IPDFGeneratorService pDFGeneratorService,
-        IKelasRepository kelasRepository)
+        IKelasRepository kelasRepository,
+        IHasilPerhitunganRepository hasilPerhitunganRepository)
     {
         _siswaRepository = siswaRepository;
         _tahunAjaranRepository = tahunAjaranRepository;
@@ -55,6 +57,7 @@ public class EkstrakulikulerController : Controller
         _templateEngine = templateEngine;
         _pDFGeneratorService = pDFGeneratorService;
         _kelasRepository = kelasRepository;
+        _hasilPerhitunganRepository = hasilPerhitunganRepository;
     }
 
     public async Task<IActionResult> Index(
@@ -138,7 +141,10 @@ public class EkstrakulikulerController : Controller
 
         var result = await _unitOfWork.SaveChangesAsync();
         if (result.IsSuccess)
+        {
             _notificationService.AddSuccess("Simpan Berhasil");
+            await _hasilPerhitunganRepository.DeleteAll();
+        }
         else
             _notificationService.AddError("Simpan Gagal");
 
@@ -168,7 +174,10 @@ public class EkstrakulikulerController : Controller
 
         var result = await _unitOfWork.SaveChangesAsync();
         if (result.IsSuccess)
+        {
             _notificationService.AddSuccess("Reset Berhasil!");
+            await _hasilPerhitunganRepository.DeleteAll();
+        }
         else
             _notificationService.AddSuccess("Reset Gagal!");
 
@@ -376,12 +385,15 @@ public class EkstrakulikulerController : Controller
                 _notificationService.AddWarning(
                     "Import berhasil, tetapi tidak ada perubahan data",
                     "Import");
+
             }
             else
             {
                 _notificationService.AddSuccess(
                     $"Import berhasil. {jumlahDiproses} data diperbarui",
                     "Import");
+
+                await _hasilPerhitunganRepository.DeleteAll();
             }
         }
         else

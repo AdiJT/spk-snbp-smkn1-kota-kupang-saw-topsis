@@ -23,19 +23,22 @@ public class KriteriaController : Controller
     private readonly IToastrNotificationService _notificationService;
     private readonly IRazorTemplateEngine _templateEngine;
     private readonly IPDFGeneratorService _pDFGeneratorService;
+    private readonly IHasilPerhitunganRepository _hasilPerhitunganRepository;
 
     public KriteriaController(
         IKriteriaRepository kriteriaRepository,
         IUnitOfWork unitOfWork,
         IToastrNotificationService notificationService,
         IRazorTemplateEngine templateEngine,
-        IPDFGeneratorService pDFGeneratorService)
+        IPDFGeneratorService pDFGeneratorService,
+        IHasilPerhitunganRepository hasilPerhitunganRepository)
     {
         _kriteriaRepository = kriteriaRepository;
         _unitOfWork = unitOfWork;
         _notificationService = notificationService;
         _templateEngine = templateEngine;
         _pDFGeneratorService = pDFGeneratorService;
+        _hasilPerhitunganRepository = hasilPerhitunganRepository;
     }
 
     public async Task<IActionResult> Index() => View(await _kriteriaRepository.GetAll());
@@ -69,7 +72,10 @@ public class KriteriaController : Controller
         _kriteriaRepository.Add(kriteria);
         var result = await _unitOfWork.SaveChangesAsync();
         if (result.IsSuccess)
+        {
             _notificationService.AddSuccess("Simpan Berhasil", "Tambah");
+            await _hasilPerhitunganRepository.DeleteAll();
+        }
         else
             _notificationService.AddError("Simpan Gagal", "Tambah");
 
@@ -105,7 +111,10 @@ public class KriteriaController : Controller
 
         var result = await _unitOfWork.SaveChangesAsync();
         if (result.IsSuccess)
+        {
             _notificationService.AddSuccess("Simpan Berhasil", "Edit");
+            await _hasilPerhitunganRepository.DeleteAll();
+        }
         else
             _notificationService.AddError("Simpan Gagal", "Edit");
 
@@ -133,7 +142,10 @@ public class KriteriaController : Controller
         _kriteriaRepository.Delete(kriteria);
         var result = await _unitOfWork.SaveChangesAsync();
         if (result.IsSuccess)
+        {
             _notificationService.AddSuccess("Simpan Berhasil", "Hapus");
+            await _hasilPerhitunganRepository.DeleteAll();
+        }
         else
             _notificationService.AddError("Simpan Gagal", "Hapus");
 
@@ -156,7 +168,10 @@ public class KriteriaController : Controller
 
         var result = await _unitOfWork.SaveChangesAsync();
         if (result.IsSuccess)
+        {
             _notificationService.AddSuccess("Berhasil");
+            await _hasilPerhitunganRepository.DeleteAll();
+        }
         else
             _notificationService.AddError("Gagal");
 

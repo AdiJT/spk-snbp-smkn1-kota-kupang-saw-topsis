@@ -35,6 +35,7 @@ public class MataPelajaranController : Controller
     private readonly IRazorTemplateEngine _templateEngine;
     private readonly IPDFGeneratorService _pDFGeneratorService;
     private readonly IKelasRepository _kelasRepository;
+    private readonly IHasilPerhitunganRepository _hasilPerhitunganRepository;
 
     public MataPelajaranController(
         ISiswaRepository siswaRepository,
@@ -47,7 +48,8 @@ public class MataPelajaranController : Controller
         ITempDataDictionaryFactory tempDataDictionaryFactory,
         IRazorTemplateEngine templateEngine,
         IPDFGeneratorService pDFGeneratorService,
-        IKelasRepository kelasRepository)
+        IKelasRepository kelasRepository,
+        IHasilPerhitunganRepository hasilPerhitunganRepository)
     {
         _siswaRepository = siswaRepository;
         _kriteriaRepository = kriteriaRepository;
@@ -60,6 +62,7 @@ public class MataPelajaranController : Controller
         _templateEngine = templateEngine;
         _pDFGeneratorService = pDFGeneratorService;
         _kelasRepository = kelasRepository;
+        _hasilPerhitunganRepository = hasilPerhitunganRepository;
     }
 
     public async Task<IActionResult> Index(
@@ -152,7 +155,10 @@ public class MataPelajaranController : Controller
 
         var result = await _unitOfWork.SaveChangesAsync();
         if (result.IsSuccess)
+        {
             _notificationService.AddSuccess("Simpan Berhasil");
+            await _hasilPerhitunganRepository.DeleteAll();
+        }
         else
             _notificationService.AddError("Simpan Gagal");
 
@@ -182,7 +188,10 @@ public class MataPelajaranController : Controller
 
         var result = await _unitOfWork.SaveChangesAsync();
         if (result.IsSuccess)
+        {
             _notificationService.AddSuccess("Reset Berhasil!");
+            await _hasilPerhitunganRepository.DeleteAll();
+        }
         else
             _notificationService.AddSuccess("Reset Gagal!");
 
@@ -404,6 +413,8 @@ public class MataPelajaranController : Controller
                 _notificationService.AddSuccess(
                     $"Import berhasil. {jumlahNilaiDiupdate} data diperbarui",
                     "Import");
+
+                await _hasilPerhitunganRepository.DeleteAll();
             }
         }
         else
@@ -421,11 +432,11 @@ public class MataPelajaranController : Controller
     }
 
     private string? FindColumnByHeader(
-    SheetData sheetData,
-    List<string> sharedStrings,
-    string keyword,
-    int startRow,
-    int endRow)
+        SheetData sheetData,
+        List<string> sharedStrings,
+        string keyword,
+        int startRow,
+        int endRow)
     {
         var normalizedKeyword = Normalize(keyword);
 
