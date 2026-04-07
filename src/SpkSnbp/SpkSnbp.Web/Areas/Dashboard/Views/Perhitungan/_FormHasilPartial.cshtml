@@ -3,7 +3,7 @@
 @inject IKriteriaRepository KriteriaRepository
 
 @{
-    var daftarKriteria = await KriteriaRepository.GetAll();
+    var daftarKriteria = await KriteriaRepository.GetAllActive();
     var daftarSiswa = Model.DaftarSiswa.OrderBy(x => x.NISN).ToList();
     var hasil = Model;
 }

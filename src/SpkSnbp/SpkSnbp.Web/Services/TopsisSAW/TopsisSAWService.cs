@@ -38,9 +38,9 @@ public class TopsisSAWService : ITopsisSAWService
         if (daftarSiswa.Count == 0)
             return new Error("Perhitungan.SiswaTidakAda", "Tidak ada data siswa");
 
-        daftarSiswa = daftarSiswa.OrderBy(x => x.NISN).ToList();
+        daftarSiswa = [.. daftarSiswa.OrderBy(x => x.NISN)];
 
-        var daftarKriteria = await _kriteriaRepository.GetAll();
+        var daftarKriteria = await _kriteriaRepository.GetAllActive();
         if (daftarKriteria.Count == 0)
             return new Error("Perhitungan.KriteriaTidakAda", "Tidak ada data kriteria");
 

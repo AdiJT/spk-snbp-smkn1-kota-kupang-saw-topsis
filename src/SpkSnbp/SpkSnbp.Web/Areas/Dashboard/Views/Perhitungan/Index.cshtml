@@ -11,7 +11,7 @@
 @{
     ViewData["Title"] = "Perhitungan";
     var daftarTahun = await TahunAjaranRepository.GetAll();
-    var daftarKriteria = await KriteriaRepository.GetAll();
+    var daftarKriteria = await KriteriaRepository.GetAllActive();
     var daftarKelas = await KelasRepository.GetAll();
 }
 
@@ -165,7 +165,8 @@
                     Perhitungan hanya dapat dilakukan jika setiap data kriteria siswa lengkap!
                     @if (await SignInManager.IsInRole(UserRoles.Admin) == false)
                     {
-                        @("Hubungi Admin untuk melengkapi data kriteria siswa");
+                        @("Hubungi Admin untuk melengkapi data kriteria siswa")
+                        ;
                     }
                 </p>
             </div>
@@ -179,7 +180,7 @@
                         <th rowspan="2">Nama</th>
                         <th rowspan="2">NISN</th>
                         <th rowspan="2">Nilai Preferensi</th>
-                        <th colspan="6">Kriteria</th>
+                        <th colspan="@daftarKriteria.Count">Kriteria</th>
                     </tr>
                     <tr>
                         @foreach (var item in daftarKriteria)
@@ -223,11 +224,14 @@
                                     {
                                         if (kriteria.Kode == "C1" || kriteria.Kode == "C2")
                                         {
-                                            <td>@siswaKriteria.Nilai.ToString("F2")</td>
+                                        }
+                                        else if (kriteria.IsDefault)
+                                        {
+                                            <td>@siswaKriteria.Nilai</td>
                                         }
                                         else
                                         {
-                                            <td>@siswaKriteria.Nilai</td>
+                                            <td>@siswaKriteria.Nilai.ToString("F2")</td>
                                         }
                                     }
                                     else

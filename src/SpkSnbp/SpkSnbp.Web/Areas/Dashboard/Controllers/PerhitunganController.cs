@@ -151,7 +151,7 @@ public class PerhitunganController : Controller
 
         var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun, kelas?.Id);
         daftarSiswa = [..daftarSiswa.OrderByDescending(x => x.NilaiTopsis)];
-        var daftarKriteria = await _kriteriaRepository.GetAll();
+        var daftarKriteria = await _kriteriaRepository.GetAllActive();
 
         using var memoryStream = new MemoryStream();
         using var spreadSheet = SpreadsheetDocument.Create(memoryStream, DocumentFormat.OpenXml.SpreadsheetDocumentType.Workbook);
@@ -255,42 +255,7 @@ public class PerhitunganController : Controller
                 new Column
                 {
                     Min = 5,
-                    Max = 5,
-                    Width = 24,
-                    CustomWidth = true,
-                },
-                new Column
-                {
-                    Min = 6,
-                    Max = 6,
-                    Width = 24,
-                    CustomWidth = true,
-                },
-                new Column
-                {
-                    Min = 7,
-                    Max = 7,
-                    Width = 24,
-                    CustomWidth = true,
-                },
-                new Column
-                {
-                    Min = 8,
-                    Max = 8,
-                    Width = 24,
-                    CustomWidth = true,
-                },
-                new Column
-                {
-                    Min = 9,
-                    Max = 9,
-                    Width = 24,
-                    CustomWidth = true,
-                },
-                new Column
-                {
-                    Min = 10,
-                    Max = 10,
+                    Max = 5 + (uint)daftarKriteria.Count,
                     Width = 24,
                     CustomWidth = true,
                 }
@@ -369,8 +334,8 @@ public class PerhitunganController : Controller
                     CellReference = $"D{headerRow2.RowIndex}",
                     StyleIndex = 2,
                 },
-                ..daftarKriteria.OrderBy(x => x.Id).Select(x => new Cell {
-                    CellReference = $"{(char)('D' + x.Id)}{headerRow2.RowIndex}",
+                ..daftarKriteria.OrderBy(x => x.Id).Select((x, i) => new Cell {
+                    CellReference = $"{(char)('E' + i)}{headerRow2.RowIndex}",
                     CellValue = new CellValue($"(C{x.Id}) {x.Nama}"),
                     StyleIndex = 2,
                 })
@@ -421,8 +386,8 @@ public class PerhitunganController : Controller
                     CellValue = new CellValue(siswa.Nama),
                     StyleIndex = 2,
                 },
-                ..daftarKriteria.OrderBy(x => x.Id).Select(x => new Cell {
-                    CellReference = $"{(char)('D' + x.Id)}{row.RowIndex}",
+                ..daftarKriteria.OrderBy(x => x.Id).Select((x, i) => new Cell {
+                    CellReference = $"{(char)('E' + i)}{row.RowIndex}",
                     CellValue = new($"{siswa.DaftarSiswaKriteria.FirstOrDefault(y => y.Kriteria == x)?.Nilai.ToString() ?? "-"}"),
                     StyleIndex = 2,
                 })
