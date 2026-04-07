@@ -11,7 +11,7 @@ internal class HasilPerhitunganConfiguration : IEntityTypeConfiguration<HasilPer
     public void Configure(EntityTypeBuilder<HasilPerhitungan> builder)
     {
         builder.HasOne(x => x.TahunAjaran).WithMany(y => y.DaftarHasil);
-        builder.HasMany(x => x.DaftarSiswa).WithOne(y => y.HasilPerhitungan).IsRequired(false);
+        builder.HasMany(x => x.DaftarSiswa).WithOne(y => y.HasilPerhitungan).IsRequired(false).OnDelete(DeleteBehavior.SetNull);
         builder.Property(x => x.TanggalPerhitungan).HasColumnType("timestamp without time zone");
     }
 }
