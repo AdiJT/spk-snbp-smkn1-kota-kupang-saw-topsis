@@ -140,7 +140,7 @@ public class TopsisSAWService : ITopsisSAWService
                     var kriteria = daftarKriteria[j];
 
                     matriksTernormalisasiTerbobot[i, j] =
-                        matriksTernormalisasi[i, j] * kriteria.Bobot;
+                        matriksTernormalisasi[i, j] * (int)kriteria.Bobot;
 
                     if (kriteria.Jenis == JenisKriteria.Benefit)
                     {

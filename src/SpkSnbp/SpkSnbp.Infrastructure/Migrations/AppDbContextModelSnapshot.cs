@@ -44,7 +44,7 @@ namespace SpkSnbp.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("User");
+                    b.ToTable("User", (string)null);
 
                     b.HasData(
                         new
@@ -127,7 +127,7 @@ namespace SpkSnbp.Infrastructure.Migrations
 
                     b.HasIndex("TahunAjaranId");
 
-                    b.ToTable("HasilPerhitungan");
+                    b.ToTable("HasilPerhitungan", (string)null);
                 });
 
             modelBuilder.Entity("SpkSnbp.Domain.ModulUtama.InformasiSekolah", b =>
@@ -212,7 +212,7 @@ namespace SpkSnbp.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("InformasiSekolah");
+                    b.ToTable("InformasiSekolah", (string)null);
 
                     b.HasData(
                         new
@@ -254,7 +254,7 @@ namespace SpkSnbp.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Kelas");
+                    b.ToTable("Kelas", (string)null);
 
                     b.HasData(
                         new
@@ -310,7 +310,7 @@ namespace SpkSnbp.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Kriteria");
+                    b.ToTable("Kriteria", (string)null);
 
                     b.HasData(
                         new
@@ -426,7 +426,7 @@ namespace SpkSnbp.Infrastructure.Migrations
 
                     b.HasIndex("TahunAjaranId");
 
-                    b.ToTable("Siswa");
+                    b.ToTable("Siswa", (string)null);
                 });
 
             modelBuilder.Entity("SpkSnbp.Domain.ModulUtama.SiswaKriteria", b =>
@@ -444,7 +444,7 @@ namespace SpkSnbp.Infrastructure.Migrations
 
                     b.HasIndex("IdKriteria");
 
-                    b.ToTable("SiswaKriteria");
+                    b.ToTable("SiswaKriteria", (string)null);
                 });
 
             modelBuilder.Entity("SpkSnbp.Domain.ModulUtama.TahunAjaran", b =>
@@ -457,7 +457,7 @@ namespace SpkSnbp.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TahunAjaran");
+                    b.ToTable("TahunAjaran", (string)null);
 
                     b.HasData(
                         new

@@ -11,8 +11,7 @@ public class TambahVM
 
     [Display(Name = "Bobot")]
     [Required(ErrorMessage = "{0} harus diisi")]
-    [Range(1, int.MaxValue, ErrorMessage = "{0} harus lebih besar dari {1}")]
-    public int Bobot { get; set; }
+    public Bobot Bobot { get; set; }
 
     [Display(Name = "Jenis")]
     [Required(ErrorMessage = "{0} harus diisi")]
