@@ -152,14 +152,13 @@
                         </div>
 
                     }
-
                 </div>
 
             </div>
 
         </div>
 
-        @if (Model.DaftarSiswa.Any(x => daftarKriteria.Any(y => x.DaftarSiswaKriteria.FirstOrDefault(z => z.Kriteria == y) == null))) 
+        @if (Model.DaftarSiswa.Any(s => daftarKriteria.Any(k => s.DaftarSiswaKriteria.FirstOrDefault(sk => sk.IdKriteria == k.Id)?.Nilai == null))) 
         {
             <div class="d-flex justify-content-between mb-3">
                 <div class="mb-0 card card-body rounded" style="background-color: #d9edf7; font-weight: 400; padding: 15px; color: #31708f;">
