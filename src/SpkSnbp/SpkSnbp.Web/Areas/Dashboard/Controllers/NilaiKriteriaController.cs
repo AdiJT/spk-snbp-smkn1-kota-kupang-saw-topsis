@@ -287,37 +287,81 @@ public class NilaiKriteriaController : Controller
             var index = 2;
             foreach (var siswa in daftarSiswa.Skip(1))
             {
-                var row = new Row { RowIndex = rowIndex };
+                var row = sheetData.Descendants<Row>().FirstOrDefault(x => x.RowIndex is not null && x.RowIndex == rowIndex);
+                if (row is null)
+                {
+                    row = new Row { RowIndex = rowIndex };
+                    sheetData.Append(row);
+                }
 
-                row.Append(
-                    new Cell
+                var cellA = row.Descendants<Cell>().FirstOrDefault(x => x.CellReference == $"A{rowIndex}");
+                if (cellA is null)
+                {
+                    cellA = new Cell
                     {
                         CellReference = $"A{rowIndex}",
                         CellValue = new CellValue(index),
                         StyleIndex = firstCells[0].StyleIndex,
-                    },
-                    new Cell
+                    };
+                    row.Append(cellA);
+                }
+                else
+                {
+                    cellA.CellValue = new CellValue(index);
+                    cellA.StyleIndex = firstCells[0].StyleIndex;
+                }
+
+                var cellB = row.Descendants<Cell>().FirstOrDefault(x => x.CellReference == $"B{rowIndex}");
+                if (cellB is null)
+                {
+                    cellB = new Cell
                     {
                         CellReference = $"B{rowIndex}",
                         CellValue = new CellValue(siswa.Nama),
                         StyleIndex = firstCells[1].StyleIndex,
-                    },
-                    new Cell
+                    };
+                    row.Append(cellB);
+                }
+                else
+                {
+                    cellB.CellValue = new CellValue(siswa.Nama);
+                    cellB.StyleIndex = firstCells[1].StyleIndex;
+                }
+
+                var cellC = row.Descendants<Cell>().FirstOrDefault(x => x.CellReference == $"C{rowIndex}");
+                if (cellC is null)
+                {
+                    cellC = new Cell
                     {
                         CellReference = $"C{rowIndex}",
-                        DataType = CellValues.String,
                         CellValue = new CellValue(siswa.NISN),
                         StyleIndex = firstCells[2].StyleIndex,
-                    },
-                    new Cell
+                    };
+                    row.Append(cellC);
+                }
+                else
+                {
+                    cellC.CellValue = new CellValue(siswa.NISN);
+                    cellC.StyleIndex = firstCells[2].StyleIndex;
+                }
+
+                var cellD = row.Descendants<Cell>().FirstOrDefault(x => x.CellReference == $"D{rowIndex}");
+                if (cellD is null)
+                {
+                    cellD = new Cell
                     {
                         CellReference = $"D{rowIndex}",
                         CellValue = new CellValue(siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == kriteria.Id)?.Nilai ?? 0),
                         StyleIndex = firstCells[3].StyleIndex,
-                    }
-                );
+                    };
+                    row.Append(cellD);
+                }
+                else
+                {
+                    cellD.CellValue = new CellValue(siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == kriteria.Id)?.Nilai ?? 0);
+                    cellD.StyleIndex = firstCells[3].StyleIndex;
+                }
 
-                sheetData.Append(row);
                 rowIndex++;
                 index++;
             }
