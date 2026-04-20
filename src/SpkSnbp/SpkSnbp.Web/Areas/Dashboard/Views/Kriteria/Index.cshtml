@@ -53,6 +53,7 @@
                         <th>Kode</th>
                         <th>Nama</th>
                         <th>Bobot</th>
+                        <th>Keterangan Bobot</th>
                         <th>Aktif</th>
                         <th>Jenis</th>
                         <th style="min-width: 130px">Aksi</th>
@@ -64,7 +65,8 @@
                         <tr>
                             <td>@kriteria.Kode</td>
                             <td>@kriteria.Nama</td>
-                            <td>@kriteria.Bobot</td>
+                            <td>@((int)kriteria.Bobot)</td>
+                            <td>@kriteria.Bobot.ToString().Humanize() - @kriteria.Bobot.Humanize()</td>
                             <td>
                                 <form asp-action="SwitchActive" asp-route-id="@kriteria.Id" asp-route-returnUrl="@Context.Request.AbsoluteUri()" style="display:inline" method="post">
                                     @if (kriteria.Active)

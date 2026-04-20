@@ -44,6 +44,14 @@ internal class SiswaRepository : ISiswaRepository
         .Include(x => x.Kelas)
         .FirstOrDefaultAsync(x => x.Id == id);
 
+    public async Task<Siswa?> Get(string nisn) => await _appDbContext
+        .Siswa
+        .Include(x => x.TahunAjaran)
+        .Include(x => x.DaftarKriteria)
+        .Include(x => x.DaftarSiswaKriteria).ThenInclude(y => y.Kriteria)
+        .Include(x => x.Kelas)
+        .FirstOrDefaultAsync(x => x.NISN == nisn);
+
     public async Task<List<Siswa>> GetAll(Jurusan? jurusan = null, int? tahunAjaran = null, int? idKelas = null) => await _appDbContext
         .Siswa
         .Include(x => x.TahunAjaran)

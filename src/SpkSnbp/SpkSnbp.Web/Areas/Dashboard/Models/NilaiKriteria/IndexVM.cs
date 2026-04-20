@@ -23,22 +23,19 @@ public class IndexEntryVM
 {
     public required Siswa Siswa { get; set; }
     public required int IdSiswa { get; set; }
-    public required double? Absensi { get; set; }
 
-    [Display(Name = "Jumlah Absen")]
+    [Display(Name = "Nilai")]
     [Required(ErrorMessage = "{0} harus diisi")]
-    [Range(0, 45, MaximumIsExclusive = false, ErrorMessage = "{0} harus antara {1}-{2}")]
-    public int JumlahAbsen { get; set; }
+    public required double? Nilai { get; set; }
 }
 
 public static class EnumerableExtensions 
 {
-    public static List<IndexEntryVM> ToIndexEntryList(this IEnumerable<Siswa> daftarSiswa) => daftarSiswa
+    public static List<IndexEntryVM> ToIndexEntryList(this IEnumerable<Siswa> daftarSiswa, int? idKriteria) => [.. daftarSiswa
         .Select(x => new IndexEntryVM
         {
             Siswa = x,
             IdSiswa = x.Id,
-            Absensi = x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Absensi)?.Nilai,
-            JumlahAbsen = x.JumlahAbsen ?? 0,
-        }).ToList();
+            Nilai = idKriteria is null ? null : x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == idKriteria)?.Nilai,
+        })];
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SpkSnbp.Infrastructure.Database;
@@ -11,9 +12,11 @@ using SpkSnbp.Infrastructure.Database;
 namespace SpkSnbp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260407070810_CascadeNullSiswaHasilPeerhitungan")]
+    partial class CascadeNullSiswaHasilPeerhitungan
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,7 +47,7 @@ namespace SpkSnbp.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("User", (string)null);
+                    b.ToTable("User");
 
                     b.HasData(
                         new
@@ -127,7 +130,7 @@ namespace SpkSnbp.Infrastructure.Migrations
 
                     b.HasIndex("TahunAjaranId");
 
-                    b.ToTable("HasilPerhitungan", (string)null);
+                    b.ToTable("HasilPerhitungan");
                 });
 
             modelBuilder.Entity("SpkSnbp.Domain.ModulUtama.InformasiSekolah", b =>
@@ -212,7 +215,7 @@ namespace SpkSnbp.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("InformasiSekolah", (string)null);
+                    b.ToTable("InformasiSekolah");
 
                     b.HasData(
                         new
@@ -254,7 +257,7 @@ namespace SpkSnbp.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Kelas", (string)null);
+                    b.ToTable("Kelas");
 
                     b.HasData(
                         new
@@ -310,7 +313,7 @@ namespace SpkSnbp.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Kriteria", (string)null);
+                    b.ToTable("Kriteria");
 
                     b.HasData(
                         new
@@ -426,7 +429,7 @@ namespace SpkSnbp.Infrastructure.Migrations
 
                     b.HasIndex("TahunAjaranId");
 
-                    b.ToTable("Siswa", (string)null);
+                    b.ToTable("Siswa");
                 });
 
             modelBuilder.Entity("SpkSnbp.Domain.ModulUtama.SiswaKriteria", b =>
@@ -444,7 +447,7 @@ namespace SpkSnbp.Infrastructure.Migrations
 
                     b.HasIndex("IdKriteria");
 
-                    b.ToTable("SiswaKriteria", (string)null);
+                    b.ToTable("SiswaKriteria");
                 });
 
             modelBuilder.Entity("SpkSnbp.Domain.ModulUtama.TahunAjaran", b =>
@@ -457,7 +460,7 @@ namespace SpkSnbp.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TahunAjaran", (string)null);
+                    b.ToTable("TahunAjaran");
 
                     b.HasData(
                         new

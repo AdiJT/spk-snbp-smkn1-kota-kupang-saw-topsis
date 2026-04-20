@@ -13,8 +13,7 @@ public class EditVM
 
     [Display(Name = "Bobot")]
     [Required(ErrorMessage = "{0} harus diisi")]
-    [Range(1, int.MaxValue, ErrorMessage = "{0} harus lebih besar dari {1}")]
-    public required int Bobot { get; set; }
+    public required Bobot Bobot { get; set; }
 
     [Display(Name = "Jenis")]
     [Required(ErrorMessage = "{0} harus diisi")]

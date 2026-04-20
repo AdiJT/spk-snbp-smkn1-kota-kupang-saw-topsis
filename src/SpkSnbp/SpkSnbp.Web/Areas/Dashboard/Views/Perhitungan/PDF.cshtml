@@ -5,7 +5,7 @@
 
 @{
     Layout = null;
-    var daftarKriteria = await KriteriaRepository.GetAll();
+    var daftarKriteria = await KriteriaRepository.GetAllActive();
 }
 
 <head>
@@ -97,9 +97,13 @@
                         {
                             <td style="text-align:center">@siswaKriteria.Nilai.ToString("F2")</td>
                         }
-                        else
+                        else if(kriteria.IsDefault)
                         {
                             <td style="text-align:center">@siswaKriteria.Nilai</td>
+                        }
+                        else
+                        {
+                            <td style="text-align:center">@siswaKriteria.Nilai.ToString("F2")</td>
                         }
                     }
                 }

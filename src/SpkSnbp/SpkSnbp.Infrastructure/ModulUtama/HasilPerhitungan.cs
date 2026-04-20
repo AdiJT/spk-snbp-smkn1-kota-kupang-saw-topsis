@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SpkSnbp.Domain.ModulUtama;
 using SpkSnbp.Infrastructure.Database;
+using System.Threading.Tasks;
 
 namespace SpkSnbp.Infrastructure.ModulUtama;
 
@@ -10,7 +11,7 @@ internal class HasilPerhitunganConfiguration : IEntityTypeConfiguration<HasilPer
     public void Configure(EntityTypeBuilder<HasilPerhitungan> builder)
     {
         builder.HasOne(x => x.TahunAjaran).WithMany(y => y.DaftarHasil);
-        builder.HasMany(x => x.DaftarSiswa).WithOne(y => y.HasilPerhitungan).IsRequired(false);
+        builder.HasMany(x => x.DaftarSiswa).WithOne(y => y.HasilPerhitungan).IsRequired(false).OnDelete(DeleteBehavior.SetNull);
         builder.Property(x => x.TanggalPerhitungan).HasColumnType("timestamp without time zone");
     }
 }
@@ -27,6 +28,8 @@ internal class HasilPerhitunganRepository : IHasilPerhitunganRepository
     public void Add(HasilPerhitungan hasilPerhitungan) => _appDbContext.HasilPerhitungan.Add(hasilPerhitungan);
 
     public void Delete(HasilPerhitungan hasilPerhitungan) => _appDbContext.HasilPerhitungan.Remove(hasilPerhitungan);
+
+    public async Task DeleteAll() => await _appDbContext.HasilPerhitungan.ExecuteDeleteAsync();
 
     public async Task<HasilPerhitungan?> Get(int tahun, Jurusan jurusan) => await _appDbContext
         .HasilPerhitungan

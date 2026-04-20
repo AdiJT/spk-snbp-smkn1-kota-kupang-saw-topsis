@@ -19,7 +19,12 @@
 
         <div class="form-group">
             <label asp-for="@Model.Bobot"></label>
-            <input asp-for="@Model.Bobot" class="form-control" />
+            <select asp-for="@Model.Bobot" class="form-control">
+                @foreach (var bobot in Enum.GetValues<Bobot>())
+                {
+                    <option value="@bobot">@((int)bobot) - @bobot.ToString().Humanize()</option>
+                }
+            </select>
             <span asp-validation-for="@Model.Bobot" class="text-danger"></span>
         </div>
 

@@ -26,6 +26,7 @@ public class Siswa : Entity<int>
 public interface ISiswaRepository
 {
     Task<Siswa?> Get(int id);
+    Task<Siswa?> Get(string nisn);
     Task<List<Siswa>> GetAll(Jurusan? jurusan = null, int? tahunAjaran = null, int? idKelas = null);
     Task<bool> IsExist(string nisn, int? idFilter = null);
 

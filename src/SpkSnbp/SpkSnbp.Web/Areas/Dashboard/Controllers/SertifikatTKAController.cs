@@ -34,6 +34,7 @@ public class SertifikatTKAController : Controller
     private readonly IRazorTemplateEngine _templateEngine;
     private readonly IPDFGeneratorService _pDFGeneratorService;
     private readonly IKelasRepository _kelasRepository;
+    private readonly IHasilPerhitunganRepository _hasilPerhitunganRepository;
 
     public SertifikatTKAController(
         ISiswaRepository siswaRepository,
@@ -46,7 +47,8 @@ public class SertifikatTKAController : Controller
         ITempDataDictionaryFactory tempDataDictionaryFactory,
         IRazorTemplateEngine templateEngine,
         IPDFGeneratorService pDFGeneratorService,
-        IKelasRepository kelasRepository)
+        IKelasRepository kelasRepository,
+        IHasilPerhitunganRepository hasilPerhitunganRepository)
     {
         _siswaRepository = siswaRepository;
         _kriteriaRepository = kriteriaRepository;
@@ -59,6 +61,7 @@ public class SertifikatTKAController : Controller
         _templateEngine = templateEngine;
         _pDFGeneratorService = pDFGeneratorService;
         _kelasRepository = kelasRepository;
+        _hasilPerhitunganRepository = hasilPerhitunganRepository;
     }
 
     public async Task<IActionResult> Index(Jurusan jurusan = Jurusan.TJKT, int? tahun = null, int? idKelas = null, bool first = true)
@@ -140,7 +143,10 @@ public class SertifikatTKAController : Controller
 
         var result = await _unitOfWork.SaveChangesAsync();
         if (result.IsSuccess)
+        {
             _notificationService.AddSuccess("Simpan Berhasil");
+            await _hasilPerhitunganRepository.DeleteAll();
+        }
         else
             _notificationService.AddError("Simpan Gagal");
 
@@ -168,7 +174,10 @@ public class SertifikatTKAController : Controller
 
         var result = await _unitOfWork.SaveChangesAsync();
         if (result.IsSuccess)
+        {
             _notificationService.AddSuccess("Reset Berhasil!");
+            await _hasilPerhitunganRepository.DeleteAll();
+        }
         else
             _notificationService.AddSuccess("Reset Gagal!");
 
@@ -360,6 +369,8 @@ public class SertifikatTKAController : Controller
                 _notificationService.AddSuccess(
                     $"Import berhasil. {jumlahDiproses} data diperbarui",
                     "Import");
+
+                await _hasilPerhitunganRepository.DeleteAll();
             }
         }
         else

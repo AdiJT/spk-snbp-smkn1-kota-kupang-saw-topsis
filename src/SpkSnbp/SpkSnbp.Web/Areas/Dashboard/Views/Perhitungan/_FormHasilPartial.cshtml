@@ -3,7 +3,7 @@
 @inject IKriteriaRepository KriteriaRepository
 
 @{
-    var daftarKriteria = await KriteriaRepository.GetAll();
+    var daftarKriteria = await KriteriaRepository.GetAllActive();
     var daftarSiswa = Model.DaftarSiswa.OrderBy(x => x.NISN).ToList();
     var hasil = Model;
 }
@@ -23,6 +23,7 @@
                 <th>Kode</th>
                 <th>Nama</th>
                 <th>Bobot</th>
+                <th>Keterangan</th>
                 <th>Jenis</th>
             </tr>
 
@@ -33,7 +34,8 @@
                 <tr>
                     <td>@kriteria.Kode</td>
                     <td>@kriteria.Nama</td>
-                    <td>@kriteria.Bobot</td>
+                    <td>@((int)kriteria.Bobot) - @kriteria.Bobot.ToString().Humanize()</td>
+                    <td>@kriteria.Bobot.Humanize()</td>
                     <td>@kriteria.Jenis.Humanize()</td>
                 </tr>
             }

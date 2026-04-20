@@ -1,0 +1,18 @@
+﻿using SpkSnbp.Domain.ModulUtama;
+using System.ComponentModel.DataAnnotations;
+
+namespace SpkSnbp.Web.Areas.Dashboard.Models.NilaiKriteria;
+
+public class ImportNilaiKriteriaVM
+{
+    public required int Id { get; set; }
+    public required int Tahun { get; set; }
+    public required Jurusan Jurusan { get; set; }
+    public int? IdKelas { get; set; }
+
+    [Display(Name = "File (.xlxs)")]
+    [Required(ErrorMessage = "{0} harus diupload")]
+    public IFormFile? FormFile { get; set; }
+
+    public string? ReturnUrl { get; set; }
+}

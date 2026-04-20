@@ -8,7 +8,7 @@
 @{
     ViewData["Title"] = "Seleksi";
     var daftarTahun = await TahunAjaranRepository.GetAll();
-    var daftarKriteria = await KriteriaRepository.GetAll();
+    var daftarKriteria = await KriteriaRepository.GetAllActive();
     var daftarKelas = await KelasRepository.GetAll();
 }
 
@@ -157,7 +157,7 @@
                         <th rowspan="2">Nilai Preferensi</th>
                         <th rowspan="2">NISN</th>
                         <th rowspan="2">Nama</th>                        
-                        <th colspan="6">Kriteria</th>
+                        <th colspan="@daftarKriteria.Count">Kriteria</th>
                         <th rowspan="2"><b>Eligible</b></th>
                     </tr>
                     <tr>
@@ -204,9 +204,13 @@
                                         {
                                             <td>@siswaKriteria.Nilai.ToString("F2")</td>
                                         }
-                                        else
+                                        else if (kriteria.IsDefault)
                                         {
                                             <td>@siswaKriteria.Nilai</td>
+                                        }
+                                        else
+                                        {
+                                            <td>@siswaKriteria.Nilai.ToString("F2")</td>
                                         }
                                     }
                                     else

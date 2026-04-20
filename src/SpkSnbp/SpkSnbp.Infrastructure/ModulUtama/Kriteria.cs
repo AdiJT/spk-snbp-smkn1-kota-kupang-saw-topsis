@@ -22,7 +22,7 @@ internal class KriteriaConfiguration : IEntityTypeConfiguration<Kriteria>
             {
                 Id = (int)KriteriaEnum.MPKejuruan,
                 Nama = "Mata Pelajaran Kejuruan",
-                Bobot = 5,
+                Bobot = Bobot.SangatTinggi,
                 Jenis = JenisKriteria.Benefit,
                 IsDefault = true,
                 Active = true
@@ -31,7 +31,7 @@ internal class KriteriaConfiguration : IEntityTypeConfiguration<Kriteria>
             {
                 Id = (int)KriteriaEnum.MPUmum,
                 Nama = "Mata Pelajaran Umum",
-                Bobot = 4,
+                Bobot = Bobot.Tinggi,
                 Jenis = JenisKriteria.Benefit,
                 IsDefault = true,
                 Active = true
@@ -40,7 +40,7 @@ internal class KriteriaConfiguration : IEntityTypeConfiguration<Kriteria>
             {
                 Id = (int)KriteriaEnum.SertLSP,
                 Nama = "Sertifikat LSP",
-                Bobot = 4,
+                Bobot = Bobot.Tinggi,
                 Jenis = JenisKriteria.Benefit,
                 IsDefault = true,
                 Active = true
@@ -49,7 +49,7 @@ internal class KriteriaConfiguration : IEntityTypeConfiguration<Kriteria>
             {
                 Id = (int)KriteriaEnum.SertTKA,
                 Nama = "Sertifikat TKA",
-                Bobot = 3,
+                Bobot = Bobot.Cukup,
                 Jenis = JenisKriteria.Benefit,
                 IsDefault = true,
                 Active = true
@@ -58,7 +58,7 @@ internal class KriteriaConfiguration : IEntityTypeConfiguration<Kriteria>
             {
                 Id = (int)KriteriaEnum.Ekstrakulikuler,
                 Nama = "Ekstrakurikuler",
-                Bobot = 2,
+                Bobot = Bobot.Rendah,
                 Jenis = JenisKriteria.Benefit,
                 IsDefault = true,
                 Active = true
@@ -67,7 +67,7 @@ internal class KriteriaConfiguration : IEntityTypeConfiguration<Kriteria>
             {
                 Id = (int)KriteriaEnum.Absensi,
                 Nama = "Absensi",
-                Bobot = 1,
+                Bobot = Bobot.SangatRendah,
                 Jenis = JenisKriteria.Cost,
                 IsDefault = true,
                 Active = true
