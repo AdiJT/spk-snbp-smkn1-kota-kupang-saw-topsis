@@ -293,7 +293,7 @@ public class SiswaController : Controller
 
         int jumlahImport = 0;
 
-        foreach (var row in sheetData.Elements<Row>().Skip(7))
+        foreach (var row in sheetData.Elements<Row>().Skip(6))
         {
             var cells = row.Elements<Cell>().ToList();
 
