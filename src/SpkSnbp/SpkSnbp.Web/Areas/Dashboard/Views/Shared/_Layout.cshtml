@@ -153,6 +153,36 @@
                     $('#modalEdit').modal('show');
                 });
             });
+
+            // ========================
+            // MODAL IMPORT
+            // ========================
+            $('.form-import').each(function () {
+                const form = $(this);
+                const html = form.html();
+
+                form.html('');
+
+                form.siblings('.btn-import').on('click', function () {
+
+                    $('#modalTambahContent').html(html); // masih pakai modal yg sama (boleh)
+
+                    resetDropzone();
+                    initDropzone();
+
+                    $("form").removeData("validator").removeData("unobtrusiveValidation");
+                    $.validator.unobtrusive.parse("form");
+
+                    $('#modalTambah').modal('show');
+                });
+            });
+
+            // ========================
+            // CLEAR MODAL SAAT DITUTUP
+            // ========================
+            $('#modalTambah').on('hidden.bs.modal', function () {
+                $('#modalTambahContent').html('');
+            });
         });
 
         $(function() {

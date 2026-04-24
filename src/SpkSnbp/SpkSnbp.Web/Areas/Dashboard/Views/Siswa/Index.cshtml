@@ -65,7 +65,7 @@
                 </a>
             </div>
 
-            <div class="col-6 col-lg-auto mb-2 pl-1">
+            <div class="col-12 col-lg-auto mb-2">
                 <a asp-action="DownloadFormat"
                    asp-route-tahun="@Model.Tahun"
                    asp-route-jurusan="@Model.Jurusan"
@@ -76,12 +76,12 @@
             </div>
 
             <div class="col-12 col-lg-auto mb-2">
-                <button class="btn btn-tambah btn-icon icon-left btn-primary w-100 w-lg-auto"
+                <button class="btn btn-import btn-icon icon-left btn-primary w-100 w-lg-auto"
                         data-toggle="tooltip" title="Import Data">
                     <i class="fas fa-file-import"></i> Import
                 </button>
 
-                <div class="form-tambah">
+                <div class="form-import">
                     <partial name="_FormImportPartial_Siswa"
                              model="@(new ImportVM { Tahun = Model.Tahun ?? 0, Jurusan = Model.Jurusan ?? Jurusan.TJKT, IdKelas = Model.IdKelas, ReturnUrl = Context.Request.AbsoluteUri() })" />
                 </div>
