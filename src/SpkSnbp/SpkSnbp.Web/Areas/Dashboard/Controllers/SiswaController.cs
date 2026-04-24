@@ -708,7 +708,7 @@ public class SiswaController : Controller
                 cells[4].CellValue = new CellValue($"{tahunAjaran.Id}");
 
             if (jurusan is not null)
-                cells[5].CellValue = new CellValue($"{jurusan.Value.Humanize()}");
+                cells[5].CellValue = new CellValue($"{jurusan.Value}");
 
             if (kelas is not null)
                 cells[6].CellValue = new CellValue($"{kelas.Nama}");
