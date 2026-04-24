@@ -334,6 +334,7 @@ public class NilaiKriteriaController : Controller
                     cellC = new Cell
                     {
                         CellReference = $"C{rowIndex}",
+                        DataType = CellValues.String,
                         CellValue = new CellValue(siswa.NISN),
                         StyleIndex = firstCells[2].StyleIndex,
                     };
@@ -341,6 +342,7 @@ public class NilaiKriteriaController : Controller
                 }
                 else
                 {
+                    cellC.DataType = CellValues.String;
                     cellC.CellValue = new CellValue(siswa.NISN);
                     cellC.StyleIndex = firstCells[2].StyleIndex;
                 }
