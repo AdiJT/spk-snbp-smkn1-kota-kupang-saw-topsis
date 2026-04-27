@@ -22,8 +22,7 @@ public class IndexEntryVM
     public required int IdSiswa { get; set; }
 
     [Display(Name = "Sertifikat LSP")]
-    [Required(ErrorMessage = "{0} harus diisi")]
-    public required SertifikatLSP? SertifikatLSP { get; set; }
+    public SertifikatLSP? SertifikatLSP { get; set; }
 }
 
 public static class EnumerableExtensions 

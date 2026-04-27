@@ -160,14 +160,18 @@
                         <i class="fas fa-times"></i> Batal
                     </button>
 
-                    <a asp-action="Reset" asp-route-jurusan="@Model.Jurusan" asp-route-tahun="@Model.Tahun" asp-route-idKelas="@Model.IdKelas"
-                        asp-route-returnUrl="@Context.Request.AbsoluteUri()"
-                        class="btn btn-icon icon-left btn-secondary"
-                        data-toggle="tooltip" title="Reset Sertifikat">
+                    <a id="btnReset"
+                       asp-action="Reset"
+                       asp-route-jurusan="@Model.Jurusan"
+                       asp-route-tahun="@Model.Tahun"
+                       asp-route-idKelas="@Model.IdKelas"
+                       asp-route-returnUrl="@Context.Request.AbsoluteUri()"
+                       class="btn btn-icon icon-left btn-secondary"
+                       data-toggle="tooltip" title="Reset Sertifikat">
                         <i class="fas fa-undo"></i> Reset
                     </a>
                 </div>
-            </div>            
+            </div>
 
             <div class="table-responsive">
                 <table style="width: 100%" class="table table-striped table-export">
@@ -240,13 +244,6 @@
             actionButtons.classList.add("d-flex");
 
             btnEdit.style.display = "none";
-        });
-
-        // RESET → jadi "-"
-        btnReset.addEventListener("click", function () {
-            selects.forEach(select => {
-                select.value = "";
-            });
         });
 
         // BATAL → balik ke nilai awal

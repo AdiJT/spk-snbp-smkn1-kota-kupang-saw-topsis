@@ -116,7 +116,6 @@ public class EkstrakulikulerController : Controller
             if (siswa is null) continue;
 
             var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Ekstrakulikuler);
-
             if (siswaKriteria is null)
             {
                 siswaKriteria = new SiswaKriteria
@@ -130,7 +129,7 @@ public class EkstrakulikulerController : Controller
             }
 
             if (entry.DaftarEkskul.Count == 0)
-                siswaKriteria.Nilai = 0;
+                _siswaKriteriaRepository.Delete(siswaKriteria);
             else
                 siswaKriteria.Nilai = entry.DaftarEkskul.Select(x => (double)(int)x).Average() * entry.DaftarEkskul.Count;
 

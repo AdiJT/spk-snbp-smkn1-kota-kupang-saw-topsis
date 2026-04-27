@@ -23,9 +23,8 @@ public class IndexEntryVM
     public required double? SertifikatTKA { get; set; }
 
     [Display(Name = "Skor")]
-    [Required(ErrorMessage = "{0} harus diisi")]
     [Range(0d, 100d, MaximumIsExclusive = false, ErrorMessage = "{0} harus antara {1}-{2}")]
-    public double Skor { get; set; }
+    public double? Skor { get; set; }
 }
 
 public static class EnumerableExtensions 
@@ -36,6 +35,6 @@ public static class EnumerableExtensions
             Siswa = x,
             IdSiswa = x.Id,
             SertifikatTKA = x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.SertTKA)?.Nilai,
-            Skor = x.SkorTKA ?? 0,
+            Skor = x.SkorTKA,
         }).ToList();
 }

@@ -120,7 +120,6 @@ public class AbsensiController : Controller
             if (siswa is null) continue;
 
             var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Absensi);
-
             if (siswaKriteria is null)
             {
                 siswaKriteria = new SiswaKriteria
@@ -131,6 +130,13 @@ public class AbsensiController : Controller
                 };
 
                 _siswaKriteriaRepository.Add(siswaKriteria);
+            }
+
+            if (entry.JumlahAbsen is null)
+            {
+                _siswaKriteriaRepository.Delete(siswaKriteria);
+                siswa.JumlahAbsen = null;
+                continue;
             }
 
             siswaKriteria.Nilai = entry.JumlahAbsen switch

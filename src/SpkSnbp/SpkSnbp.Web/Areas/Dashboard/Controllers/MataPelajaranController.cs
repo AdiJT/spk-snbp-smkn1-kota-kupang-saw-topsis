@@ -122,7 +122,6 @@ public class MataPelajaranController : Controller
             if (siswa is null) continue;
 
             var siswaKriteriaMPKejuruan = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.MPKejuruan);
-
             if (siswaKriteriaMPKejuruan is null)
             {
                 siswaKriteriaMPKejuruan = new SiswaKriteria
@@ -134,8 +133,6 @@ public class MataPelajaranController : Controller
 
                 _siswaKriteriaRepository.Add(siswaKriteriaMPKejuruan);
             }
-
-            siswaKriteriaMPKejuruan.Nilai = entry.MataPelajaranKejuruan;
 
             var siswaKriteriaMPUmum = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.MPUmum);
             if (siswaKriteriaMPUmum is null)
@@ -150,7 +147,11 @@ public class MataPelajaranController : Controller
                 _siswaKriteriaRepository.Add(siswaKriteriaMPUmum);
             }
 
-            siswaKriteriaMPUmum.Nilai = entry.MataPelajaranUmum;
+            if (entry.MataPelajaranKejuruan is null) _siswaKriteriaRepository.Delete(siswaKriteriaMPKejuruan);
+            else siswaKriteriaMPKejuruan.Nilai = entry.MataPelajaranKejuruan.Value;
+
+            if (entry.MataPelajaranUmum is null) _siswaKriteriaRepository.Delete(siswaKriteriaMPUmum);
+            else siswaKriteriaMPUmum.Nilai = entry.MataPelajaranUmum.Value;
         }
 
         var result = await _unitOfWork.SaveChangesAsync();
@@ -171,7 +172,7 @@ public class MataPelajaranController : Controller
         int? idKelas = null,
         string? returnUrl = null)
     {
-        returnUrl ??= Url.Action(nameof(Index))!;
+        returnUrl ??= Url.Action(nameof(Index), new { jurusan, tahun, idKelas })!;
 
         var daftarSiswa = await _siswaRepository.GetAll(jurusan, tahun, idKelas);
 

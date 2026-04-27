@@ -22,14 +22,12 @@ public class IndexEntryVM
     public required int IdSiswa { get; set; }
 
     [Display(Name = "Mata Pelajaran Kejuruan")]
-    [Required(ErrorMessage = "{0} harus diisi")]
     [Range(0d, 100d, MaximumIsExclusive = false, ErrorMessage = "{0} harus antara {1} dan {2}")]
-    public required double MataPelajaranKejuruan { get; set; }
+    public double? MataPelajaranKejuruan { get; set; }
 
     [Display(Name = "Mata Pelajaran Umum")]
-    [Required(ErrorMessage = "{0} harus diisi")]
     [Range(0d, 100d, MaximumIsExclusive = false, ErrorMessage = "{0} harus antara {1} dan {2}")]
-    public required double MataPelajaranUmum { get; set; }
+    public double? MataPelajaranUmum { get; set; }
 }
 
 public static class EnumerableExtensions 
@@ -39,7 +37,7 @@ public static class EnumerableExtensions
         {
             Siswa = x,
             IdSiswa = x.Id,
-            MataPelajaranKejuruan = x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.MPKejuruan)?.Nilai ?? 0d,
-            MataPelajaranUmum = x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.MPUmum)?.Nilai ?? 0d
+            MataPelajaranKejuruan = x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.MPKejuruan)?.Nilai,
+            MataPelajaranUmum = x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.MPUmum)?.Nilai
         }).ToList();
 }

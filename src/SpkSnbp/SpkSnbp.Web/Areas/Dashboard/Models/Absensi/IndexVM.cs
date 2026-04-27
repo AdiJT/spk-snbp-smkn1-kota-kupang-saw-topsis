@@ -24,9 +24,8 @@ public class IndexEntryVM
     public required double? Absensi { get; set; }
 
     [Display(Name = "Jumlah Absen")]
-    [Required(ErrorMessage = "{0} harus diisi")]
     [Range(0, 45, MaximumIsExclusive = false, ErrorMessage = "{0} harus antara {1}-{2}")]
-    public int JumlahAbsen { get; set; }
+    public int? JumlahAbsen { get; set; }
 }
 
 public static class EnumerableExtensions 
@@ -37,6 +36,6 @@ public static class EnumerableExtensions
             Siswa = x,
             IdSiswa = x.Id,
             Absensi = x.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.Absensi)?.Nilai,
-            JumlahAbsen = x.JumlahAbsen ?? 0,
+            JumlahAbsen = x.JumlahAbsen,
         }).ToList();
 }

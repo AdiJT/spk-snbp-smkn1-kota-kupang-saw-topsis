@@ -111,10 +111,9 @@ public class SertifikatLSPController : Controller
         foreach (var entry in vm.DaftarEntry)
         {
             var siswa = await _siswaRepository.Get(entry.IdSiswa);
-            if (siswa is null || entry.SertifikatLSP is null) continue;
+            if (siswa is null) continue;
 
             var siswaKriteria = siswa.DaftarSiswaKriteria.FirstOrDefault(x => x.IdKriteria == (int)KriteriaEnum.SertLSP);
-
             if (siswaKriteria is null)
             {
                 siswaKriteria = new SiswaKriteria
@@ -125,6 +124,12 @@ public class SertifikatLSPController : Controller
                 };
 
                 _siswaKriteriaRepository.Add(siswaKriteria);
+            }
+
+            if (entry.SertifikatLSP is null)
+            {
+                _siswaKriteriaRepository.Delete(siswaKriteria);
+                continue;
             }
 
             siswaKriteria.Nilai = (int)entry.SertifikatLSP;
